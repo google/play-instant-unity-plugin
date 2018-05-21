@@ -14,7 +14,7 @@
 //    limitations under the License.
 // </copyright>
 
-namespace Google {
+namespace GooglePlayInstant.Editor.GooglePlayServices {
 
     /// <summary>
     /// Log severity.

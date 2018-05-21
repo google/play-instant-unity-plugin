@@ -14,19 +14,19 @@
 //    limitations under the License.
 // </copyright>
 
-namespace GooglePlayServices {
-    using Google;
-    using Google.JarResolver;
+namespace GooglePlayInstant.Editor.GooglePlayServices {
     using System;
     using System.Diagnostics;
     using System.IO;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text.RegularExpressions;
+    using UnityEngine;
 
     /// <summary>
     /// Subset of Android SDK package metadata required for installation.
     /// </summary>
-    internal class AndroidSdkPackageNameVersion {
+    public class AndroidSdkPackageNameVersion {
         /// Converts and old "android" package manager package name to a new "sdkmanager" package
         /// name.
         private static Dictionary<string, string> OLD_TO_NEW_PACKAGE_NAME_PREFIX =
@@ -216,7 +216,7 @@ namespace GooglePlayServices {
     /// <summary>
     /// Describes an Android SDK package.
     /// </summary>
-    internal class AndroidSdkPackage : AndroidSdkPackageNameVersion {
+    public class AndroidSdkPackage : AndroidSdkPackageNameVersion {
 
         /// <summary>
         /// Human readable description of the package.
@@ -269,7 +269,7 @@ namespace GooglePlayServices {
     /// <summary>
     /// Collection of AndroidSdkPackage instances indexed by package name.
     /// </summary>
-    internal class AndroidSdkPackageCollection {
+    public class AndroidSdkPackageCollection {
         private Dictionary<string, List<AndroidSdkPackage>> packages =
             new Dictionary<string, List<AndroidSdkPackage>>();
 
@@ -296,17 +296,25 @@ namespace GooglePlayServices {
         }
 
         /// <summary>
-        /// Get the most recent available version of a specified package.
+        /// Get the most recent available version of a specified package, prefering installed.
         /// </summary>
         /// <returns>The package if it's available, null otherwise.</returns>
-        public AndroidSdkPackage GetMostRecentAvailablePackage(string packageName) {
-            var packagesByVersion = new SortedDictionary<long, AndroidSdkPackage>();
-            foreach (var sdkPackage in this[packageName]) {
-                packagesByVersion[sdkPackage.Version] = sdkPackage;
+        public AndroidSdkPackage GetMostRecentAvailablePackage(string packageName)
+        {
+            var list = this[packageName];
+            if (list == null || !list.Any())
+            {
+                return null;
             }
-            if (packagesByVersion.Count == 0) return null;
+            var maxVersion = list.Max(p => p.Version);
             AndroidSdkPackage mostRecentPackage = null;
-            foreach (var pkg in packagesByVersion.Values) mostRecentPackage = pkg;
+            foreach (var package in list)
+            {
+                if (package.Version == maxVersion && (mostRecentPackage == null || !mostRecentPackage.Installed))
+                {
+                    mostRecentPackage = package;
+                }
+            }
             return mostRecentPackage;
         }
 
@@ -325,7 +333,7 @@ namespace GooglePlayServices {
     /// <summary>
     /// Interface used to interact with Android SDK managers.
     /// </summary>
-    internal interface IAndroidSdkManager {
+    public interface IAndroidSdkManager {
         /// <summary>
         /// Use the package manager to retrieve the set of installed and available packages.
         /// </summary>
@@ -413,14 +421,21 @@ namespace GooglePlayServices {
                                      level: LogLevel.Verbose);
             window.summaryText = "Getting Installed Android SDK packages.";
             window.modal = false;
-            window.progressTitle = window.summaryText;
+            // Note: not displaying progress bar
             window.autoScrollToBottom = true;
             window.RunAsync(
                 toolPath, toolArguments,
                 (CommandLine.Result result) => {
-                    window.Close();
-                    if (result.exitCode != 0) {
+                    if (result.exitCode == 0) {
+                        window.Close();
+                    }
+                    else
+                    {
                         PlayServicesResolver.Log(String.Format(PACKAGES_MISSING, result.message));
+                        window.noText = "Close";
+                        // After adding the button we need to scroll down a little more.
+                        window.scrollPosition.y = Mathf.Infinity;
+                        window.Repaint();
                     }
                     complete(result);
                 },
@@ -542,7 +557,7 @@ namespace GooglePlayServices {
             window.summaryText = summary;
             window.modal = false;
             window.bodyText = String.Format("{0} {1}\n\n", toolPath, toolArguments);
-            window.progressTitle = window.summaryText;
+            // Note: not displaying progress bar
             window.autoScrollToBottom = true;
             CommandLine.IOHandler ioHandler = null;
             if (licenseResponder != null) ioHandler = licenseResponder.AggregateLine;
@@ -551,7 +566,17 @@ namespace GooglePlayServices {
             window.RunAsync(
                 toolPath, toolArguments,
                 (CommandLine.Result result) => {
-                    window.Close();
+                    if (result.exitCode == 0) {
+                        window.Close();
+                    }
+                    else
+                    {
+                        PlayServicesResolver.Log(String.Format(PACKAGES_MISSING, result.message));
+                        window.noText = "Close";
+                        // After adding the button we need to scroll down a little more.
+                        window.scrollPosition.y = Mathf.Infinity;
+                        window.Repaint();
+                    }
                     LogInstallLicenseResult(toolPath, toolArguments, retrievingLicenses, packages,
                                             result);
                     complete(result);
@@ -905,28 +930,8 @@ namespace GooglePlayServices {
         /// <param name="packages">List of package versions to install / upgrade.</param>
         /// <param name="complete">Called when installation is complete.</param>
         public void InstallPackages(HashSet<AndroidSdkPackageNameVersion> packages,
-                                    Action<bool> complete) {
-            var packagesString = AndroidSdkPackageNameVersion.ListToString(packages);
-            // TODO: Remove this dialog when the package manager provides feedback while
-            // downloading.
-            bool installPackage = UnityEditor.EditorUtility.DisplayDialog(
-                "Missing Android SDK packages",
-                String.Format(
-                    "Android SDK packages need to be installed:\n" +
-                    "{0}\n" +
-                    "\n" +
-                    "The install process can be *slow* and does not provide any feedback " +
-                    "which may lead you to think Unity has hung / crashed.  Would you like " +
-                    "to wait for these package to be installed?",
-                    packagesString),
-                "Yes", cancel: "No");
-            if (!installPackage) {
-                PlayServicesResolver.Log(
-                    "User cancelled installation of Android SDK tools package.",
-                    level: LogLevel.Warning);
-                complete(false);
-                return;
-            }
+                                    Action<bool> complete)
+        {
             var packageNames = new List<string>();
             foreach (var pkg in packages) packageNames.Add(pkg.Name);
             SdkManagerUtil.InstallPackages(toolPath, String.Join(" ", packageNames.ToArray()),
@@ -938,7 +943,7 @@ namespace GooglePlayServices {
     /// <summary>
     /// Interacts with the available Android SDK package manager.
     /// </summary>
-    internal class AndroidSdkManager {
+    public class AndroidSdkManager {
         /// <summary>
         /// Find a tool in the Android SDK.
         /// </summary>
@@ -949,9 +954,8 @@ namespace GooglePlayServices {
         private static string FindAndroidSdkTool(string toolName, string sdkPath = null) {
             if (String.IsNullOrEmpty(sdkPath)) {
                 PlayServicesResolver.Log(String.Format(
-                    "{0}\n" +
-                    "Falling back to searching for the Android SDK tool {1} in the system path.",
-                    PlayServicesSupport.AndroidSdkConfigurationError, toolName));
+                    "Falling back to searching for the Android SDK tool {0} in the system path.",
+                    toolName));
             } else {
                 var extensions = new List<string> { CommandLine.GetExecutableExtension() };
                 if (UnityEngine.RuntimePlatform.WindowsEditor ==
@@ -993,9 +997,9 @@ namespace GooglePlayServices {
         /// </summary>
         /// <param name="complete">Used to report a AndroidSdkManager instance if a SDK manager is
         /// available, returns null otherwise.</param>
-        public static void Create(string sdkPath, Action<IAndroidSdkManager> complete) {
+        public static void Create(Action<IAndroidSdkManager> complete) {
             // Search for the new package manager
-            var sdkManagerTool = FindAndroidSdkTool(SdkManager.TOOL_NAME, sdkPath: sdkPath);
+            var sdkManagerTool = FindAndroidSdkTool(SdkManager.TOOL_NAME, AndroidSdkRoot);
             if (sdkManagerTool != null) {
                 var sdkManager = new SdkManager(sdkManagerTool);
                 var sdkManagerPackage = sdkManager.Package;
@@ -1025,15 +1029,35 @@ namespace GooglePlayServices {
             }
 
             // Search for the legacy package manager.
-            var androidTool = FindAndroidSdkTool("android", sdkPath: sdkPath);
+            var androidTool = FindAndroidSdkTool("android", AndroidSdkRoot);
             if (androidTool != null) {
-                var sdkManager = new AndroidToolSdkManager(androidTool, sdkPath);
+                var sdkManager = new AndroidToolSdkManager(androidTool, AndroidSdkRoot);
                 if (!sdkManager.IsWrapper) {
                     complete(sdkManager);
                     return;
                 }
             }
             CreateFailed(complete);
+        }
+
+        /// <summary>
+        /// The ANDROID_HOME environment variable key.
+        /// </summary>
+        public const string AndroidHome = "ANDROID_HOME";
+
+        /// <summary>
+        /// Returns the AndroidSdkRoot from Unity preferences or from the ANDROID_HOME environment variable.
+        /// </summary>
+        public static string AndroidSdkRoot
+        {
+            get
+            {
+                var sdkPath = UnityEditor.EditorPrefs.GetString("AndroidSdkRoot");
+                if (string.IsNullOrEmpty(sdkPath)) {
+                    sdkPath = Environment.GetEnvironmentVariable(AndroidHome);
+                }
+                return sdkPath;
+            }
         }
     }
 }

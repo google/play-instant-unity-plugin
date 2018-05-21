@@ -1,0 +1,82 @@
+/*
+ * Gradle file to build the Google Play Instant Plugin for Unity.
+ */
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+}
+
+/*
+ * Project level variables.
+ */
+project.ext {
+    // Determine the current OS.
+    os_name = System.getProperty("os.name").toLowerCase();
+    os_osx = os_name.contains("mac os x");
+    os_windows = os_name.contains("windows");
+    os_linux = os_name.contains("linux");
+
+    // Search for the Unity editor executable.
+    unity_exe = System.getProperty("UNITY_EXE")
+    if (unity_exe == null || unity_exe.isEmpty()) {
+        unity_exe = System.getenv("UNITY_EXE")
+    }
+    if (unity_exe == null || unity_exe.isEmpty()) {
+        if (os_osx) {
+            unity_exe = '/Applications/Unity/Unity.app/Contents/MacOS/Unity'
+        } else if (os_windows) {
+            unity_exe = 'C:\\Program Files\\Unity\\Editor\\Unity.exe'
+        } else if (os_linux) {
+            unity_exe = '/opt/Unity/Editor/Unity'
+        }
+    }
+    unity_exe_found = (new File(unity_exe)).exists();
+    if (!unity_exe_found) {
+        throw new GradleException('Unity editor executable not found')
+    }
+
+    // Assume that the git project is directly under Assets.
+    assetsPath = file('.').getParentFile()
+    if (assetsPath.getName() != 'Assets') {
+        throw new GradleException('Expect gradle build is run from folder under Assets')
+    }
+
+    rootPath = assetsPath.getParentFile()
+    pluginBuildPath = file("${rootPath}/plugin-build")
+    editorBuildPath = file("${pluginBuildPath}/Assets/GooglePlayInstant/Editor")
+
+    pluginVersion = '0.5'
+    outputPluginPath = file('google-play-instant-plugin-' + pluginVersion + '.unitypackage').getPath()
+}
+
+task copy_sourceFilesToAssets(type: Copy) {
+    description 'Copies files into build staging location.'
+    from file("GooglePlayInstant/Editor")
+    from "LICENSE", "README.md", "CONTRIBUTING.md"
+    into editorBuildPath
+    exclude '**/*.meta'
+}
+
+task export_package(dependsOn: copy_sourceFilesToAssets) {
+    description 'Creates and exports the Plugin unity package.'
+    doFirst {
+        def argv = [
+                "-batchmode",
+                "-projectPath",
+                pluginBuildPath,
+                "-logFile",
+                "build.log",
+                "-exportPackage",
+                "Assets/GooglePlayInstant",
+                outputPluginPath,
+                "-quit"]
+        exec {
+            executable "${unity_exe}"
+            args argv
+        }
+    }
+}
+
+project.defaultTasks = ['export_package']
