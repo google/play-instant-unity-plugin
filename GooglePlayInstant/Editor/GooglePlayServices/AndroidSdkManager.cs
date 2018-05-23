@@ -299,19 +299,15 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
         /// Get the most recent available version of a specified package, prefering installed.
         /// </summary>
         /// <returns>The package if it's available, null otherwise.</returns>
-        public AndroidSdkPackage GetMostRecentAvailablePackage(string packageName)
-        {
+        public AndroidSdkPackage GetMostRecentAvailablePackage(string packageName) {
             var list = this[packageName];
-            if (list == null || !list.Any())
-            {
+            if (list == null || !list.Any()) {
                 return null;
             }
             var maxVersion = list.Max(p => p.Version);
             AndroidSdkPackage mostRecentPackage = null;
-            foreach (var package in list)
-            {
-                if (package.Version == maxVersion && (mostRecentPackage == null || !mostRecentPackage.Installed))
-                {
+            foreach (var package in list) {
+                if (package.Version == maxVersion && (mostRecentPackage == null || !mostRecentPackage.Installed)) {
                     mostRecentPackage = package;
                 }
             }
@@ -426,17 +422,7 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
             window.RunAsync(
                 toolPath, toolArguments,
                 (CommandLine.Result result) => {
-                    if (result.exitCode == 0) {
-                        window.Close();
-                    }
-                    else
-                    {
-                        PlayServicesResolver.Log(String.Format(PACKAGES_MISSING, result.message));
-                        window.noText = "Close";
-                        // After adding the button we need to scroll down a little more.
-                        window.scrollPosition.y = Mathf.Infinity;
-                        window.Repaint();
-                    }
+                    HandleProcessExited(result, window);
                     complete(result);
                 },
                 maxProgressLines: 50);
@@ -566,17 +552,7 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
             window.RunAsync(
                 toolPath, toolArguments,
                 (CommandLine.Result result) => {
-                    if (result.exitCode == 0) {
-                        window.Close();
-                    }
-                    else
-                    {
-                        PlayServicesResolver.Log(String.Format(PACKAGES_MISSING, result.message));
-                        window.noText = "Close";
-                        // After adding the button we need to scroll down a little more.
-                        window.scrollPosition.y = Mathf.Infinity;
-                        window.Repaint();
-                    }
+                    HandleProcessExited(result, window);
                     LogInstallLicenseResult(toolPath, toolArguments, retrievingLicenses, packages,
                                             result);
                     complete(result);
@@ -584,6 +560,24 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
                 ioHandler: ioHandler,
                 maxProgressLines: retrievingLicenses ? 250 : 500);
             window.Show();
+        }
+
+        /// <summary>
+        /// Handles window behavior when the CommandLineDialog finishes, closing the window automatically if
+        /// execution succeeded and leaving it open with a "Close" button if it failed.
+        /// </summary>
+        /// <param name="result">The result of the process execution.</param>
+        /// <param name="window">The window that should be adjusted based on the process execution result.</param>
+        private static void HandleProcessExited(CommandLine.Result result, CommandLineDialog window) {
+            if (result.exitCode == 0) {
+                window.Close();
+            } else {
+                PlayServicesResolver.Log(string.Format(PACKAGES_MISSING, result.message));
+                window.noText = "Close";
+                // After adding the button we need to scroll down a little more.
+                window.scrollPosition.y = Mathf.Infinity;
+                window.Repaint();
+            }
         }
 
         /// <summary>
@@ -1048,10 +1042,8 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
         /// <summary>
         /// Returns the AndroidSdkRoot from Unity preferences or from the ANDROID_HOME environment variable.
         /// </summary>
-        public static string AndroidSdkRoot
-        {
-            get
-            {
+        public static string AndroidSdkRoot {
+            get {
                 var sdkPath = UnityEditor.EditorPrefs.GetString("AndroidSdkRoot");
                 if (string.IsNullOrEmpty(sdkPath)) {
                     sdkPath = Environment.GetEnvironmentVariable(AndroidHome);

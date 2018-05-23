@@ -587,8 +587,7 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
             process.StartInfo.WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory;
 
             var started = process.Start();
-            if (!started)
-            {
+            if (!started) {
                 UnityEngine.Debug.LogErrorFormat("Failed to start {0}", process);
                 return new Result {exitCode = -1};
             }
