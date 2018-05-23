@@ -14,7 +14,7 @@
 //    limitations under the License.
 // </copyright>
 
-namespace GooglePlayServices {
+namespace GooglePlayInstant.Editor.GooglePlayServices {
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -22,19 +22,16 @@ namespace GooglePlayServices {
     using System.Text.RegularExpressions;
     using UnityEditor;
 
-    using Google;
-    using Google.JarResolver;
-
     /// <summary>
     /// Utilities to determine Java tool installation and validate the Java installation for the
     /// project's build settings.
     /// </summary>
-    internal static class JavaUtilities {
+    public static class JavaUtilities {
 
         /// <summary>
         /// Exception thrown if a Java tool isn't found.
         /// </summary>
-        internal class ToolNotFoundException : ApplicationException {
+        public class ToolNotFoundException : ApplicationException {
             public ToolNotFoundException(string message) : base(message) {}
         }
 
@@ -83,7 +80,7 @@ namespace GooglePlayServices {
         /// </summary>
         /// <returns>Path to the "java" binary if successful, throws ToolNotFoundException
         /// otherwise.</returns>
-        internal static string JavaBinaryPath {
+        public static string JavaBinaryPath {
             get { return FindJavaTool("java"); }
         }
 
@@ -110,7 +107,7 @@ namespace GooglePlayServices {
         /// <summary>
         /// Find a Java tool.
         /// </summary>
-        /// <param name="toolName">Name of the tool to search for.</param>
+        /// <param name="javaTool">Name of the tool to search for.</param>
         /// <returns>Path to the tool if it's found, throws a ToolNotFoundException
         /// otherwise.</returns>
         private static string FindJavaTool(string javaTool)

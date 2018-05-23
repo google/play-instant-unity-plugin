@@ -14,7 +14,7 @@
 //    limitations under the License.
 // </copyright>
 
-namespace GooglePlayServices
+namespace GooglePlayInstant.Editor.GooglePlayServices
 {
     using UnityEditor;
     using UnityEngine;
@@ -157,7 +157,16 @@ namespace GooglePlayServices
                 {
                     result = false;
                 }
-                if (buttonClicked != null) buttonClicked(this);
+
+                // TODO: figure out why the click delegate wasn't being called (need to force Close)
+                if (buttonClicked == null)
+                {
+                    Close();
+                }
+                else
+                {
+                    buttonClicked(this);
+                }
             }
         }
 

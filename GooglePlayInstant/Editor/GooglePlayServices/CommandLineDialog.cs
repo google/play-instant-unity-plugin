@@ -14,7 +14,7 @@
 //    limitations under the License.
 // </copyright>
 
-namespace GooglePlayServices
+namespace GooglePlayInstant.Editor.GooglePlayServices
 {
     using System.Collections.Generic;
     using System.Collections;
@@ -23,8 +23,6 @@ namespace GooglePlayServices
     using System;
     using UnityEditor;
     using UnityEngine;
-
-    using Google;
 
     public class CommandLineDialog : TextAreaDialog
     {
@@ -80,7 +78,8 @@ namespace GooglePlayServices
             private void CommandLineIOHandler(Process process, StreamWriter stdin,
                                               CommandLine.StreamData data)
             {
-                if (process.HasExited || data.data == null) return;
+                // Note: ignoring process.HasExited to print errors that were emitted during shutdown.
+                if (data.data == null) return;
                 // Count lines in stdout.
                 if (data.handle == 0) linesReported += CountLines(data.text);
                 // Enqueue data for the text view.
@@ -93,8 +92,8 @@ namespace GooglePlayServices
             public void CommandLineToolCompletion(CommandLine.Result result)
             {
                 PlayServicesResolver.Log(
-                    String.Format("Command completed: {0}", result.message),
-                    level: LogLevel.Verbose);
+                    string.Format("Command completed with exit code {0}: {1}", result.exitCode, result.message),
+                    result.exitCode == 0 ? LogLevel.Info: LogLevel.Error);
                 this.result = result;
             }
 

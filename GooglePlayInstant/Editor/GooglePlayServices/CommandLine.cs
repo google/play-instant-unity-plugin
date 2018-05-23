@@ -14,7 +14,7 @@
 //    limitations under the License.
 // </copyright>
 
-namespace GooglePlayServices
+namespace GooglePlayInstant.Editor.GooglePlayServices
 {
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -22,9 +22,6 @@ namespace GooglePlayServices
     using System.Text.RegularExpressions;
     using System.Threading;
     using System;
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif  // UNITY_EDITOR
 
     public static class CommandLine
     {
@@ -589,7 +586,12 @@ namespace GooglePlayServices
             process.StartInfo.FileName = toolPath;
             process.StartInfo.WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory;
 
-            process.Start();
+            var started = process.Start();
+            if (!started) {
+                UnityEngine.Debug.LogErrorFormat("Failed to start {0}", process);
+                return new Result {exitCode = -1};
+            }
+            UnityEngine.Debug.LogFormat("Started command with PID {0}", process.Id);
 
             // If an I/O handler was specified, call it with no data to provide a process and stdin
             // handle before output data is sent to it.
