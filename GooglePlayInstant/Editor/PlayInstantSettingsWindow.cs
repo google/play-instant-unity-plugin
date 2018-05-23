@@ -107,16 +107,25 @@ namespace GooglePlayInstant.Editor
                 }
             }
 
-            // TODO: Update the Manifest if necessary.
-            PlayInstantBuildConfiguration.DefinePlayInstantScriptingSymbol();
-            PlayInstantBuildConfiguration.SetInstantUrl(_instantUrl);
-            Close();
+            var errorMessage = AndroidManifestUpdater.SwitchToInstant(uri);
+            if (errorMessage == null)
+            {
+                PlayInstantBuildConfiguration.DefinePlayInstantScriptingSymbol();
+                PlayInstantBuildConfiguration.SetInstantUrl(_instantUrl);
+                Close();
+            }
+            else
+            {
+                var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
+                Debug.LogError(message);
+                EditorUtility.DisplayDialog("Error Saving", message, "OK");
+            }
         }
 
         private void SelectPlatformInstalled()
         {
-            // TODO: Update the Manifest if necessary.
             PlayInstantBuildConfiguration.UndefinePlayInstantScriptingSymbol();
+            AndroidManifestUpdater.SwitchToInstalled();
             Close();
         }
 

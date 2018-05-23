@@ -67,5 +67,11 @@ namespace GooglePlayInstant.Editor
         {
             PlayInstantSdkInstaller.SetUp();
         }
+
+        [MenuItem("PlayInstant/Build and Run #%r", false, 300)]
+        private static void RunOnDevice()
+        {
+            PlayInstantRunner.BuildAndRun();
+        }
     }
 }
