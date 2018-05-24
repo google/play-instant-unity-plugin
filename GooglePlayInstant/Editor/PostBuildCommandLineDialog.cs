@@ -44,7 +44,7 @@ namespace GooglePlayInstant.Editor
 
         [SerializeField] public CommandLineParameters commandLineParameters;
 
-        // Use two bool fields to detect when the AppDomain is reset.
+        // Use two bool fields to detect when this script is reloaded and the AppDomain is reset.
         // See https://docs.unity3d.com/Manual/script-Serialization.html
         private static bool _nonserializedField;
         [SerializeField] private bool _serializedField;
@@ -79,6 +79,15 @@ namespace GooglePlayInstant.Editor
 
         private void RunCommandAsync()
         {
+            Dictionary<string, string> envVars = null;
+            if (commandLineParameters.EnvironmentKey != null && commandLineParameters.EnvironmentValue != null)
+            {
+                envVars = new Dictionary<string, string>
+                {
+                    {commandLineParameters.EnvironmentKey, commandLineParameters.EnvironmentValue}
+                };
+            }
+
             RunAsync(
                 commandLineParameters.FileName,
                 commandLineParameters.Arguments,
@@ -96,10 +105,7 @@ namespace GooglePlayInstant.Editor
                         Repaint();
                     }
                 },
-                envVars: new Dictionary<string, string>
-                {
-                    {commandLineParameters.EnvironmentKey, commandLineParameters.EnvironmentValue}
-                });
+                envVars: envVars);
         }
 
         /// <summary>

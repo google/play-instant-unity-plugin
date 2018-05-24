@@ -17,8 +17,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.AndroidManifest
 {
+    /// <summary>
+    /// A helper class for updating the AndroidManifest to target installed vs instant apps.
+    /// </summary>
     public static class AndroidManifestHelper
     {
         private const string Action = "action";
@@ -53,9 +56,13 @@ namespace GooglePlayInstant.Editor
         internal const string PreconditionOneApplicationElement = "expect 1 application element";
         internal const string PreconditionOneMainActivity = "expect 1 activity with action MAIN and category LAUNCHER";
 
+        /// <summary>
+        /// Creates a new XDocument representing a basic Unity AndroidManifest XML file.
+        /// </summary>
         public static XDocument CreateManifestXDocument()
         {
-            return new XDocument(new XElement(Manifest,
+            return new XDocument(new XElement(
+                Manifest,
                 new XAttribute(AndroidXmlns, XNamespace.Get(AndroidNamespaceUrl)),
                 new XElement(Application,
                     new XElement(Activity,
@@ -65,6 +72,9 @@ namespace GooglePlayInstant.Editor
                             new XElement(Category, new XAttribute(AndroidNameXName, CategoryLauncher)))))));
         }
 
+        /// <summary>
+        /// Converts the specified XDocument representing an AndroidManifest to support an installed app build.
+        /// </summary>
         public static void ConvertManifestToInstalled(XDocument doc)
         {
             foreach (var manifestElement in doc.Elements(Manifest))
@@ -81,6 +91,12 @@ namespace GooglePlayInstant.Editor
             }
         }
 
+        /// <summary>
+        /// Converts the specified XDocument representing an AndroidManifest to support an instant app build.
+        /// </summary>
+        /// <param name="doc">An XDocument representing an AndroidManifest.</param>
+        /// <param name="uri">The Default URL to use, or null for a URL-less instant app.</param>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
         public static string ConvertManifestToInstant(XDocument doc, Uri uri)
         {
             var manifestElement = GetExactlyOne(doc.Elements(Manifest));
@@ -131,6 +147,7 @@ namespace GooglePlayInstant.Editor
 
         private static string UpdateViewIntentFilter(XElement mainActivity, Uri uri)
         {
+            // Find the Activity's Intent Filter with action type VIEW to update, or create a new Intent Filter.
             var actionViewIntentFilters = GetActionViewIntentFilters(mainActivity);
             XElement viewIntentFilter;
             switch (actionViewIntentFilters.Count())
@@ -149,6 +166,8 @@ namespace GooglePlayInstant.Editor
                     return "more than one VIEW intent-filter";
             }
 
+            // See https://developer.android.com/topic/google-play-instant/getting-started/game-instant-app#app-links
+            // and https://developer.android.com/training/app-links/verify-site-associations for info on "autoVerify".
             viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, "true");
             viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, ActionView));
             viewIntentFilter.Add(
@@ -169,6 +188,7 @@ namespace GooglePlayInstant.Editor
 
         private static string UpdateDefaultUrlElement(XElement mainActivity, Uri uri)
         {
+            // Find the Activity's existing meta-data element for default-url to update, or create a new one.
             var metaDataElements = GetDefaultUrlMetaDataElements(mainActivity);
             XElement defaultUrlMetaData;
             switch (metaDataElements.Count())
@@ -193,8 +213,7 @@ namespace GooglePlayInstant.Editor
 
         private static IEnumerable<XElement> GetMainActivities(XContainer applicationElement)
         {
-            // See https://developer.android.com/topic/instant-apps/getting-started/prepare.html#default-url
-            // Find all activities with an <intent-filter> that has
+            // Find all activities with an <intent-filter> that contains
             //  <action android:name="android.intent.action.MAIN" />
             //  <category android:name="android.intent.category.LAUNCHER" />
             return
@@ -213,6 +232,7 @@ namespace GooglePlayInstant.Editor
 
         private static IEnumerable<XElement> GetActionViewIntentFilters(XContainer mainActivity)
         {
+            // Find all intent filters that contain <action android:name="android.intent.action.VIEW" />
             return from intentFilter in mainActivity.Elements(IntentFilter)
                 where intentFilter.Elements(Action).Any(e => (string) e.Attribute(AndroidNameXName) == ActionView)
                 select intentFilter;
@@ -220,6 +240,7 @@ namespace GooglePlayInstant.Editor
 
         private static IEnumerable<XElement> GetDefaultUrlMetaDataElements(XContainer mainActivity)
         {
+            // Find all elements of the form <meta-data android:name="default-url" />
             return from metaData in mainActivity.Elements(MetaData)
                 where (string) metaData.Attribute(AndroidNameXName) == DefaultUrl
                 select metaData;
@@ -235,6 +256,8 @@ namespace GooglePlayInstant.Editor
 
         private static XElement GetExactlyOne(IEnumerable<XElement> elements)
         {
+            // If the IEnumerable has exactly 1 element, return it. If the IEnumerable has 0 or 2+ elements, return
+            // null. Cannot use FirstOrDefault() here since that will return the first element if 2+ elements.
             return elements.Count() == 1 ? elements.First() : null;
         }
     }

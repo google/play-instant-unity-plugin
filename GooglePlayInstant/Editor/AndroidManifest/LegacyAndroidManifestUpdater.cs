@@ -16,70 +16,20 @@ using System;
 using System.IO;
 using System.Xml.Linq;
 using UnityEngine;
-#if UNITY_2018_1_OR_NEWER
-using UnityEditor;
-using UnityEditor.Android;
-#endif
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.AndroidManifest
 {
     /// <summary>
-    /// This class has two modes of operation depending on the version of Unity.
-    ///
-    /// Pre-2018: Saves manifest changes to Assets/Plugins/Android/AndroidManifest.xml
-    ///
-    /// 2018.1+: Obtains the AndroidManifest.xml after it is fully merged but before the build occurs, and updates it
-    /// according to whether this is a Play Instant build.
+    /// An IAndroidManifestUpdater for Unity versions 2017 and earlier that saves manifest changes to
+    /// the file Assets/Plugins/Android/AndroidManifest.xml
     /// </summary>
-    public class AndroidManifestUpdater
-#if UNITY_2018_1_OR_NEWER
-        : IPostGenerateGradleAndroidProject
-#endif
+    public class LegacyAndroidManifestUpdater : IAndroidManifestUpdater
     {
-#if UNITY_2018_1_OR_NEWER
-        public int callbackOrder
-        {
-            get { return 100; }
-        }
-
-        public void OnPostGenerateGradleAndroidProject(string path)
-        {
-            if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
-            {
-                return;
-            }
-
-            // Update the final merged AndroidManifest.xml prior to the gradle build.
-            var manifestPath = Path.Combine(path, "src/main/AndroidManifest.xml");
-            Debug.LogFormat("Updating manifest for Play Instant: {0}", manifestPath);
-
-            Uri uri = null;
-            var instantUrl = PlayInstantBuildConfiguration.GetInstantUrl();
-            if (!string.IsNullOrEmpty(instantUrl))
-            {
-                uri = new Uri(instantUrl);
-            }
-
-            var doc = XDocument.Load(manifestPath);
-            var errorMessage = AndroidManifestHelper.ConvertManifestToInstant(doc, uri);
-            if (errorMessage != null)
-            {
-                var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
-                Debug.LogError(message);
-                EditorUtility.DisplayDialog("Build Error", message, "OK");
-                return;
-            }
-
-            doc.Save(manifestPath);
-        }
-#else
         private const string AndroidManifestAssetsDirectory = "Assets/Plugins/Android/";
         private const string AndroidManifestAssetsPath = AndroidManifestAssetsDirectory + "AndroidManifest.xml";
-#endif
 
-        public static string SwitchToInstant(Uri uri)
+        public string SwitchToInstant(Uri uri)
         {
-#if !UNITY_2018_1_OR_NEWER
             XDocument doc;
             if (File.Exists(AndroidManifestAssetsPath))
             {
@@ -106,13 +56,11 @@ namespace GooglePlayInstant.Editor
             doc.Save(AndroidManifestAssetsPath);
 
             Debug.LogFormat("Successfully updated {0}", AndroidManifestAssetsPath);
-#endif
             return null;
         }
 
-        public static void SwitchToInstalled()
+        public void SwitchToInstalled()
         {
-#if !UNITY_2018_1_OR_NEWER
             if (!File.Exists(AndroidManifestAssetsPath))
             {
                 Debug.LogFormat("Nothing to do for {0} since file does not exist", AndroidManifestAssetsPath);
@@ -124,7 +72,6 @@ namespace GooglePlayInstant.Editor
             AndroidManifestHelper.ConvertManifestToInstalled(doc);
             doc.Save(AndroidManifestAssetsPath);
             Debug.LogFormat("Successfully updated {0}", AndroidManifestAssetsPath);
-#endif
         }
     }
 }

@@ -16,10 +16,10 @@ using System;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
-using GooglePlayInstant.Editor;
+using GooglePlayInstant.Editor.AndroidManifest;
 using NUnit.Framework;
 
-namespace GooglePlayInstant.Tests.Editor
+namespace GooglePlayInstant.Tests.Editor.AndroidManifest
 {
     [TestFixture]
     public class AndroidManifestHelperTests
