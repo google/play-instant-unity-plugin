@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,6 +23,13 @@ namespace GooglePlayInstant.Editor
     {
         private static readonly string[] PlatformOptions = {"Installed", "Instant"};
         private const int FieldMinWidth = 100;
+
+        private readonly IAndroidManifestUpdater _androidManifestUpdater =
+#if UNITY_2018_1_OR_NEWER
+            new PostGenerateGradleProjectAndroidManifestUpdater();
+#else
+            new LegacyAndroidManifestUpdater();
+#endif
 
         private bool _isInstant;
         private string _instantUrl;
@@ -107,16 +115,25 @@ namespace GooglePlayInstant.Editor
                 }
             }
 
-            // TODO: Update the Manifest if necessary.
-            PlayInstantBuildConfiguration.DefinePlayInstantScriptingSymbol();
-            PlayInstantBuildConfiguration.SetInstantUrl(_instantUrl);
-            Close();
+            var errorMessage = _androidManifestUpdater.SwitchToInstant(uri);
+            if (errorMessage == null)
+            {
+                PlayInstantBuildConfiguration.DefinePlayInstantScriptingSymbol();
+                PlayInstantBuildConfiguration.SetInstantUrl(_instantUrl);
+                Close();
+            }
+            else
+            {
+                var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
+                Debug.LogError(message);
+                EditorUtility.DisplayDialog("Error Saving", message, "OK");
+            }
         }
 
         private void SelectPlatformInstalled()
         {
-            // TODO: Update the Manifest if necessary.
             PlayInstantBuildConfiguration.UndefinePlayInstantScriptingSymbol();
+            _androidManifestUpdater.SwitchToInstalled();
             Close();
         }
 

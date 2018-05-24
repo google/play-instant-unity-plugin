@@ -12,7 +12,7 @@ The plugin’s features include:
 ## Installing the Plugin
 
 ### Prerequisites
- * Unity 5.6 or higher.
+ * Unity 2017.3 or higher.
  * A device running Android 5.0 (Lollipop) or newer.
 
 ### Download and Install
