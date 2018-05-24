@@ -28,21 +28,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public class PostBuildCommandLineDialog : CommandLineDialog
     {
-        /// <summary>
-        /// Struct encapsulating parameters for running a command line process.
-        ///
-        /// Note: supports a single environment variable.
-        /// </summary>
-        [Serializable]
-        public struct CommandLineParameters
-        {
-            [SerializeField] public string FileName;
-            [SerializeField] public string Arguments;
-            [SerializeField] public string EnvironmentKey;
-            [SerializeField] public string EnvironmentValue;
-        }
-
-        [SerializeField] public CommandLineParameters commandLineParameters;
+        [SerializeField] public CommandLineParameters CommandLineParams;
 
         // Use two bool fields to detect when this script is reloaded and the AppDomain is reset.
         // See https://docs.unity3d.com/Manual/script-Serialization.html
@@ -51,7 +37,7 @@ namespace GooglePlayInstant.Editor
 
         private void Awake()
         {
-            commandLineParameters = new CommandLineParameters();
+            CommandLineParams = new CommandLineParameters();
             _nonserializedField = false;
             _serializedField = false;
         }
@@ -79,18 +65,9 @@ namespace GooglePlayInstant.Editor
 
         private void RunCommandAsync()
         {
-            Dictionary<string, string> envVars = null;
-            if (commandLineParameters.EnvironmentKey != null && commandLineParameters.EnvironmentValue != null)
-            {
-                envVars = new Dictionary<string, string>
-                {
-                    {commandLineParameters.EnvironmentKey, commandLineParameters.EnvironmentValue}
-                };
-            }
-
             RunAsync(
-                commandLineParameters.FileName,
-                commandLineParameters.Arguments,
+                CommandLineParams.FileName,
+                CommandLineParams.Arguments,
                 commandLineResult =>
                 {
                     if (commandLineResult.exitCode == 0)
@@ -105,7 +82,7 @@ namespace GooglePlayInstant.Editor
                         Repaint();
                     }
                 },
-                envVars: envVars);
+                envVars: CommandLineParams.EnvironmentVariables);
         }
 
         /// <summary>

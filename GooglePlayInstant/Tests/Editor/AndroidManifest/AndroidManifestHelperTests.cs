@@ -32,6 +32,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private const string Activity = "activity";
         private const string Application = "application";
         private const string Category = "category";
+        private const string CategoryBrowsable = "android.intent.category.BROWSABLE";
+        private const string CategoryDefault = "android.intent.category.DEFAULT";
         private const string CategoryLauncher = "android.intent.category.LAUNCHER";
         private const string Data = "data";
         private const string DefaultUrl = "default-url";
@@ -51,6 +53,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private static readonly XAttribute AndroidNamespaceAttribute =
             new XAttribute(AndroidXmlns, XNamespace.Get(AndroidNamespaceUrl));
 
+        private const string MainActivityName = "MainActivity";
         private const string TestUrl = "https://example.com";
         private static readonly Uri TestUri = new Uri(TestUrl);
 
@@ -64,7 +67,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                 new XElement(Category, new XAttribute(AndroidNameXName, CategoryLauncher)));
 
         private static readonly XElement MainActivityNoUrls =
-            new XElement(Activity, new XAttribute(AndroidNameXName, "MainActivity"), MainLauncherIntentFilter);
+            new XElement(Activity, new XAttribute(AndroidNameXName, MainActivityName), MainLauncherIntentFilter);
 
         private static readonly XElement OtherBasicActivity =
             new XElement(Activity, new XAttribute(AndroidNameXName, "OtherBasicActivity"));
@@ -94,7 +97,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                     new XElement(Application,
                         OtherBasicActivity,
                         new XElement(Activity,
-                            new XAttribute(AndroidNameXName, "MainActivity"),
+                            new XAttribute(AndroidNameXName, MainActivityName),
                             MainLauncherIntentFilter,
                             CreateViewIntentFilter("example.com", null)),
                         OtherActivityWithViewIntent)));
@@ -107,7 +110,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                     new XElement(Application,
                         OtherBasicActivity,
                         new XElement(Activity,
-                            new XAttribute(AndroidNameXName, "MainActivity"),
+                            new XAttribute(AndroidNameXName, MainActivityName),
                             MainLauncherIntentFilter,
                             CreateViewIntentFilter("example.com", null),
                             CreateDefaultUrl("https://example.com/")),
@@ -254,8 +257,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                 IntentFilter,
                 new XAttribute(AndroidAutoVerifyXName, "true"),
                 new XElement(Action, new XAttribute(AndroidNameXName, ActionView)),
-                new XElement(Category, new XAttribute(AndroidNameXName, "android.intent.category.BROWSABLE")),
-                new XElement(Category, new XAttribute(AndroidNameXName, "android.intent.category.DEFAULT")),
+                new XElement(Category, new XAttribute(AndroidNameXName, CategoryBrowsable)),
+                new XElement(Category, new XAttribute(AndroidNameXName, CategoryDefault)),
                 new XElement(Data, new XAttribute(AndroidSchemeXName, "http")),
                 new XElement(Data, new XAttribute(AndroidSchemeXName, "https")),
                 new XElement(Data, new XAttribute(AndroidHostXName, host)),

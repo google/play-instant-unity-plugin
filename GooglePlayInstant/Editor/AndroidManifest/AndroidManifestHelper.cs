@@ -30,6 +30,8 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string Activity = "activity";
         private const string Application = "application";
         private const string Category = "category";
+        private const string CategoryBrowsable = "android.intent.category.BROWSABLE";
+        private const string CategoryDefault = "android.intent.category.DEFAULT";
         private const string CategoryLauncher = "android.intent.category.LAUNCHER";
         private const string Data = "data";
         private const string DefaultUrl = "default-url";
@@ -171,9 +173,8 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, "true");
             viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, ActionView));
             viewIntentFilter.Add(
-                CreateElementWithAttribute(Category, AndroidNameXName, "android.intent.category.BROWSABLE"));
-            viewIntentFilter.Add(CreateElementWithAttribute(Category, AndroidNameXName,
-                "android.intent.category.DEFAULT"));
+                CreateElementWithAttribute(Category, AndroidNameXName, CategoryBrowsable));
+            viewIntentFilter.Add(CreateElementWithAttribute(Category, AndroidNameXName, CategoryDefault));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidSchemeXName, "http"));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidSchemeXName, "https"));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidHostXName, uri.Host));

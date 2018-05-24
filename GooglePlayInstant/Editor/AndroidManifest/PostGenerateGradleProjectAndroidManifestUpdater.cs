@@ -41,8 +41,6 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return;
             }
 
-            var x = new AndroidTargetDeviceARMv7();
-
             // Update the final merged AndroidManifest.xml prior to the gradle build.
             var manifestPath = Path.Combine(path, "src/main/AndroidManifest.xml");
             Debug.LogFormat("Updating manifest for Play Instant: {0}", manifestPath);

@@ -29,6 +29,7 @@ namespace GooglePlayInstant.Editor
         private const string BuildAndRunErrorTitle = "Build and Run Error";
         private const string OkButtonText = "OK";
         private const string CancelButtonText = "Cancel";
+        private const string InstantAppsJarPath = "extras/google/instantapps/tools/ia.jar";
 
         public static void BuildAndRun()
         {
@@ -46,7 +47,7 @@ namespace GooglePlayInstant.Editor
                 return;
             }
 
-            var jarPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, "extras/google/instantapps/tools/ia.jar");
+            var jarPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, InstantAppsJarPath);
             if (!File.Exists(jarPath))
             {
                 Debug.LogErrorFormat("Build and Run failed to locate ia.jar file at: {0}", jarPath);
@@ -131,13 +132,13 @@ namespace GooglePlayInstant.Editor
             window.summaryText = "Installing app on device";
             window.bodyText = "The APK built successfully. Waiting for scripts to reload...\n";
             window.autoScrollToBottom = true;
-            window.commandLineParameters = new PostBuildCommandLineDialog.CommandLineParameters()
+            window.CommandLineParams = new CommandLineParameters()
             {
                 FileName = JavaUtilities.JavaBinaryPath,
                 Arguments = string.Format("-jar {0} run {1}", jarPath, apkPath),
-                EnvironmentKey = AndroidSdkManager.AndroidHome,
-                EnvironmentValue = AndroidSdkManager.AndroidSdkRoot
             };
+            window.CommandLineParams.AddEnvironmentVariable(
+                AndroidSdkManager.AndroidHome, AndroidSdkManager.AndroidSdkRoot);
             window.Show();
         }
 
