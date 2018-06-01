@@ -25,14 +25,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
     public static class AndroidManifestHelper
     {
         private const string Action = "action";
-        private const string ActionMain = "android.intent.action.MAIN";
-        private const string ActionView = "android.intent.action.VIEW";
         private const string Activity = "activity";
         private const string Application = "application";
         private const string Category = "category";
-        private const string CategoryBrowsable = "android.intent.category.BROWSABLE";
-        private const string CategoryDefault = "android.intent.category.DEFAULT";
-        private const string CategoryLauncher = "android.intent.category.LAUNCHER";
         private const string Data = "data";
         private const string DefaultUrl = "default-url";
         private const string IntentFilter = "intent-filter";
@@ -40,6 +35,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string MetaData = "meta-data";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
+
         private static readonly XName AndroidXmlns = XNamespace.Xmlns + AndroidNamespaceAlias;
         private static readonly XName AndroidAutoVerifyXName = XName.Get("autoVerify", AndroidNamespaceUrl);
         private static readonly XName AndroidHostXName = XName.Get("host", AndroidNamespaceUrl);
@@ -70,8 +66,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                     new XElement(Activity,
                         new XAttribute(AndroidNameXName, "com.unity3d.player.UnityPlayerActivity"),
                         new XElement(IntentFilter,
-                            new XElement(Action, new XAttribute(AndroidNameXName, ActionMain)),
-                            new XElement(Category, new XAttribute(AndroidNameXName, CategoryLauncher)))))));
+                            new XElement(Action, new XAttribute(AndroidNameXName, Android.IntentActionMain)),
+                            new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryLauncher))
+                        )))));
         }
 
         /// <summary>
@@ -171,10 +168,11 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             // See https://developer.android.com/topic/google-play-instant/getting-started/game-instant-app#app-links
             // and https://developer.android.com/training/app-links/verify-site-associations for info on "autoVerify".
             viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, "true");
-            viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, ActionView));
+            viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, Android.IntentActionView));
             viewIntentFilter.Add(
-                CreateElementWithAttribute(Category, AndroidNameXName, CategoryBrowsable));
-            viewIntentFilter.Add(CreateElementWithAttribute(Category, AndroidNameXName, CategoryDefault));
+                CreateElementWithAttribute(Category, AndroidNameXName, Android.IntentCategoryBrowsable));
+            viewIntentFilter.Add(CreateElementWithAttribute(Category, AndroidNameXName,
+                Android.IntentCategoryDefault));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidSchemeXName, "http"));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidSchemeXName, "https"));
             viewIntentFilter.Add(CreateElementWithAttribute(Data, AndroidHostXName, uri.Host));
@@ -223,9 +221,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                     (from intentFilter in activityElement.Elements(IntentFilter)
                         where
                             intentFilter.Elements(Action)
-                                .Any(e => (string) e.Attribute(AndroidNameXName) == ActionMain) &&
+                                .Any(e => (string) e.Attribute(AndroidNameXName) == Android.IntentActionMain) &&
                             intentFilter.Elements(Category)
-                                .Any(e => (string) e.Attribute(AndroidNameXName) == CategoryLauncher)
+                                .Any(e => (string) e.Attribute(AndroidNameXName) == Android.IntentCategoryLauncher)
                         select intentFilter)
                     .Any()
                 select activityElement;
@@ -235,7 +233,8 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         {
             // Find all intent filters that contain <action android:name="android.intent.action.VIEW" />
             return from intentFilter in mainActivity.Elements(IntentFilter)
-                where intentFilter.Elements(Action).Any(e => (string) e.Attribute(AndroidNameXName) == ActionView)
+                where intentFilter.Elements(Action)
+                    .Any(e => (string) e.Attribute(AndroidNameXName) == Android.IntentActionView)
                 select intentFilter;
         }
 
