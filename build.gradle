@@ -1,5 +1,6 @@
 /*
  * Gradle file to build the Google Play Instant Plugin for Unity.
+ * See https://docs.unity3d.com/Manual/CommandLineArguments.html
  */
 buildscript {
     repositories {
@@ -45,38 +46,70 @@ project.ext {
 
     rootPath = assetsPath.getParentFile()
     pluginBuildPath = file("${rootPath}/plugin-build")
-    editorBuildPath = file("${pluginBuildPath}/Assets/GooglePlayInstant/Editor")
+    buildLog = 'build.log'
+    pluginTestPath = file("${rootPath}/plugin-test")
+    testLog = 'test.log'
 
-    pluginVersion = '0.5'
-    outputPluginPath = file('google-play-instant-plugin-' + pluginVersion + '.unitypackage').getPath()
+    pluginVersion = '0.6'
+    outputPluginPath = file("google-play-instant-plugin-${pluginVersion}.unitypackage").getPath()
 }
 
-task copy_sourceFilesToAssets(type: Copy) {
+task copy_buildFiles(type: Copy) {
     description 'Copies files into build staging location.'
-    from file("GooglePlayInstant/Editor")
-    from "LICENSE", "README.md", "CONTRIBUTING.md"
-    into editorBuildPath
+    from 'GooglePlayInstant', 'LICENSE', 'README.md', 'CONTRIBUTING.md'
+    into "${pluginBuildPath}/Assets/GooglePlayInstant"
+    exclude 'Tests', '**/*.meta'
+}
+
+task copy_testFiles(type: Copy) {
+    description 'Copies files into test staging location.'
+    from 'GooglePlayInstant'
+    into "${pluginTestPath}/Assets/GooglePlayInstant"
     exclude '**/*.meta'
 }
 
-task export_package(dependsOn: copy_sourceFilesToAssets) {
+task export_package(dependsOn: copy_buildFiles) {
     description 'Creates and exports the Plugin unity package.'
     doFirst {
         def argv = [
-                "-batchmode",
-                "-projectPath",
+                '-batchmode',
+                '-projectPath',
                 pluginBuildPath,
-                "-logFile",
-                "build.log",
-                "-exportPackage",
-                "Assets/GooglePlayInstant",
+                '-logFile',
+                buildLog,
+                '-exportPackage',
+                'Assets/GooglePlayInstant',
                 outputPluginPath,
-                "-quit"]
+                '-quit'
+                ]
         exec {
-            executable "${unity_exe}"
+            executable unity_exe
             args argv
         }
     }
 }
 
-project.defaultTasks = ['export_package']
+task tests(dependsOn: copy_testFiles) {
+    description 'Runs unit tests with Unity test runner.'
+    doFirst {
+        def argv = [
+                '-batchmode',
+                '-projectPath',
+                pluginTestPath,
+                '-logFile',
+                testLog,
+                '-runEditorTests'
+                ]
+        exec {
+            executable unity_exe
+            args argv
+        }
+    }
+}
+
+task clean(type: Delete) {
+    description 'Removes build artifacts.'
+    delete buildLog, outputPluginPath, pluginBuildPath, pluginTestPath, testLog
+}
+
+project.defaultTasks = ['tests', 'export_package']
