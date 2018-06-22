@@ -21,6 +21,21 @@ namespace GooglePlayInstant
     /// Provides methods that an instant app can use to display a Play Store install dialog. This dialog will allow
     /// the user to install the current instant app as a full app. This is an alternative to the Java-based
     /// <a href="https://developer.android.com/topic/google-play-instant/reference">Google Play Instant API</a>.
+    ///
+    /// Example code for the instant app's install button click handler:
+    /// <code>
+    /// using (var activity = InstallLauncher.GetCurrentActivity())
+    /// using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent(activity))
+    /// {
+    ///     InstallLauncher.PutPostInstallIntentStringExtra(postInstallIntent, "payload", "test-payload");
+    ///     InstallLauncher.ShowInstallPrompt(activity, 123, postInstallIntent, "test-referrer");
+    /// }
+    /// </code>
+    ///
+    /// Example code for the installed app to retrieve the result:
+    /// <code>
+    /// Debug.LogErrorFormat("Post-install payload: {0}", InstallLauncher.GetPostInstallIntentStringExtra("payload"));
+    /// </code>
     /// </summary>
     public static class InstallLauncher
     {

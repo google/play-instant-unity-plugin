@@ -43,7 +43,7 @@ namespace GooglePlayInstant
 
         public const string PackageManagerMethodResolveActivity = "resolveActivity";
 
-        public const string UriBuilderClass = "android.net.Uri.Builder";
+        public const string UriBuilderClass = "android.net.Uri$Builder";
         public const string UriBuilderMethodAppendQueryParameter = "appendQueryParameter";
         public const string UriBuilderMethodAuthority = "authority";
         public const string UriBuilderMethodBuild = "build";
