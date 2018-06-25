@@ -27,14 +27,9 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         // The following constants are duplicated between AndroidManifestHelper and here since they are part of the
         // Android manifest schema. Changing one of these strings in AndroidManifestHelper should break a test.
         private const string Action = "action";
-        private const string ActionMain = "android.intent.action.MAIN";
-        private const string ActionView = "android.intent.action.VIEW";
         private const string Activity = "activity";
         private const string Application = "application";
         private const string Category = "category";
-        private const string CategoryBrowsable = "android.intent.category.BROWSABLE";
-        private const string CategoryDefault = "android.intent.category.DEFAULT";
-        private const string CategoryLauncher = "android.intent.category.LAUNCHER";
         private const string Data = "data";
         private const string DefaultUrl = "default-url";
         private const string IntentFilter = "intent-filter";
@@ -63,8 +58,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private static readonly XElement MainLauncherIntentFilter =
             new XElement(
                 IntentFilter,
-                new XElement(Action, new XAttribute(AndroidNameXName, ActionMain)),
-                new XElement(Category, new XAttribute(AndroidNameXName, CategoryLauncher)));
+                new XElement(Action, new XAttribute(AndroidNameXName, Android.IntentActionMain)),
+                new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryLauncher)));
 
         private static readonly XElement MainActivityNoUrls =
             new XElement(Activity, new XAttribute(AndroidNameXName, MainActivityName), MainLauncherIntentFilter);
@@ -256,9 +251,9 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             return new XElement(
                 IntentFilter,
                 new XAttribute(AndroidAutoVerifyXName, "true"),
-                new XElement(Action, new XAttribute(AndroidNameXName, ActionView)),
-                new XElement(Category, new XAttribute(AndroidNameXName, CategoryBrowsable)),
-                new XElement(Category, new XAttribute(AndroidNameXName, CategoryDefault)),
+                new XElement(Action, new XAttribute(AndroidNameXName, Android.IntentActionView)),
+                new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryBrowsable)),
+                new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryDefault)),
                 new XElement(Data, new XAttribute(AndroidSchemeXName, "http")),
                 new XElement(Data, new XAttribute(AndroidSchemeXName, "https")),
                 new XElement(Data, new XAttribute(AndroidHostXName, host)),
