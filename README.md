@@ -2,12 +2,15 @@
 
 ## Overview
 
-The Google Play Instant Plugin for Unity Beta simplifies conversion of a Unity-based Android app into an instant app that can be deployed through Google Play Instant.
+The Google Play Instant Plugin for Unity Beta simplifies conversion of a Unity-based Android app into an instant app that can be deployed through [Google Play Instant](https://developer.android.com/topic/google-play-instant/).
 
-The plugin’s features include:
+The plugin’s Unity Editor (IDE) features include:
  * The option to switch between Installed and Instant build modes.
  * A centralized view of Unity Build Settings and Android Player Settings that should be changed to support Google Play Instant.
  * An action to build and run the instant app on an adb connected Android device.
+
+The plugin’s Unity Engine (runtime) features include:
+ * A method for displaying a Play Store dialog to install the full version of the instant app.
 
 ## Installing the Plugin
 
@@ -19,7 +22,7 @@ The plugin’s features include:
  * Obtain the latest .unitypackage from the releases page.
  * Import the .unitypackage by clicking the Unity IDE menu option _Assets > Import package > Custom Package_ and importing all items.
 
-## Using the Plugin
+## Unity Editor Features
 After import there will be a “PlayInstant” menu in Unity providing several options described below.
 
 ### Configure Instant or Installed...
@@ -42,6 +45,31 @@ This option runs the instant app on an adb connected device by performing the fo
  * Invokes Unity's BuildPlayer method to create an APK containing all scenes that are currently enabled in “Build Settings”.
  * If the connected device is running an Android version before 8.0 (Oreo), provisions the device for Instant App development by installing "Google Play Services for Instant Apps" and "Instant Apps Development Manager" (only if not done already).
  * Runs the APK as an instant app on the adb connected device.
+
+## Unity Engine Features
+
+### Show Install Prompt
+The goal of many instant apps is to give users a chance to experience the app before installing the full version. An instant app with an "Install" button can call the `InstallLauncher.ShowInstallPrompt()` method to display a Play Store install dialog. For example, the following code can be called from an install button click handler:
+
+```cs
+const int requestCode = 123;
+using (var activity = InstallLauncher.GetCurrentActivity())
+using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent(activity))
+{
+    InstallLauncher.PutPostInstallIntentStringExtra(postInstallIntent, "payload", "test");
+    InstallLauncher.ShowInstallPrompt(activity, requestCode, postInstallIntent, "test-referrer");
+}
+```
+
+To determine if the user cancels out of the installation process, override `onActivityResult()` in the instant app's main activity and check for `RESULT_CANCELED`.
+
+If the user completes app installation, the Play Store will re-launch the app using the provided `postInstallIntent`. This intent can include context about the user's state in the instant app, e.g. as with the key "payload" and value "test" in the example above. The installed app can retrieve this value using the following code:
+
+```cs
+string payload = InstallLauncher.GetPostInstallIntentStringExtra("payload");
+```
+
+**Note:** anyone can construct an intent with extra fields to launch the app, so if the payload grants something of value, design the payload so that it can only be used once, cryptographically sign it, and verify the signature on a server.
 
 ## Known Issues
  * If the Unity project has an existing AndroidManifest.xml with multiple VIEW Intents on the main Activity and if an Instant Apps URL is provided, the plugin doesn't know which Intent to modify. This can be worked around by not providing an Instant Apps URL or by manually updating the manifest file.
