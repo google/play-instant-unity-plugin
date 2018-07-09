@@ -68,7 +68,37 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Build and Run #%r", false, 300)]
+        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Creation...", false, 300)]
+        private static void AssetBundleCreationSettings()
+        {
+            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.CreateBundle);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Deployment...", false, 301)]
+        private static void AssetBundleDeploymentSettings()
+        {
+            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.DeployBundle);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Verification...", false, 302)]
+        private static void AssetBundleVerificationSettings()
+        {
+            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.VerifyBundle);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 303)]
+        private static void LoadingScreenSettings()
+        {
+            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/Build APK...", false, 304)]
+        private static void BuildApkSettings()
+        {
+            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.Build);
+        }
+
+        [MenuItem("PlayInstant/Build and Run #%r", false, 400)]
         private static void RunOnDevice()
         {
             PlayInstantRunner.BuildAndRun();
