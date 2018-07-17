@@ -26,7 +26,6 @@ namespace GooglePlayInstant.Editor
         };
 
         private static int _toolbarSelectedButtonIndex = 0;
-
         private static string _loadingScreenImagePath;
         private static string _assetBundleUrl;
 
@@ -41,6 +40,7 @@ namespace GooglePlayInstant.Editor
 
         private const int FieldMinWidth = 100;
         private const int ButtonWidth = 200;
+        private const int LongButtonWidth = 300;
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
@@ -55,6 +55,7 @@ namespace GooglePlayInstant.Editor
             switch ((ToolBarSelectedButton) _toolbarSelectedButtonIndex)
             {
                 case ToolBarSelectedButton.CreateBundle:
+                    AssetBundleBrowserClient.ReloadAndUpdateBrowserInfo();
                     OnGuiCreateBundleSelect();
                     break;
                 case ToolBarSelectedButton.DeployBundle:
@@ -79,12 +80,35 @@ namespace GooglePlayInstant.Editor
                                        "and bundle it (and its dependencies) into an AssetBundle file.",
                 EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(string.Format("AssetBundle Browser version: {0}", "not found"),
+            EditorGUILayout.LabelField(
+                string.Format("Asset Bundle Browser version: {0}",
+                    AssetBundleBrowserClient.GetAssetBundleBrowserVersion()),
                 EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
-            GUILayout.Button("Download AssetBundle Browser", GUILayout.Width(ButtonWidth));
-            EditorGUILayout.Space();
-            GUILayout.Button("Open AssetBundle Browser", GUILayout.Width(ButtonWidth));
+
+            // Allow the developer to open the AssetBundles Browser if it is present, otherwise ask them to download it
+            if (AssetBundleBrowserClient.AssetBundleBrowserIsPresent())
+            {
+                if (GUILayout.Button("Open Asset Bundle Browser", GUILayout.Width(ButtonWidth)))
+                {
+                    AssetBundleBrowserClient.DisplayAssetBundleBrowser();
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Download Asset Bundle Browser from GitHub", GUILayout.Width(LongButtonWidth)))
+                {
+                    Application.OpenURL("https://github.com/Unity-Technologies/AssetBundles-Browser/releases");
+                }
+
+                EditorGUILayout.Space();
+                if (GUILayout.Button("Open Asset Bundle Browser Documentation", GUILayout.Width(LongButtonWidth)))
+                {
+                    Application.OpenURL("https://docs.unity3d.com/Manual/AssetBundles-Browser.html");
+                }
+
+                EditorGUILayout.Space();
+            }
         }
 
         private void OnGuiDeployBundleSelect()
