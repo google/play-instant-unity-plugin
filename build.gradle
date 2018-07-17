@@ -50,7 +50,7 @@ project.ext {
     pluginTestPath = file("${rootPath}/plugin-test")
     testLog = 'test.log'
 
-    pluginVersion = '0.6'
+    pluginVersion = '0.7'
     outputPluginPath = file("google-play-instant-plugin-${pluginVersion}.unitypackage").getPath()
 }
 
