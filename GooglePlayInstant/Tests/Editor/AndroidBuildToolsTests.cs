@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Linq;
 using GooglePlayInstant.Editor;
 using NUnit.Framework;
@@ -22,9 +23,14 @@ namespace GooglePlayInstant.Tests.Editor
     public class AndroidBuildToolsTests
     {
         [Test]
-        public void TestGetNewestVersion_NullOrEmpty()
+        public void TestGetNewestVersion_Null()
         {
-            Assert.IsNull(AndroidBuildTools.GetNewestVersion(null));
+            Assert.Throws<NullReferenceException>(() => AndroidBuildTools.GetNewestVersion(null));
+        }
+
+        [Test]
+        public void TestGetNewestVersion_Empty()
+        {
             Assert.IsNull(AndroidBuildTools.GetNewestVersion(Enumerable.Empty<string>()));
         }
 
@@ -49,14 +55,24 @@ namespace GooglePlayInstant.Tests.Editor
             AssertValid("1.2.3");
             AssertValid("1.2.3-rc0");
             AssertValid("1.2.3-rc1");
-            AssertValid("100.200.300");
+            AssertValid("9999.9999.9999");
+            AssertValid("9999.9999.9999-rc4999");
+        }
+
+        [Test]
+        public void TestGetNewestVersion_VersionTooBig()
+        {
+            Assert.Throws<ArgumentException>(() => GetNewestVersion("10000.9999.9999-rc4999"));
+            Assert.Throws<ArgumentException>(() => GetNewestVersion("9999.10000.9999-rc4999"));
+            Assert.Throws<ArgumentException>(() => GetNewestVersion("9999.9999.10000-rc4999"));
+            Assert.Throws<ArgumentException>(() => GetNewestVersion("9999.9999.9999-rc5000"));
         }
 
         [Test]
         public void TestGetNewestVersion_Multiple()
         {
             Assert.AreEqual("0.0.1", GetNewestVersion("0.0.1", "0.0.0"));
-            Assert.AreEqual("0.1.0", GetNewestVersion("0.0.1", "0.1.0"));
+            Assert.AreEqual("0.1.0", GetNewestVersion("0.0.0", "0.0.1", "0.1.0"));
             Assert.AreEqual("1.0.0", GetNewestVersion("1.0.0", "0.0.1"));
             Assert.AreEqual("2.0.1", GetNewestVersion("1.2.3", "2.0.1"));
             Assert.AreEqual("10.0.1", GetNewestVersion("9.99.99", "10.0.1"));

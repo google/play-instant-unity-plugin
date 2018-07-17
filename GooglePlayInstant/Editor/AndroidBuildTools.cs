@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,9 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class AndroidBuildTools
     {
+        private const long VersionComponentMultiplier = 10000L;
+        private const long ReleaseCandidateComponentSubtractor = 5000L;
+
         private static readonly Regex VersionRegex =
             new Regex(@"^(\d+)\.(\d+)\.(\d+)(-rc(\d+))?$", RegexOptions.Compiled);
 
@@ -56,11 +60,6 @@ namespace GooglePlayInstant.Editor
         // Visible for testing.
         public static string GetNewestVersion(IEnumerable<string> versions)
         {
-            if (versions == null)
-            {
-                return null;
-            }
-
             var maxVersionLong = -1L;
             string maxVersionString = null;
             foreach (var versionString in versions)
@@ -87,20 +86,36 @@ namespace GooglePlayInstant.Editor
             var versionLong = 0L;
             for (var i = 1; i <= 3; i++)
             {
-                versionLong += long.Parse(match.Groups[i].Value);
+                var versionComponent = long.Parse(match.Groups[i].Value);
+                if (versionComponent >= VersionComponentMultiplier)
+                {
+                    throw new ArgumentException(
+                        string.Format("Component {0} from {1} exceeds the limit.", versionComponent, versionString),
+                        "versionString");
+                }
+
+                versionLong += versionComponent;
                 // Multiply by a somewhat arbitrary value since major version outweighs minor version.
                 // This particular arbitrary value supports up to 4 digits per version component.
-                versionLong *= 10000L;
+                versionLong *= VersionComponentMultiplier;
             }
 
             var releaseCandidateVersionGroup = match.Groups[5];
             if (releaseCandidateVersionGroup.Success)
             {
+                var releaseCandidateVersion = long.Parse(releaseCandidateVersionGroup.Value);
+                if (releaseCandidateVersion >= ReleaseCandidateComponentSubtractor)
+                {
+                    throw new ArgumentException(
+                        string.Format("rc{0} from {1} exceeds the limit.", releaseCandidateVersion, versionString),
+                        "versionString");
+                }
+
                 // Add the release candidate version, e.g. rc2 is newer than rc1.
-                versionLong += long.Parse(releaseCandidateVersionGroup.Value);
+                versionLong += releaseCandidateVersion;
                 // But also subtract a little, since any "rc" is earlier than the equivalent release,
                 // e.g. "28.0.0-rc2" is older than "28.0.0".
-                versionLong -= 5000L;
+                versionLong -= ReleaseCandidateComponentSubtractor;
             }
 
             return versionLong;
