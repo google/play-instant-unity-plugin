@@ -21,6 +21,7 @@ namespace GooglePlayInstant.Editor
 {
     public class PlayInstantSettingsWindow : EditorWindow
     {
+        public const string WindowTitle = "Play Instant Settings";
         private static readonly string[] PlatformOptions = {"Installed", "Instant"};
         private const int FieldMinWidth = 100;
 
@@ -145,7 +146,7 @@ namespace GooglePlayInstant.Editor
 
         public static void ShowWindow()
         {
-            GetWindow(typeof(PlayInstantSettingsWindow), true, "Play Instant Settings");
+            GetWindow(typeof(PlayInstantSettingsWindow), true, WindowTitle);
         }
     }
 }

@@ -18,35 +18,21 @@ using System.Linq;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
-#if UNITY_2018_1_OR_NEWER
-using UnityEditor.Build.Reporting;
-#endif
 
 namespace GooglePlayInstant.Editor
 {
+    /// <summary>
+    /// Helper to build Play Instant APKs and run them on a device.
+    /// </summary>
     public static class PlayInstantRunner
     {
-        private const string BuildAndRunErrorTitle = "Build and Run Error";
-        private const string OkButtonText = "OK";
-        private const string CancelButtonText = "Cancel";
         private const string InstantAppsJarPath = "extras/google/instantapps/tools/ia.jar";
 
+        /// <summary>
+        /// Builds an APK to a temporary location using the scenes selected in Unity's main Build Settings.
+        /// </summary>
         public static void BuildAndRun()
         {
-            if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
-            {
-                Debug.LogError("Build and Run halted since selected platform is Installed");
-                const string message = "The currently selected Android Platform is \"Installed\".\n\n" +
-                                       "Click \"OK\" to open the \"Configure Instant or Installed\" " +
-                                       "window where the platform can be changed to \"Instant\".";
-                if (EditorUtility.DisplayDialog(BuildAndRunErrorTitle, message, OkButtonText, CancelButtonText))
-                {
-                    PlayInstantSettingsWindow.ShowWindow();
-                }
-
-                return;
-            }
-
             var jarPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, InstantAppsJarPath);
             if (!File.Exists(jarPath))
             {
@@ -55,27 +41,9 @@ namespace GooglePlayInstant.Editor
                     string.Format(
                         "Failed to locate version 1.2 or later of the {0}.\n\nClick \"OK\" to install the {0}.",
                         PlayInstantSdkInstaller.InstantAppsSdkName);
-                if (EditorUtility.DisplayDialog(BuildAndRunErrorTitle, message, OkButtonText, CancelButtonText))
+                if (PlayInstantBuilder.DisplayBuildErrorDialog(message))
                 {
                     PlayInstantSdkInstaller.SetUp();
-                }
-
-                return;
-            }
-
-            var failedPolicies = new List<string>(PlayInstantSettingPolicy.GetRequiredPolicies()
-                .Where(policy => !policy.IsCorrectState())
-                .Select(policy => policy.Name));
-            if (failedPolicies.Count > 0)
-            {
-                Debug.LogErrorFormat("Build and Run halted due to incompatible settings: {0}",
-                    string.Join(", ", failedPolicies.ToArray()));
-                var message = string.Format(
-                    "{0}\n\nClick \"OK\" to open the settings window and make required changes.",
-                    string.Join("\n\n", failedPolicies.ToArray()));
-                if (EditorUtility.DisplayDialog(BuildAndRunErrorTitle, message, OkButtonText, CancelButtonText))
-                {
-                    PlayerAndBuildSettingsWindow.ShowWindow();
                 }
 
                 return;
@@ -85,47 +53,10 @@ namespace GooglePlayInstant.Editor
             Debug.LogFormat("Build and Run package location: {0}", apkPath);
 
             var buildPlayerOptions = CreateBuildPlayerOptions(apkPath);
-#if UNITY_2018_1_OR_NEWER
-            var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
-            switch (buildReport.summary.result)
+            if (!PlayInstantBuilder.Build(buildPlayerOptions))
             {
-                case BuildResult.Cancelled:
-                    Debug.Log("Build cancelled");
-                    return;
-                case BuildResult.Succeeded:
-                    // BuildPlayer can fail and still return BuildResult.Succeeded so detect by checking totalErrors.
-                    if (buildReport.summary.totalErrors > 0)
-                    {
-                        // No need to display a message since Unity will already have done this.
-                        return;
-                    }
-
-                    // Actual success: continue on to the run step.
-                    break;
-                case BuildResult.Failed:
-                    LogError(string.Format("Build failed with {0} error(s)", buildReport.summary.totalErrors));
-                    return;
-                default:
-                    LogError("Build failed with unknown error");
-                    return;
-            }
-#else
-            var buildPlayerResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
-            if (!string.IsNullOrEmpty(buildPlayerResult))
-            {
-                // Check for intended build cancellation.
-                if (buildPlayerResult == "Building Player was cancelled")
-                {
-                    Debug.Log(buildPlayerResult);
-                }
-                else
-                {
-                    LogError(buildPlayerResult);
-                }
-
                 return;
             }
-#endif
 
             var window = PostBuildCommandLineDialog.CreateDialog("Install and run app");
             window.modal = false;
@@ -152,15 +83,10 @@ namespace GooglePlayInstant.Editor
                 scenes = scenes.ToArray(),
                 locationPathName = apkPath,
                 target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android,
                 options = EditorUserBuildSettings.development ? BuildOptions.Development : BuildOptions.None
             };
             return buildPlayerOptions;
-        }
-
-        private static void LogError(string message)
-        {
-            Debug.LogErrorFormat("Build and Run error: {0}", message);
-            EditorUtility.DisplayDialog(BuildAndRunErrorTitle, message, OkButtonText);
         }
     }
 }
