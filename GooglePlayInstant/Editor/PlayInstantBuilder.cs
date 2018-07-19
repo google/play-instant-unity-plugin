@@ -42,9 +42,10 @@ namespace GooglePlayInstant.Editor
             if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
             {
                 Debug.LogError("Build halted since selected platform is Installed");
-                var message = string.Format("The currently selected Android Platform is \"Installed\".\n\n" +
-                                            "Click \"OK\" to open the \"{0}\" window where the platform can be " +
-                                            "changed to \"Instant\".", PlayInstantSettingsWindow.WindowTitle);
+                var message = string.Format(
+                    "The currently selected Android Platform is \"Installed\".\n\n" +
+                    "Click \"OK\" to open the \"{0}\" window where the platform can be changed to \"Instant\".",
+                    PlayInstantSettingsWindow.WindowTitle);
                 if (DisplayBuildErrorDialog(message))
                 {
                     PlayInstantSettingsWindow.ShowWindow();
@@ -63,7 +64,7 @@ namespace GooglePlayInstant.Editor
                 var message = string.Format(
                     "{0}\n\nClick \"OK\" to open the settings window and make required changes.",
                     string.Join("\n\n", failedPolicies.ToArray()));
-                if (EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText, CancelButtonText))
+                if (DisplayBuildErrorDialog(message))
                 {
                     PlayerAndBuildSettingsWindow.ShowWindow();
                 }
