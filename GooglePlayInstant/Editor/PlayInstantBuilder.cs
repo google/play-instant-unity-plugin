@@ -33,11 +33,36 @@ namespace GooglePlayInstant.Editor
         private const string CancelButtonText = "Cancel";
 
         /// <summary>
-        /// Builds a Play Instant APK based on the specified options. Displays warning/error dialogs if there
-        /// are issues during the build.
+        /// Builds a Play Instant APK based on the specified options and signs it (if necessary) via
+        /// <see href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</see>.
+        /// Displays warning/error dialogs if there are issues during the build.
         /// </summary>
         /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
-        public static bool Build(BuildPlayerOptions buildPlayerOptions)
+        public static bool BuildAndSign(BuildPlayerOptions buildPlayerOptions)
+        {
+            if (!Build(buildPlayerOptions))
+            {
+                return false;
+            }
+
+#if UNITY_2018_1_OR_NEWER
+            // On Unity 2018.1+ we require Gradle builds. Unity 2018+ Gradle builds always yield a properly signed APK.
+            return true;
+#else
+            // TODO: check that the apksigner tool is available.
+            var apkPath = buildPlayerOptions.locationPathName;
+            if (ApkSigner.Verify(apkPath))
+            {
+                Debug.Log("Verified APK Signature Scheme V2.");
+                return true;
+            }
+
+            Debug.Log("APK must be re-signed for APK Signature Scheme V2...");
+            return ApkSigner.Sign(apkPath);
+#endif
+        }
+
+        private static bool Build(BuildPlayerOptions buildPlayerOptions)
         {
             if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
             {

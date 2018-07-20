@@ -53,8 +53,9 @@ namespace GooglePlayInstant.Editor
             Debug.LogFormat("Build and Run package location: {0}", apkPath);
 
             var buildPlayerOptions = CreateBuildPlayerOptions(apkPath);
-            if (!PlayInstantBuilder.Build(buildPlayerOptions))
+            if (!PlayInstantBuilder.BuildAndSign(buildPlayerOptions))
             {
+                // Do not log here. The method we called was responsible for logging.
                 return;
             }
 
