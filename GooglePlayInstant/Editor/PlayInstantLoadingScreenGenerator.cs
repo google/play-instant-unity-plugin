@@ -21,6 +21,7 @@ using UnityEngine.UI;
 
 namespace GooglePlayInstant.Editor
 {
+    //TODO: Resolve conversation about upload vs setting path
     /// <summary>
     /// Class that generates Unity loading scenes for instant apps.
     /// </summary>
@@ -28,12 +29,22 @@ namespace GooglePlayInstant.Editor
     {
         private const string LoadingSceneName = "play-instant-loading-screen-scene";
 
+        public static string loadingScreenImagePath;
+        
+        //TODO: add documentation
+        public static void SetLoadingScreenImagePath()
+        {
+            loadingScreenImagePath =
+                EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
+        }
+
+        //TODO: fix wasteful sprite creation by deleting previous unused ones
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are
         /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
         /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateLoadingScreenScene(string loadingScreenImagePath, string assetBundleUrl)
+        public static void GenerateLoadingScreenScene(string assetBundleUrl)
         {
             if (!File.Exists(loadingScreenImagePath))
             {
@@ -61,6 +72,7 @@ namespace GooglePlayInstant.Editor
             loadingScreenGameObject.AddComponent<LoadingScreenScript>();
         }
 
+        
         private static void AddLoadingScreenImageToScene(GameObject loadingScreenGameObject,
             string pathToLoadingScreenImage)
         {
