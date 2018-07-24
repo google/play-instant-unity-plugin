@@ -114,8 +114,9 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.LabelField("Use the Google Cloud Storage to host the AssetBundle as a public " +
                                        "file. Or host the file on your own CDN.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
+            // TODO: Allow the user to browse to the asset bundle file without having to always manually enter the path 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Asset Bundle File Name", GUILayout.MinWidth(FieldMinWidth));
+            EditorGUILayout.LabelField("Asset Bundle File Path Name", GUILayout.MinWidth(FieldMinWidth));
             QuickDeployConfig.Config.assetBundleFileName =
                 EditorGUILayout.TextField(QuickDeployConfig.Config.assetBundleFileName,
                     GUILayout.MinWidth(FieldMinWidth));
@@ -135,14 +136,16 @@ namespace GooglePlayInstant.Editor
                     GUILayout.MinWidth(FieldMinWidth));
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
+            // TODO: Allow the user to browse to credentials file without having to always manually enter the path
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Cloud Credentials", GUILayout.MinWidth(FieldMinWidth));
+            EditorGUILayout.LabelField("Path to Google Cloud OAuth2 Credentials", GUILayout.MinWidth(FieldMinWidth));
             QuickDeployConfig.Config.cloudCredentialsFileName =
-                EditorGUILayout.TextField(QuickDeployConfig.Config.cloudCredentialsFileName, GUILayout.MinWidth(FieldMinWidth));
+                EditorGUILayout.TextField(QuickDeployConfig.Config.cloudCredentialsFileName,
+                    GUILayout.MinWidth(FieldMinWidth));
             EditorGUILayout.EndHorizontal();
-            GUILayout.Button("Upload to Cloud Storage", GUILayout.Width(ButtonWidth));
+            GUILayout.Button("Upload to Google Cloud Storage", GUILayout.Width(LongButtonWidth));
             EditorGUILayout.Space();
-            GUILayout.Button("Open Cloud Storage Console", GUILayout.Width(ButtonWidth));
+            GUILayout.Button("Open Google Cloud Storage Console", GUILayout.Width(LongButtonWidth));
         }
 
         private void OnGuiVerifyBundleSelect()
