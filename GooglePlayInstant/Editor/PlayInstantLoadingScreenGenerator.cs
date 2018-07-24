@@ -27,7 +27,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public class PlayInstantLoadingScreenGenerator
     {
-        private const string LoadingSceneName = "play-instant-loading-screen-scene";
+        public const string LoadingSceneName = "play-instant-loading-screen-scene";
 
         public static string loadingScreenImagePath;
         

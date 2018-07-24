@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -39,6 +40,7 @@ namespace GooglePlayInstant.Editor
         private const int FieldMinWidth = 100;
         private const int ButtonWidth = 200;
         private const int LongButtonWidth = 300;
+        private const int ShortButtonWidth = 100;
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
@@ -202,11 +204,22 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("APK File Name", GUILayout.MinWidth(FieldMinWidth));
-            QuickDeployConfig.Config.apkFileName = EditorGUILayout.TextField(QuickDeployConfig.Config.apkFileName,
-                GUILayout.MinWidth(FieldMinWidth));
+            QuickDeployConfig.Config.apkFileName =
+                EditorGUILayout.TextField(QuickDeployConfig.Config.apkFileName, GUILayout.MinWidth(FieldMinWidth));
+            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
+            {
+                QuickDeployConfig.Config.apkFileName = EditorUtility.SaveFilePanel("Choose file name and location", "",
+                    "base.apk",
+                    "apk");
+            }
+
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
-            GUILayout.Button("Build Base APK", GUILayout.Width(ButtonWidth));
+
+            if (GUILayout.Button("Build Base APK", GUILayout.Width(ButtonWidth)))
+            {
+                QuickDeployBuilder.BuildQuickDeployInstantGameApk();
+            }
         }
     }
 }
