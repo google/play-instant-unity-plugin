@@ -22,16 +22,14 @@ using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using Logger = UnityEngine.Logger;
 
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
     /// Provides methods that call the Android SDK build tool "apksigner" to verify whether an APK complies with
     /// <see href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</see> and to re-sign
-    /// the APK if not. Instant apps require Signature Scheme V2 starting with Android O, however Unity versions
-    /// prior to 2017.3 do not produce compliant APKs. Starting with Unity 2017.3 only Gradle-built APKs meet
-    /// meet this requirement. Without this "adb install --ephemeral" on an Android O device will fail with
+    /// the APK if not. Instant apps require Signature Scheme V2 starting with Android O, however some Unity versions
+    /// do not produce compliant APKs. Without this "adb install --ephemeral" on an Android O device will fail with
     /// "INSTALL_PARSE_FAILED_NO_CERTIFICATES: No APK Signature Scheme v2 signature in ephemeral package".
     /// </summary>
     public static class ApkSigner
@@ -39,21 +37,27 @@ namespace GooglePlayInstant.Editor
         private const string AndroidDebugKeystore = ".android/debug.keystore";
 
         /// <summary>
+        /// Returns true if apksigner is available to call, false otherwise.
+        /// </summary>
+        public static bool IsAvailable()
+        {
+            return GetApkSignerJarPath() != null;
+        }
+
+        /// <summary>
         /// Synchronously calls the apksigner tool to verify whether the specified APK uses APK Signature Scheme V2.
         /// </summary>
         /// <returns>true if the specified APK uses APK Signature Scheme V2, false otherwise</returns>
         public static bool Verify(string apkPath)
         {
-            var apkSignerFileName = GetApkSignerFileName();
-            var arguments = string.Format("verify {0}", apkPath);
-            var result = CommandLine.Run(apkSignerFileName, arguments);
+            var arguments = string.Format("-jar {0} verify {1}", GetApkSignerJarPath(), apkPath);
+            var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
             if (result.exitCode == 0)
             {
                 return true;
             }
 
-            Debug.LogErrorFormat("\"{0} {1}\" failed with exit code {2}", apkSignerFileName, arguments,
-                result.exitCode);
+            Debug.LogWarningFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
             return false;
         }
 
@@ -69,20 +73,18 @@ namespace GooglePlayInstant.Editor
             string keyaliasPass;
             if (string.IsNullOrEmpty(PlayerSettings.Android.keystoreName))
             {
-                Debug.LogFormat("No keystore specified. Signing using default Android debug.keystore.");
-                if (Application.platform == RuntimePlatform.WindowsEditor)
+                Debug.LogFormat("No keystore specified. Signing using {0}.", AndroidDebugKeystore);
+                var homePath =
+                    Application.platform == RuntimePlatform.WindowsEditor
+                        ? Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%")
+                        : Environment.GetEnvironmentVariable("HOME");
+                if (string.IsNullOrEmpty(homePath))
                 {
-                    // TODO: test on Windows.
-                    keystoreName = "TODO";
-                }
-                else
-                {
-                    var home = Environment.GetEnvironmentVariable("HOME");
-                    keystoreName = string.IsNullOrEmpty(home)
-                        ? AndroidDebugKeystore
-                        : Path.Combine(home, AndroidDebugKeystore);
+                    Debug.LogErrorFormat("Failed to locate home directory that contains {0}.", AndroidDebugKeystore);
+                    return false;
                 }
 
+                keystoreName = Path.Combine(homePath, AndroidDebugKeystore);
                 keystorePass = "android";
                 keyaliasName = "androiddebugkey";
                 keyaliasPass = "android";
@@ -95,10 +97,9 @@ namespace GooglePlayInstant.Editor
                 keyaliasPass = PlayerSettings.Android.keyaliasPass;
             }
 
-            var apkSignerFileName = GetApkSignerFileName();
             var arguments = string.Format(
-                "sign --ks {0} --ks-key-alias {1} --pass-encoding utf-8 {2}",
-                keystoreName, keyaliasName, apkPath);
+                "-jar {0} sign --ks {1} --ks-key-alias {2} --pass-encoding utf-8 {3}",
+                GetApkSignerJarPath(), keystoreName, keyaliasName, apkPath);
 
             var promptToPasswordDictionary = new Dictionary<string, string>
             {
@@ -107,21 +108,34 @@ namespace GooglePlayInstant.Editor
                 // Example keyalias password prompt: "Key \"androiddebugkey\" password for signer #1: "
                 {"password for signer", keyaliasPass}
             };
-            var apkSignerResponder = new ApkSignerResponder(promptToPasswordDictionary);
-            var result = CommandLine.Run(apkSignerFileName, arguments, ioHandler: apkSignerResponder.AggregateLine);
+            var responder = new ApkSignerResponder(promptToPasswordDictionary);
+            var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments, ioHandler: responder.AggregateLine);
             if (result.exitCode == 0)
             {
                 return true;
             }
 
-            Debug.LogErrorFormat("\"{0} {1}\" failed with exit code {2}", apkSignerFileName, arguments,
-                result.exitCode);
+            Debug.LogErrorFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
             return false;
         }
 
-        private static string GetApkSignerFileName()
+        private static string GetApkSignerJarPath()
         {
-            return Path.Combine(AndroidBuildTools.GetNewestBuildToolsPath(), "apksigner");
+            var newestBuildToolsVersion = AndroidBuildTools.GetNewestBuildToolsVersion();
+            if (newestBuildToolsVersion == null)
+            {
+                return null;
+            }
+
+            var newestBuildToolsPath = Path.Combine(AndroidBuildTools.GetBuildToolsPath(), newestBuildToolsVersion);
+            var apkSignerJarPath = Path.Combine(newestBuildToolsPath, "lib/apksigner.jar");
+            if (File.Exists(apkSignerJarPath))
+            {
+                return apkSignerJarPath;
+            }
+
+            Debug.LogErrorFormat("Failed to locate apksigner.jar at path: {0}", apkSignerJarPath);
+            return null;
         }
 
         /// <summary>

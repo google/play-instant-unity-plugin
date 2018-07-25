@@ -49,7 +49,13 @@ namespace GooglePlayInstant.Editor
             // On Unity 2018.1+ we require Gradle builds. Unity 2018+ Gradle builds always yield a properly signed APK.
             return true;
 #else
-            // TODO: check that the apksigner tool is available.
+            if (!ApkSigner.IsAvailable())
+            {
+                LogError("Unable to locate apksigner. Check that a recent version of Android SDK Build-Tools " +
+                         "is installed and check the Console log for more details on the error.");
+                return false;
+            }
+
             var apkPath = buildPlayerOptions.locationPathName;
             if (ApkSigner.Verify(apkPath))
             {
@@ -58,7 +64,13 @@ namespace GooglePlayInstant.Editor
             }
 
             Debug.Log("APK must be re-signed for APK Signature Scheme V2...");
-            return ApkSigner.Sign(apkPath);
+            if (ApkSigner.Sign(apkPath))
+            {
+                Debug.Log("Re-signed with APK Signature Scheme V2.");
+                return true;
+            }
+            LogError("Failed to re-sign the APK using apksigner. Check the Console log for more details.");
+            return false;
 #endif
         }
 
