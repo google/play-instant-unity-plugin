@@ -165,7 +165,12 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.BeginVertical();
-            GUILayout.Button("Verify AssetBundle", GUILayout.Width(ButtonWidth));
+
+            if (GUILayout.Button("Verify AssetBundle", GUILayout.Width(ButtonWidth)))
+            {
+                AssetBundleVerifierWindow.ShowWindow();
+            }
+
             EditorGUILayout.EndVertical();
         }
 
