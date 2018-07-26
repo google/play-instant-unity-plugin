@@ -15,7 +15,8 @@ The plugin’s Unity Engine (runtime) features include:
 ## Installing the Plugin
 
 ### Prerequisites
- * Unity 2017.3 or higher.
+ * Unity 5.6, 2017.4, or 2018.2.
+   * Note: other versions may work, but are not tested regularly.
  * A device running Android 5.0 (Lollipop) or newer.
 
 ### Download and Install

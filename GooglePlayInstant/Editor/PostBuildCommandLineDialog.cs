@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEngine;
 
@@ -42,7 +40,7 @@ namespace GooglePlayInstant.Editor
             _serializedField = false;
         }
 
-        protected override void OnGUI()
+        protected override void Update()
         {
             // This block is entered twice: when the window is initially shown and later after the AppDomain is reset.
             if (!_nonserializedField)
@@ -60,7 +58,7 @@ namespace GooglePlayInstant.Editor
                 }
             }
 
-            base.OnGUI();
+            base.Update();
         }
 
         private void RunCommandAsync()

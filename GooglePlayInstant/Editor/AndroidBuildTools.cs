@@ -34,11 +34,19 @@ namespace GooglePlayInstant.Editor
             new Regex(@"^(\d+)\.(\d+)\.(\d+)(-rc(\d+))?$", RegexOptions.Compiled);
 
         /// <summary>
-        /// Returns the newest build-tools path as a string, or null if one couldn't be found.
+        /// Returns the build-tools path as a string.
         /// </summary>
-        public static string GetNewestBuildToolsPath()
+        public static string GetBuildToolsPath()
         {
-            var buildToolsPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, "build-tools");
+            return Path.Combine(AndroidSdkManager.AndroidSdkRoot, "build-tools");
+        }
+
+        /// <summary>
+        /// Returns the newest build-tools version as a string, or null if one couldn't be found.
+        /// </summary>
+        public static string GetNewestBuildToolsVersion()
+        {
+            var buildToolsPath = GetBuildToolsPath();
             if (!Directory.Exists(buildToolsPath))
             {
                 Debug.LogErrorFormat("Failed to locate build-tools path: {0}", buildToolsPath);
@@ -54,7 +62,7 @@ namespace GooglePlayInstant.Editor
                 return null;
             }
 
-            return Path.Combine(buildToolsPath, newestBuildTools);
+            return newestBuildTools;
         }
 
         // Visible for testing.

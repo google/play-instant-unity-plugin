@@ -78,18 +78,17 @@ namespace GooglePlayInstant.Editor
                         return true;
                     }),
 
-                // The "Internal" Build System does not use apksigner, so "adb install --ephemeral" will fail with
-                // "INSTALL_PARSE_FAILED_NO_CERTIFICATES: No APK Signature Scheme v2 signature in ephemeral package".
-                // If "Gradle" is not an option, this can be worked around by manually running apksigner on the APK.
+#if UNITY_2018_1_OR_NEWER
                 new PlayInstantSettingPolicy(
                     "Android build system should be Gradle",
-                    "The Internal build system does sign with APK Signature Scheme v2.",
+                    "Required for IPostGenerateGradleAndroidProject and APK Signature Scheme v2.",
                     () => EditorUserBuildSettings.androidBuildSystem == AndroidBuildSystem.Gradle,
                     () =>
                     {
                         EditorUserBuildSettings.androidBuildSystem = AndroidBuildSystem.Gradle;
                         return true;
                     }),
+#endif
 
                 new PlayInstantSettingPolicy(
                     "Graphics API should be OpenGLES2 only",
