@@ -56,10 +56,10 @@ namespace GooglePlayInstant.Editor
                 return false;
             }
 
+            Debug.Log("Checking for APK Signature Scheme V2...");
             var apkPath = buildPlayerOptions.locationPathName;
             if (ApkSigner.Verify(apkPath))
             {
-                Debug.Log("Verified APK Signature Scheme V2.");
                 return true;
             }
 

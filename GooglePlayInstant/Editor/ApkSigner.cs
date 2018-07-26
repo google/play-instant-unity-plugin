@@ -52,13 +52,18 @@ namespace GooglePlayInstant.Editor
         {
             var arguments = string.Format("-jar {0} verify {1}", GetApkSignerJarPath(), apkPath);
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
-            if (result.exitCode == 0)
+            switch (result.exitCode)
             {
-                return true;
+                case 0:
+                    Debug.Log("Verified APK Signature Scheme V2.");
+                    return true;
+                case 1:
+                    Debug.Log("APK Signature Scheme V2 verification failed.");
+                    return false;
+                default:
+                    Debug.LogErrorFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
+                    return false;
             }
-
-            Debug.LogWarningFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
-            return false;
         }
 
         /// <summary>
@@ -73,14 +78,14 @@ namespace GooglePlayInstant.Editor
             string keyaliasPass;
             if (string.IsNullOrEmpty(PlayerSettings.Android.keystoreName))
             {
-                Debug.LogFormat("No keystore specified. Signing using {0}.", AndroidDebugKeystore);
+                Debug.Log("No keystore specified. Signing using Android debug keystore.");
                 var homePath =
                     Application.platform == RuntimePlatform.WindowsEditor
                         ? Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%")
                         : Environment.GetEnvironmentVariable("HOME");
                 if (string.IsNullOrEmpty(homePath))
                 {
-                    Debug.LogErrorFormat("Failed to locate home directory that contains {0}.", AndroidDebugKeystore);
+                    Debug.LogError("Failed to locate home directory that contains Android debug keystore.");
                     return false;
                 }
 
@@ -95,6 +100,12 @@ namespace GooglePlayInstant.Editor
                 keystorePass = PlayerSettings.Android.keystorePass;
                 keyaliasName = PlayerSettings.Android.keyaliasName;
                 keyaliasPass = PlayerSettings.Android.keyaliasPass;
+            }
+
+            if (!File.Exists(keystoreName))
+            {
+                Debug.LogErrorFormat("Failed to locate keystore file: {0}", keystoreName);
+                return false;
             }
 
             var arguments = string.Format(
@@ -139,8 +150,9 @@ namespace GooglePlayInstant.Editor
         }
 
         /// <summary>
-        /// Checks apksigner's stdout for password prompts and outputs the associated password to apksigner's stdin.
-        /// This is more secure than using apksigner's support for command line and file-based password input.
+        /// Checks apksigner's stdout for password prompts and provides the associated password to apksigner's stdin.
+        /// This is more secure than providing passwords on the command line (where passwords are visible to process
+        /// listing tools like "ps") or using file-based password input (where passwords are written to disk).
         /// </summary>
         private class ApkSignerResponder : CommandLine.LineReader
         {
