@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,7 +25,7 @@ namespace GooglePlayInstant.Editor
             "Loading Screen", "Build"
         };
 
-        private static int _toolbarSelectedButtonIndex = 0;
+        private static int _toolbarSelectedButtonIndex;
 
         public enum ToolBarSelectedButton
         {
@@ -41,6 +40,9 @@ namespace GooglePlayInstant.Editor
         private const int ButtonWidth = 200;
         private const int LongButtonWidth = 300;
         private const int ShortButtonWidth = 100;
+        
+        private const string LoadingScreenErrorTitle = "Creating Loading Scene Error";
+        private const string OkButtonText = "OK";
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
@@ -191,12 +193,13 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.Space();
             if (GUILayout.Button("Choose Loading Image", GUILayout.Width(ButtonWidth)))
             {
-                PlayInstantLoadingScreenGenerator.SetLoadingScreenImagePath();
+                PlayInstantLoadingScreenGenerator.LoadingScreenImagePath =
+                    EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
             }
 
             EditorGUILayout.Space();
 
-            var displayedPath = PlayInstantLoadingScreenGenerator.loadingScreenImagePath ?? "no file specified";
+            var displayedPath = PlayInstantLoadingScreenGenerator.LoadingScreenImagePath ?? "no file specified";
             EditorGUILayout.LabelField(string.Format("Image file: {0}", displayedPath),
                 GUILayout.MinWidth(FieldMinWidth));
 
@@ -205,8 +208,22 @@ namespace GooglePlayInstant.Editor
 
             if (GUILayout.Button("Create Loading Scene", GUILayout.Width(ButtonWidth)))
             {
-                PlayInstantLoadingScreenGenerator.GenerateLoadingScreenScene(QuickDeployConfig.Config.assetBundleUrl);
+                if (string.IsNullOrEmpty(QuickDeployConfig.Config.assetBundleUrl))
+                {
+                    LogError("AssetBundle URL text field cannot be null or empty.");
+                }
+                else
+                {
+                    PlayInstantLoadingScreenGenerator.GenerateLoadingScreenScene(
+                        QuickDeployConfig.Config.assetBundleUrl);
+                }
             }
+        }
+        
+        private static void LogError(string message)
+        {
+            Debug.LogErrorFormat("Build error: {0}", message);
+            EditorUtility.DisplayDialog(LoadingScreenErrorTitle, message, OkButtonText);
         }
 
         private void OnGuiCreateBuildSelect()

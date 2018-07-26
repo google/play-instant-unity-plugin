@@ -82,7 +82,7 @@ namespace GooglePlayInstant.Editor
             }
 
             // Note: Do not print an error if build fails since Build() does this already
-            PlayInstantBuilder.Build(buildPlayerOptions);
+            PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
         }
     }
 }

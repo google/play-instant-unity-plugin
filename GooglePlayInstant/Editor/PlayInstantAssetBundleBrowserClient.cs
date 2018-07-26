@@ -32,8 +32,8 @@ namespace GooglePlayInstant.Editor
         private const string AssetBundleBrowserMenuItem = "Window/AssetBundle Browser";
         private static bool? _assetBundleBrowserIsPresent;
         private static string _assetBundleBrowserVersion;
-        
-        
+
+
         /// <summary>
         /// Determine whether Asset Bundle Browser is present based on the currently loaded assemblies.
         /// </summary>
