@@ -52,18 +52,15 @@ namespace GooglePlayInstant.Editor
         {
             var arguments = string.Format("-jar {0} verify {1}", GetApkSignerJarPath(), apkPath);
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
-            switch (result.exitCode)
+            if (result.exitCode == 0)
             {
-                case 0:
-                    Debug.Log("Verified APK Signature Scheme V2.");
-                    return true;
-                case 1:
-                    Debug.Log("APK Signature Scheme V2 verification failed.");
-                    return false;
-                default:
-                    Debug.LogErrorFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
-                    return false;
+                Debug.Log("Verified APK Signature Scheme V2.");
+                return true;
             }
+
+            // Logging at info level since the most common failure (V2 signature missing) is normal.
+            Debug.LogFormat("APK Signature Scheme V2 verification failed: {0}", result.message);
+            return false;
         }
 
         /// <summary>
@@ -126,7 +123,7 @@ namespace GooglePlayInstant.Editor
                 return true;
             }
 
-            Debug.LogErrorFormat("\"java {0}\" failed with exit code {1}", arguments, result.exitCode);
+            Debug.LogErrorFormat("APK re-signing failed: {0}", result.message);
             return false;
         }
 

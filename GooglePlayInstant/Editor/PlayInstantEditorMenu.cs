@@ -49,16 +49,16 @@ namespace GooglePlayInstant.Editor
             Application.OpenURL("https://github.com/google/play-instant-unity-plugin/issues");
         }
 
-        [MenuItem("PlayInstant/Configure Instant or Installed...", false, 200)]
+        [MenuItem("PlayInstant/Build Settings...", false, 200)]
         private static void OpenEditorSettings()
         {
-            PlayInstantSettingsWindow.ShowWindow();
+            BuildSettingsWindow.ShowWindow();
         }
 
-        [MenuItem("PlayInstant/Check Player Settings...", false, 201)]
+        [MenuItem("PlayInstant/Player Settings...", false, 201)]
         private static void CheckPlayerSettings()
         {
-            PlayerAndBuildSettingsWindow.ShowWindow();
+            PlayerSettingsWindow.ShowWindow();
         }
 
         // Note: cannot use string.Format() in an attribute argument.
@@ -68,8 +68,14 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Build and Run #%r", false, 300)]
-        private static void RunOnDevice()
+        [MenuItem("PlayInstant/Build for Play Console...", false, 300)]
+        private static void BuildForPlayConsole()
+        {
+            PlayInstantPublishser.Build();
+        }
+
+        [MenuItem("PlayInstant/Build and Run #%r", false, 301)]
+        private static void BuildAndRun()
         {
             PlayInstantRunner.BuildAndRun();
         }

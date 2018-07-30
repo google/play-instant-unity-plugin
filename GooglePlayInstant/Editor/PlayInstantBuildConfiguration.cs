@@ -14,52 +14,103 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 
 namespace GooglePlayInstant.Editor
 {
+    /// <summary>
+    /// Provides methods for accessing and persisting build settings.
+    /// </summary>
     public static class PlayInstantBuildConfiguration
     {
-        public const string PlayInstantScriptingDefineSymbol = "PLAY_INSTANT";
+        /// <summary>
+        /// Configuration class that is serialized as JSON. See associated properties for field documentation.
+        /// </summary>
+        [Serializable]
+        private class Configuration
+        {
+            // Note: field names do not match style convention, but were chosen for proper looking JSON serialization.
+            public string assetBundleManifestPath;
+            public string instantUrl;
+            public string[] scenesInBuild;
+        }
+
+        private const string PlayInstantScriptingDefineSymbol = "PLAY_INSTANT";
 
         // Allowed characters for splitting PlayerSettings.GetScriptingDefineSymbolsForGroup().
         private static readonly char[] ScriptingDefineSymbolsSplitChars = {';', ',', ' '};
-        private const string PlayInstantUrlKeyPrefix = "GooglePlayInstant.InstantUrl.";
+        private static readonly string ConfigurationFilePath = Path.Combine("Library", "PlayInstantBuildConfig.json");
 
-        public static string GetInstantUrl()
-        {
-            return EditorPrefs.GetString(PlayInstantUrlKey);
-        }
+        // Holds an in-memory copy of configuration for quick access.
+        private static Configuration _config;
 
-        public static void SetInstantUrl(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                EditorPrefs.DeleteKey(PlayInstantUrlKey);
-            }
-            else
-            {
-                EditorPrefs.SetString(PlayInstantUrlKey, value);
-            }
-        }
-
-        private static string PlayInstantUrlKey
+        /// <summary>
+        /// Optional field used to prevent removal of required components when building with engine stripping.
+        /// <see cref="https://docs.unity3d.com/ScriptReference/BuildPlayerOptions-assetBundleManifestPath.html"/>
+        /// </summary>
+        public static string AssetBundleManifestPath
         {
             get
             {
-                // TODO: figure out the best approach for per-project config.
-                var packageName = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) ?? "unknown";
-                return PlayInstantUrlKeyPrefix + packageName;
+                LoadConfigIfNecessary();
+                return _config.assetBundleManifestPath;
             }
         }
 
-        public static bool IsPlayInstantScriptingSymbolDefined()
+        /// <summary>
+        /// Optional URL that can be used to launch this instant app. If empty, the app will be "URL-less" and
+        /// use an automatically created URL, e.g. https://instant.apps/package-name.
+        /// </summary>
+        public static string InstantUrl
+        {
+            get
+            {
+                LoadConfigIfNecessary();
+                return _config.instantUrl;
+            }
+        }
+
+        /// <summary>
+        /// Optional array of scenes to include in the build. If not specified, the enabled scenes from the
+        /// Unity "Build Settings" window will be used.
+        /// </summary>
+        public static string[] ScenesInBuild
+        {
+            get
+            {
+                LoadConfigIfNecessary();
+                return _config.scenesInBuild;
+            }
+        }
+
+        /// <summary>
+        /// Persists the specified configuration to disk.
+        /// </summary>
+        public static void SaveConfiguration(string instantUrl, string[] scenesInBuild, string assetBundleManifestPath)
+        {
+            Debug.Log("Saving Play Instant build settings...");
+            _config = _config ?? new Configuration();
+            _config.instantUrl = instantUrl;
+            _config.scenesInBuild = scenesInBuild;
+            _config.assetBundleManifestPath = assetBundleManifestPath;
+            File.WriteAllText(ConfigurationFilePath, JsonUtility.ToJson(_config));
+        }
+
+        /// <summary>
+        /// Returns true if the selected build type is "Instant" or false if "Installed".
+        /// </summary>
+        public static bool IsInstantBuildType()
         {
             return IsPlayInstantScriptingSymbolDefined(GetScriptingDefineSymbols());
         }
 
-        public static void DefinePlayInstantScriptingSymbol()
+        /// <summary>
+        /// Changes the selected build type to "Instant" and defines a "PLAY_INSTANT" scripting define symbol.
+        /// </summary>
+        public static void SetInstantBuildType()
         {
             var scriptingDefineSymbols = GetScriptingDefineSymbols();
             if (!IsPlayInstantScriptingSymbolDefined(scriptingDefineSymbols))
@@ -68,7 +119,10 @@ namespace GooglePlayInstant.Editor
             }
         }
 
-        public static void UndefinePlayInstantScriptingSymbol()
+        /// <summary>
+        /// Changes the selected build type to "Installed" and removes the "PLAY_INSTANT" scripting define symbol.
+        /// </summary>
+        public static void SetInstalledBuildType()
         {
             var scriptingDefineSymbols = GetScriptingDefineSymbols();
             if (IsPlayInstantScriptingSymbolDefined(scriptingDefineSymbols))
@@ -97,6 +151,37 @@ namespace GooglePlayInstant.Editor
         {
             var symbols = string.Join(";", scriptingDefineSymbols.ToArray());
             PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, symbols);
+        }
+
+        private static void LoadConfigIfNecessary()
+        {
+            if (_config != null)
+            {
+                return;
+            }
+
+            _config = new Configuration();
+            if (File.Exists(ConfigurationFilePath))
+            {
+                try
+                {
+                    var configurationJson = File.ReadAllText(ConfigurationFilePath);
+                    _config = JsonUtility.FromJson<Configuration>(configurationJson);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogErrorFormat("Failed to load {0} due to exception: {1}", ConfigurationFilePath, ex);
+                }
+            }
+            else
+            {
+                Debug.Log("Migrating Instant URL from preference file to JSON config file...");
+                var packageName = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) ?? "unknown";
+                var key = "GooglePlayInstant.InstantUrl." + packageName;
+                var oldInstantUrl = EditorPrefs.GetString(key);
+                SaveConfiguration(oldInstantUrl, null, null);
+                EditorPrefs.DeleteKey(key);
+            }
         }
     }
 }

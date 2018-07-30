@@ -33,6 +33,39 @@ namespace GooglePlayInstant.Editor
         private const string CancelButtonText = "Cancel";
 
         /// <summary>
+        /// Returns an array of enabled scenes from the "Scenes In Build" section of Unity's Build Settings window.
+        /// </summary>
+        public static string[] GetEditorBuildEnabledScenes()
+        {
+            return EditorBuildSettings.scenes
+                .Where(scene => scene.enabled && !string.IsNullOrEmpty(scene.path))
+                .Select(scene => scene.path)
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Returns a BuildPlayerOptions struct based on the specified options that is suitable for building an APK.
+        /// </summary>
+        public static BuildPlayerOptions CreateBuildPlayerOptions(string apkPath, BuildOptions options)
+        {
+            var scenesInBuild = PlayInstantBuildConfiguration.ScenesInBuild;
+            if (scenesInBuild == null || scenesInBuild.Length == 0)
+            {
+                scenesInBuild = GetEditorBuildEnabledScenes();
+            }
+
+            return new BuildPlayerOptions
+            {
+                assetBundleManifestPath = PlayInstantBuildConfiguration.AssetBundleManifestPath,
+                locationPathName = apkPath,
+                options = options,
+                scenes = scenesInBuild,
+                target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android
+            };
+        }
+
+        /// <summary>
         /// Builds a Play Instant APK based on the specified options and signs it (if necessary) via
         /// <see href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</see>.
         /// Displays warning/error dialogs if there are issues during the build.
@@ -49,6 +82,7 @@ namespace GooglePlayInstant.Editor
             // On Unity 2018.1+ we require Gradle builds. Unity 2018+ Gradle builds always yield a properly signed APK.
             return true;
 #else
+            // ApkSigner is fast so we call it synchronously rather than wait for the post build AppDomain reset.
             if (!ApkSigner.IsAvailable())
             {
                 LogError("Unable to locate apksigner. Check that a recent version of Android SDK Build-Tools " +
@@ -69,6 +103,7 @@ namespace GooglePlayInstant.Editor
                 Debug.Log("Re-signed with APK Signature Scheme V2.");
                 return true;
             }
+
             LogError("Failed to re-sign the APK using apksigner. Check the Console log for more details.");
             return false;
 #endif
@@ -76,16 +111,16 @@ namespace GooglePlayInstant.Editor
 
         private static bool Build(BuildPlayerOptions buildPlayerOptions)
         {
-            if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
+            if (!PlayInstantBuildConfiguration.IsInstantBuildType())
             {
-                Debug.LogError("Build halted since selected platform is \"Installed\"");
+                Debug.LogError("Build halted since selected build type is \"Installed\"");
                 var message = string.Format(
-                    "The currently selected Android Platform is \"Installed\".\n\n" +
-                    "Click \"OK\" to open the \"{0}\" window where the platform can be changed to \"Instant\".",
-                    PlayInstantSettingsWindow.WindowTitle);
+                    "The currently selected Android build type is \"Installed\".\n\n" +
+                    "Click \"OK\" to open the \"{0}\" window where the build type can be changed to \"Instant\".",
+                    BuildSettingsWindow.WindowTitle);
                 if (DisplayBuildErrorDialog(message))
                 {
-                    PlayInstantSettingsWindow.ShowWindow();
+                    BuildSettingsWindow.ShowWindow();
                 }
 
                 return false;
@@ -103,7 +138,7 @@ namespace GooglePlayInstant.Editor
                     string.Join("\n\n", failedPolicies.ToArray()));
                 if (DisplayBuildErrorDialog(message))
                 {
-                    PlayerAndBuildSettingsWindow.ShowWindow();
+                    PlayerSettingsWindow.ShowWindow();
                 }
 
                 return false;
@@ -163,7 +198,10 @@ namespace GooglePlayInstant.Editor
             return EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText, CancelButtonText);
         }
 
-        private static void LogError(string message)
+        /// <summary>
+        /// Displays the specified message indicating that a build error occurred.
+        /// </summary>
+        public static void LogError(string message)
         {
             Debug.LogErrorFormat("Build error: {0}", message);
             EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
