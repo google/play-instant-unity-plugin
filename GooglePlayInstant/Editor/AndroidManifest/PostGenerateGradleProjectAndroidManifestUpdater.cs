@@ -36,7 +36,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
 
         public void OnPostGenerateGradleAndroidProject(string path)
         {
-            if (!PlayInstantBuildConfiguration.IsPlayInstantScriptingSymbolDefined())
+            if (!PlayInstantBuildConfiguration.IsInstantBuildType())
             {
                 return;
             }
@@ -46,7 +46,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             Debug.LogFormat("Updating manifest for Play Instant: {0}", manifestPath);
 
             Uri uri = null;
-            var instantUrl = PlayInstantBuildConfiguration.GetInstantUrl();
+            var instantUrl = PlayInstantBuildConfiguration.InstantUrl;
             if (!string.IsNullOrEmpty(instantUrl))
             {
                 uri = new Uri(instantUrl);
