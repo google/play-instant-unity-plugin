@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
@@ -52,7 +50,8 @@ namespace GooglePlayInstant.Editor
             var apkPath = Path.Combine(Path.GetTempPath(), "temp.apk");
             Debug.LogFormat("Build and Run package location: {0}", apkPath);
 
-            var buildPlayerOptions = CreateBuildPlayerOptions(apkPath);
+            var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath,
+                EditorUserBuildSettings.development ? BuildOptions.Development : BuildOptions.None);
             if (!PlayInstantBuilder.BuildAndSign(buildPlayerOptions))
             {
                 // Do not log here. The method we called was responsible for logging.
@@ -67,27 +66,11 @@ namespace GooglePlayInstant.Editor
             window.CommandLineParams = new CommandLineParameters()
             {
                 FileName = JavaUtilities.JavaBinaryPath,
-                Arguments = string.Format("-jar {0} run {1}", jarPath, apkPath),
+                Arguments = string.Format("-jar {0} run {1}", jarPath, apkPath)
             };
             window.CommandLineParams.AddEnvironmentVariable(
                 AndroidSdkManager.AndroidHome, AndroidSdkManager.AndroidSdkRoot);
             window.Show();
-        }
-
-        private static BuildPlayerOptions CreateBuildPlayerOptions(string apkPath)
-        {
-            var scenes = new List<string>(EditorBuildSettings.scenes
-                .Where(scene => scene.enabled && !string.IsNullOrEmpty(scene.path))
-                .Select(scene => scene.path));
-            var buildPlayerOptions = new BuildPlayerOptions
-            {
-                scenes = scenes.ToArray(),
-                locationPathName = apkPath,
-                target = BuildTarget.Android,
-                targetGroup = BuildTargetGroup.Android,
-                options = EditorUserBuildSettings.development ? BuildOptions.Development : BuildOptions.None
-            };
-            return buildPlayerOptions;
         }
     }
 }

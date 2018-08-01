@@ -49,16 +49,16 @@ namespace GooglePlayInstant.Editor
             Application.OpenURL("https://github.com/google/play-instant-unity-plugin/issues");
         }
 
-        [MenuItem("PlayInstant/Configure Instant or Installed...", false, 200)]
+        [MenuItem("PlayInstant/Build Settings...", false, 200)]
         private static void OpenEditorSettings()
         {
-            PlayInstantSettingsWindow.ShowWindow();
+            BuildSettingsWindow.ShowWindow();
         }
 
-        [MenuItem("PlayInstant/Check Player Settings...", false, 201)]
+        [MenuItem("PlayInstant/Player Settings...", false, 201)]
         private static void CheckPlayerSettings()
         {
-            PlayerAndBuildSettingsWindow.ShowWindow();
+            PlayerSettingsWindow.ShowWindow();
         }
 
         // Note: cannot use string.Format() in an attribute argument.
@@ -68,38 +68,14 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Creation...", false, 300)]
-        private static void AssetBundleCreationSettings()
+        [MenuItem("PlayInstant/Build for Play Console...", false, 300)]
+        private static void BuildForPlayConsole()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.CreateBundle);
+            PlayInstantPublishser.Build();
         }
 
-        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Deployment...", false, 301)]
-        private static void AssetBundleDeploymentSettings()
-        {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.DeployBundle);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Verification...", false, 302)]
-        private static void AssetBundleVerificationSettings()
-        {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.VerifyBundle);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 303)]
-        private static void LoadingScreenSettings()
-        {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/Build APK...", false, 304)]
-        private static void BuildApkSettings()
-        {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.Build);
-        }
-
-        [MenuItem("PlayInstant/Build and Run #%r", false, 400)]
-        private static void RunOnDevice()
+        [MenuItem("PlayInstant/Build and Run #%r", false, 301)]
+        private static void BuildAndRun()
         {
             PlayInstantRunner.BuildAndRun();
         }
