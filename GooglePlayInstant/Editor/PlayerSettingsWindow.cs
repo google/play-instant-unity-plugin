@@ -18,11 +18,17 @@ using UnityEngine;
 
 namespace GooglePlayInstant.Editor
 {
-    public class PlayerAndBuildSettingsWindow : EditorWindow
+    /// <summary>
+    /// A window for making changes to Android Player Settings in order to build the Unity project as an instant app.
+    /// </summary>
+    public class PlayerSettingsWindow : EditorWindow
     {
+        /// <summary>
+        /// Displays this window, creating it if necessary.
+        /// </summary>
         public static void ShowWindow()
         {
-            GetWindow(typeof(PlayerAndBuildSettingsWindow), true, "Check Player Settings");
+            GetWindow(typeof(PlayerSettingsWindow), true, "Play Instant Player Settings");
         }
 
         private void OnGUI()

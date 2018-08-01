@@ -6,7 +6,8 @@ The Google Play Instant Plugin for Unity Beta simplifies conversion of a Unity-b
 
 The plugin’s Unity Editor (IDE) features include:
  * The option to switch between Installed and Instant build modes.
- * A centralized view of Unity Build Settings and Android Player Settings that should be changed to support Google Play Instant.
+ * A centralized view of Android Player Settings that should be changed to support Google Play Instant.
+ * An action to build the instant app for publishing on Google Play Console.
  * An action to build and run the instant app on an adb connected Android device.
 
 The plugin’s Unity Engine (runtime) features include:
@@ -26,7 +27,7 @@ The plugin’s Unity Engine (runtime) features include:
 ## Unity Editor Features
 After import there will be a “PlayInstant” menu in Unity providing several options described below.
 
-### Configure Instant or Installed...
+### Build Settings...
 Opens a window that enables switching between "Installed" and "Instant" development modes. Switching to "Instant" performs the following changes:
  * Creates a Scripting Define Symbol called PLAY_INSTANT that can be used for scripting with #if PLAY_INSTANT / #endif.
  * Provides a text box for optionally entering an "Instant Apps URL" that is used to launch the instant app.
@@ -34,11 +35,20 @@ Opens a window that enables switching between "Installed" and "Instant" developm
    * If a URL is not entered, a URL will be provided for you at https://instant.apps/your.package.name.
  * Manages updates to the AndroidManifest.xml for certain required changes such as [android:targetSandboxVersion](https://developer.android.com/guide/topics/manifest/manifest-element#targetSandboxVersion).
 
-### Check Player Settings...
-Opens a window that indicates Unity Build Settings and Android Player Settings that should be changed to make the app Google Play Instant compatible. These are divided into Required and Recommended settings. Click on an “Update” button to change a setting.
+#### Scenes in Build
+The Play Instant Build Settings window also provides control over the scenes included in the build:
+ * By default the scenes included in the build are the enabled scenes from Unity's "Build Settings" window.
+ * The scenes included in the build can be customized via a comma separated list of scene names.
+ * Scenes that are not included in the build, but that are loaded via Asset Bundles, may have required components removed by engine stripping. Specify the path to an Asset Bundle Manifest file to retain these required components.
+
+### Player Settings...
+Opens a window that lists Android Player Settings that should be changed to make the app Google Play Instant compatible. These are divided into Required and Recommended settings. Click on an “Update” button to change a setting.
 
 ### Set up Instant Apps Development SDK...
 Installs or updates the “Instant Apps Development SDK” using [sdkmanager](https://developer.android.com/studio/command-line/sdkmanager). The plugin requires SDK version 1.2 or higher. If there is a license that needs to be accepted, the plugin will prompt for acceptance.
+
+### Build for Play Console...
+[Google Play Console](https://play.google.com/apps/publish/) requires that the APKs for an instant app are published together in a ZIP file. Although most Unity instant apps will consist of a single APK, the requirement holds. This menu option performs a build and stores the resulting APK in a ZIP file suitable for publishing.
 
 ### Build and Run
 This option runs the instant app on an adb connected device by performing the following steps:
