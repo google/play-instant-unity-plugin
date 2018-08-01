@@ -63,10 +63,13 @@ namespace GooglePlayInstant.Editor
             window.summaryText = "Installing app on device";
             window.bodyText = "The APK built successfully. Waiting for scripts to reload...\n";
             window.autoScrollToBottom = true;
-            window.CommandLineParams = new CommandLineParameters()
+            window.CommandLineParams = new CommandLineParameters
             {
                 FileName = JavaUtilities.JavaBinaryPath,
-                Arguments = string.Format("-jar {0} run {1}", jarPath, apkPath)
+                Arguments = string.Format(
+                    "-jar {0} run {1}",
+                    CommandLine.QuotePathIfNecessary(jarPath),
+                    CommandLine.QuotePathIfNecessary(apkPath))
             };
             window.CommandLineParams.AddEnvironmentVariable(
                 AndroidSdkManager.AndroidHome, AndroidSdkManager.AndroidSdkRoot);

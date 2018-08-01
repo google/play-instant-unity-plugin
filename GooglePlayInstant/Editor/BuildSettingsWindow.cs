@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Linq;
 using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
 using UnityEngine;
@@ -52,7 +53,7 @@ namespace GooglePlayInstant.Editor
         {
             _isInstant = PlayInstantBuildConfiguration.IsInstantBuildType();
             _instantUrl = PlayInstantBuildConfiguration.InstantUrl;
-            _scenesInBuild = string.Join(",", PlayInstantBuildConfiguration.ScenesInBuild);
+            _scenesInBuild = GetScenesInBuildAsString(PlayInstantBuildConfiguration.ScenesInBuild);
             _assetBundleManifestPath = PlayInstantBuildConfiguration.AssetBundleManifestPath;
         }
 
@@ -148,7 +149,7 @@ namespace GooglePlayInstant.Editor
             {
                 return !PlayInstantBuildConfiguration.IsInstantBuildType() ||
                        _instantUrl != PlayInstantBuildConfiguration.InstantUrl ||
-                       _scenesInBuild != string.Join(",", PlayInstantBuildConfiguration.ScenesInBuild) ||
+                       _scenesInBuild != GetScenesInBuildAsString(PlayInstantBuildConfiguration.ScenesInBuild) ||
                        _assetBundleManifestPath != PlayInstantBuildConfiguration.AssetBundleManifestPath;
             }
 
@@ -197,18 +198,28 @@ namespace GooglePlayInstant.Editor
             }
 
             var errorMessage = _androidManifestUpdater.SwitchToInstant(uri);
-            if (errorMessage == null)
-            {
-                PlayInstantBuildConfiguration.SetInstantBuildType();
-                PlayInstantBuildConfiguration.SaveConfiguration(
-                    _instantUrl, _scenesInBuild.Split(','), _assetBundleManifestPath);
-            }
-            else
+            if (errorMessage != null)
             {
                 var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
                 Debug.LogError(message);
                 EditorUtility.DisplayDialog("Error Saving", message, "OK");
+                return;
             }
+
+            var scenesInBuild =
+                _scenesInBuild.Split(',').Where(s => s.Trim().Length > 0).Select(s => s.Trim()).ToArray();
+            _scenesInBuild = GetScenesInBuildAsString(scenesInBuild);
+            _assetBundleManifestPath = _assetBundleManifestPath.Trim();
+            PlayInstantBuildConfiguration.SaveConfiguration(_instantUrl, scenesInBuild, _assetBundleManifestPath);
+            PlayInstantBuildConfiguration.SetInstantBuildType();
+            // If a TextField is in focus, it won't update to reflect the Trim(). So reassign focus to controlID 0.
+            GUIUtility.keyboardControl = 0;
+            Repaint();
+        }
+
+        private static string GetScenesInBuildAsString(string[] scenesInBuild)
+        {
+            return string.Join(",", scenesInBuild);
         }
 
         private void SelectPlatformInstalled()

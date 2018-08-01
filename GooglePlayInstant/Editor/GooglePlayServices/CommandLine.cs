@@ -670,6 +670,14 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
                 toolPath, arguments, stdout, stderr, exitCode);
         }
 
+        /// <summary>
+        /// Returns the specified argument in double quotes if it contains at least one space, otherwise returns as is.
+        /// </summary>
+        public static string QuotePathIfNecessary(string path)
+        {
+            return path.Contains(" ") ? string.Format("\"{0}\"", path) : path;
+        }
+
 #if UNITY_EDITOR
         /// <summary>
         /// Get an executable extension.
