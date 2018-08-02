@@ -15,7 +15,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
     public static class PlayInstantEditorMenu
     {
@@ -67,35 +67,35 @@ namespace GooglePlayInstant.Editor
         {
             PlayInstantSdkInstaller.SetUp();
         }
-
+        
         [MenuItem("PlayInstant/Quick Deploy/AssetBundle Creation...", false, 300)]
         private static void AssetBundleCreationSettings()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.CreateBundle);
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.CreateBundle);
         }
 
         [MenuItem("PlayInstant/Quick Deploy/AssetBundle Deployment...", false, 301)]
         private static void AssetBundleDeploymentSettings()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.DeployBundle);
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.DeployBundle);
         }
 
         [MenuItem("PlayInstant/Quick Deploy/AssetBundle Verification...", false, 302)]
         private static void AssetBundleVerificationSettings()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.VerifyBundle);
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.VerifyBundle);
         }
 
         [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 303)]
         private static void LoadingScreenSettings()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
         }
 
         [MenuItem("PlayInstant/Quick Deploy/Build APK...", false, 304)]
         private static void BuildApkSettings()
         {
-            PlayInstantQuickDeployWindow.ShowWindow(PlayInstantQuickDeployWindow.ToolBarSelectedButton.Build);
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.Build);
         }
 
         [MenuItem("PlayInstant/Build for Play Console...", false, 400)]

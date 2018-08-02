@@ -15,9 +15,9 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
-    public class PlayInstantQuickDeployWindow : EditorWindow
+    public class QuickDeployWindow : EditorWindow
     {
         private static readonly string[] ToolbarButtonNames =
         {
@@ -46,7 +46,7 @@ namespace GooglePlayInstant.Editor
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
-            GetWindow<PlayInstantQuickDeployWindow>("Quick Deploy");
+            GetWindow<QuickDeployWindow>("Quick Deploy");
             _toolbarSelectedButtonIndex = (int) select;
         }
 
@@ -193,13 +193,13 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.Space();
             if (GUILayout.Button("Choose Loading Image", GUILayout.Width(ButtonWidth)))
             {
-                PlayInstantLoadingScreenGenerator.LoadingScreenImagePath =
+                LoadingScreenGenerator.LoadingScreenImagePath =
                     EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
             }
 
             EditorGUILayout.Space();
 
-            var displayedPath = PlayInstantLoadingScreenGenerator.LoadingScreenImagePath ?? "no file specified";
+            var displayedPath = LoadingScreenGenerator.LoadingScreenImagePath ?? "no file specified";
             EditorGUILayout.LabelField(string.Format("Image file: {0}", displayedPath),
                 GUILayout.MinWidth(FieldMinWidth));
 
@@ -214,7 +214,7 @@ namespace GooglePlayInstant.Editor
                 }
                 else
                 {
-                    PlayInstantLoadingScreenGenerator.GenerateLoadingScreenScene(
+                    LoadingScreenGenerator.GenerateLoadingScreenScene(
                         QuickDeployConfig.Config.assetBundleUrl);
                 }
             }
@@ -247,7 +247,7 @@ namespace GooglePlayInstant.Editor
 
             if (GUILayout.Button("Build Base APK", GUILayout.Width(ButtonWidth)))
             {
-                QuickDeployBuilder.BuildQuickDeployInstantGameApk();
+                QuickDeployApkBuilder.BuildQuickDeployInstantGameApk();
             }
         }
     }

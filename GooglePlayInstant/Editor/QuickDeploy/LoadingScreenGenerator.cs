@@ -20,12 +20,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// Class that generates Unity loading scenes for instant apps.
     /// </summary>
-    public class PlayInstantLoadingScreenGenerator
+    public class LoadingScreenGenerator
     {
         public const string LoadingSceneName = "play-instant-loading-screen-scene";
 

@@ -14,12 +14,12 @@
 
 using UnityEditor;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// A handler for building apks using quick deploy.
     /// </summary>
-    public static class QuickDeployBuilder
+    public static class QuickDeployApkBuilder
     {
         /// <summary>
         /// Determine whether or not the project is using IL2CPP as scripting backend.
@@ -41,17 +41,17 @@ namespace GooglePlayInstant.Editor
         {
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] {PlayInstantLoadingScreenGenerator.LoadingSceneName + ".unity"},
+                scenes = new[] {LoadingScreenGenerator.LoadingSceneName + ".unity"},
                 locationPathName = QuickDeployConfig.Config.apkFileName,
                 target = BuildTarget.Android,
                 options = BuildOptions.None
                 // TODO: include asset bundle manifest path in options.
             };
-            
+
             const string recommendationDialogTitle = "Scripting Backend Recommendation";
             const string textForYes = "Yes";
             const string textForNo = "No";
-            
+
             if (!ProjectIsUsingIl2cpp())
             {
                 var enableIl2cppAndEngineStripping = EditorUtility.DisplayDialog(recommendationDialogTitle,
