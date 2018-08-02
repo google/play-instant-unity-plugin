@@ -16,7 +16,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace GooglePlayInstant.Editor
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// Contains set of operations for storing and retrieving quick deploy configurations.
