@@ -82,7 +82,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 var scenes = bundle.GetAllScenePaths();
                 _mainScene = (scenes.Length == 0) ? "No scenes in AssetBundle" : scenes[0];
 
-                // Free memory used by the AssetBundle since it will not be in use by the Editor. Set to true to destory
+                // Free memory used by the AssetBundle since it will not be in use by the Editor. Set to true to destroy
                 // all objects that were loaded from this bundle.
                 bundle.Unload(true);
             }
@@ -109,6 +109,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _webRequest = null;
         }
 
+        // TODO: fix crashing associated with using DisplayProgressBar()
         private void OnGUI()
         {
             if (_webRequest != null && !_webRequest.isDone)

@@ -14,8 +14,9 @@
 
 using UnityEditor;
 using UnityEngine;
+using GooglePlayInstant.Editor.QuickDeploy;
 
-namespace GooglePlayInstant.Editor.QuickDeploy
+namespace GooglePlayInstant.Editor
 {
     public static class PlayInstantEditorMenu
     {

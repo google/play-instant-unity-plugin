@@ -42,7 +42,7 @@ namespace GooglePlayInstant.LoadingScreen
 
             var loadingScreenConfig = JsonUtility.FromJson<LoadingScreenConfig>(loadingScreenConfigJson);
 
-            yield return StartCoroutine(GetAssetBundle(loadingScreenConfig.assetBundleUrl));
+            yield return GetAssetBundle(loadingScreenConfig.assetBundleUrl);
 
             if (_bundle == null)
             {
@@ -50,7 +50,9 @@ namespace GooglePlayInstant.LoadingScreen
             }
             else
             {
-                SceneManager.LoadScene(_bundle.GetAllScenePaths()[0]);
+                var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
+                yield return StartCoroutine(LoadingBar.UpdateLoadingBar(sceneLoadOperation,
+                    LoadingBar.SceneLoadingMaxWidthPercentage));
             }
         }
 
@@ -62,7 +64,10 @@ namespace GooglePlayInstant.LoadingScreen
 #else
             var www = UnityWebRequest.GetAssetBundle(assetBundleUrl);
 #endif
-            yield return www.SendWebRequest();
+            var assetbundleDownloadOperation = www.SendWebRequest();
+
+            yield return StartCoroutine(LoadingBar.UpdateLoadingBar(assetbundleDownloadOperation,
+                LoadingBar.AssetBundleDownloadMaxWidthPercentage));
 
             // TODO: implement retry logic
             if (www.isNetworkError || www.isHttpError)
