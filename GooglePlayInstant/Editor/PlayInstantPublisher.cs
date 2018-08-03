@@ -49,7 +49,11 @@ namespace GooglePlayInstant.Editor
             }
 
             // Zip creation is fast enough so call jar synchronously rather than wait for post build AppDomain reset.
-            var arguments = string.Format("cvf {0} -C {1} {2}", zipFilePath, baseApkDirectory, BaseApkFileName);
+            var arguments = string.Format(
+                "cvf {0} -C {1} {2}",
+                CommandLine.QuotePathIfNecessary(zipFilePath),
+                CommandLine.QuotePathIfNecessary(baseApkDirectory),
+                BaseApkFileName);
             var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
             if (result.exitCode == 0)
             {
