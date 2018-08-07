@@ -61,7 +61,19 @@ This option runs the instant app on an adb connected device by performing the fo
 The goal of many instant apps is to give users a chance to experience the app before installing the full version. The plugin provides methods for transferring state from instant to installed app and for displaying a Play Store install dialog. These methods are also available via [Google Play Services Java APIs](https://developers.google.com/android/reference/com/google/android/gms/instantapps/package-summary), but the plugin's C# implementations are easier to use in Unity.
 
 ### Show Install Prompt
-An instant app with an "Install" button can call the `InstallLauncher.ShowInstallPrompt()` method to display a Play Store install dialog. For example, the following code can be called from an install button click handler:
+An instant app with an "Install" button can display a Play Store install dialog by calling the following from an install button click handler:
+
+```cs
+GooglePlayInstant.InstallLauncher.ShowInstallPrompt();
+```
+
+The `ShowInstallPrompt()` method has an overload that allows for one or more of the following:
+
+ * Determining if the user cancels out of the installation process. Override `onActivityResult()` in the instant app's main activity and check for `RESULT_CANCELED` on the specified `requestCode`.
+ * Passing an install referrer string via the `referrer` parameter.
+ * Passing state about the current game session via `PutPostInstallIntentStringExtra()`.
+
+These are demonstrated in the following example:
 
 ```cs
 const int requestCode = 123;
@@ -74,9 +86,7 @@ using (var postInstallIntent = GooglePlayInstant.InstallLauncher.CreatePostInsta
 }
 ```
 
-To determine if the user cancels out of the installation process, override `onActivityResult()` in the instant app's main activity and check for `RESULT_CANCELED`.
-
-If the user completes app installation, the Play Store will re-launch the app using the provided `postInstallIntent`. This intent can carry context about the user's state in the instant app, e.g. the player's current position within the game as in the example above. The installed app can retrieve this value using the following code:
+If the user completes app installation, the Play Store will re-launch the app using the provided `postInstallIntent`. The installed app can retrieve a value set in the `postInstallIntent` using the following:
 
 ```cs
 var sessionInfo = GooglePlayInstant.InstallLauncher.GetPostInstallIntentStringExtra("sessionInfo");
@@ -122,7 +132,7 @@ var cookieBytes = GooglePlayInstant.CookieApi.GetInstantAppCookie();
 var playerInfoString = System.Text.Encoding.UTF8.GetString(cookieBytes);
 if (!string.IsNullOrEmpty(playerInfoString))
 {
-    // Initialize game state based on cookie, e.g. skip tutorial level completed in instant app.
+    // Initialize game state based on the cookie, e.g. skip tutorial level completed in instant app.
 }
 ```
 
