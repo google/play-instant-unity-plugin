@@ -26,7 +26,10 @@ namespace GooglePlayInstant.LoadingScreen
     /// </summary>
     public class LoadingScreenScript : MonoBehaviour
     {
+        private const int MaxAttemptCount = 3;
         private AssetBundle _bundle;
+        private int _assetBundleRetrievalAttemptCount;
+
 
         private IEnumerator Start()
         {
@@ -51,32 +54,46 @@ namespace GooglePlayInstant.LoadingScreen
             else
             {
                 var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
-                yield return StartCoroutine(LoadingBar.UpdateLoadingBar(sceneLoadOperation,
-                    LoadingBar.SceneLoadingMaxWidthPercentage));
+                yield return LoadingBar.UpdateLoadingBar(sceneLoadOperation, LoadingBar.SceneLoadingMaxWidthPercentage);
             }
         }
 
-        //TODO: Update function for unity 5.6 functionality
         private IEnumerator GetAssetBundle(string assetBundleUrl)
         {
-#if UNITY_2018_2_OR_NEWER
-            var www = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUrl);
+#if UNITY_2018_1_OR_NEWER
+            var webRequest = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUrl);
+            var assetbundleDownloadOperation = webRequest.SendWebRequest();
+#elif UNITY_2017_1_OR_NEWER
+            var webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
+            var assetbundleDownloadOperation = webRequest.SendWebRequest();
 #else
-            var www = UnityWebRequest.GetAssetBundle(assetBundleUrl);
+            var webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
+            var assetbundleDownloadOperation = webRequest.Send();
 #endif
-            var assetbundleDownloadOperation = www.SendWebRequest();
+            yield return LoadingBar.UpdateLoadingBar(assetbundleDownloadOperation,
+                LoadingBar.AssetBundleDownloadMaxWidthPercentage);
 
-            yield return StartCoroutine(LoadingBar.UpdateLoadingBar(assetbundleDownloadOperation,
-                LoadingBar.AssetBundleDownloadMaxWidthPercentage));
-
-            // TODO: implement retry logic
-            if (www.isNetworkError || www.isHttpError)
+#if UNITY_2017_1_OR_NEWER
+            if (webRequest.isHttpError || webRequest.isNetworkError)
+#else
+            if (webRequest.isError)
+#endif
             {
-                Debug.LogErrorFormat("Error downloading asset bundle: {0}", www.error);
+                if (_assetBundleRetrievalAttemptCount < MaxAttemptCount)
+                {
+                    _assetBundleRetrievalAttemptCount++;
+                    Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
+                    yield return new WaitForSeconds(2);
+                    yield return GetAssetBundle(assetBundleUrl);
+                }
+                else
+                {
+                    Debug.LogErrorFormat("Error downloading asset bundle: {0}", webRequest.error);
+                }
             }
             else
             {
-                _bundle = DownloadHandlerAssetBundle.GetContent(www);
+                _bundle = DownloadHandlerAssetBundle.GetContent(webRequest);
             }
         }
     }

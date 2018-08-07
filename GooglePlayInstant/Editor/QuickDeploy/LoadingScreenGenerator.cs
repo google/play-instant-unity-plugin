@@ -41,7 +41,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         public static string LoadingScreenImagePath { get; set; }
 
-        //TODO: fix wasteful sprite creation by deleting previous unused ones
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are
         /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,

@@ -47,21 +47,31 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             window.StartAssetBundleVerificationDownload();
         }
 
-        //TODO: Support Unity 5.6.0+
         private void StartAssetBundleVerificationDownload()
         {
+#if UNITY_2018_1_OR_NEWER
             _webRequest = UnityWebRequestAssetBundle.GetAssetBundle(_assetBundleUrl);
             _webRequest.SendWebRequest();
+#elif UNITY_2017_1_OR_NEWER
+            _webRequest = UnityWebRequest.GetAssetBundle(_assetBundleUrl);
+            _webRequest.SendWebRequest();
+#else
+            _webRequest = UnityWebRequest.GetAssetBundle(_assetBundleUrl);
+            _webRequest.Send();
+#endif
         }
 
-        //TODO: Support Unity 5.6.0+
         private void GetAssetBundleInfoFromDownload()
         {
             var bundle = DownloadHandlerAssetBundle.GetContent(_webRequest);
 
             _responseCode = _webRequest.responseCode;
 
-            if (_webRequest.isNetworkError || _webRequest.isHttpError)
+#if UNITY_2017_1_OR_NEWER
+            if (_webRequest.isHttpError || _webRequest.isNetworkError)
+#else
+            if (_webRequest.isError)
+#endif
             {
                 _assetBundleDownloadIsSuccessful = false;
                 _errorDescription = _webRequest.error;
@@ -88,7 +98,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
         }
 
-        private double ConvertBytesToMegabytes(ulong bytes)
+        private static double ConvertBytesToMegabytes(ulong bytes)
         {
             return bytes / 1024f / 1024f;
         }
@@ -150,7 +160,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
         }
 
-        private void AddVerifyComponentInfo(string title, string response)
+        private static void AddVerifyComponentInfo(string title, string response)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(title, GUILayout.MinWidth(FieldMinWidth));
