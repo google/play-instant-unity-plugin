@@ -50,39 +50,40 @@ namespace GooglePlayInstant.Editor
         /// <summary>
         /// Optional field used to prevent removal of required components when building with engine stripping.
         /// <see cref="https://docs.unity3d.com/ScriptReference/BuildPlayerOptions-assetBundleManifestPath.html"/>
+        /// Never null.
         /// </summary>
         public static string AssetBundleManifestPath
         {
             get
             {
                 LoadConfigIfNecessary();
-                return _config.assetBundleManifestPath;
+                return _config.assetBundleManifestPath ?? string.Empty;
             }
         }
 
         /// <summary>
         /// Optional URL that can be used to launch this instant app. If empty, the app will be "URL-less" and
-        /// use an automatically created URL, e.g. https://instant.apps/package-name.
+        /// use an automatically created URL, e.g. https://instant.apps/package-name. Never null.
         /// </summary>
         public static string InstantUrl
         {
             get
             {
                 LoadConfigIfNecessary();
-                return _config.instantUrl;
+                return _config.instantUrl ?? string.Empty;
             }
         }
 
         /// <summary>
         /// Optional array of scenes to include in the build. If not specified, the enabled scenes from the
-        /// Unity "Build Settings" window will be used.
+        /// Unity "Build Settings" window will be used. Never null.
         /// </summary>
         public static string[] ScenesInBuild
         {
             get
             {
                 LoadConfigIfNecessary();
-                return _config.scenesInBuild;
+                return _config.scenesInBuild ?? new string[0];
             }
         }
 

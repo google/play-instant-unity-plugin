@@ -49,7 +49,7 @@ namespace GooglePlayInstant.Editor
         public static BuildPlayerOptions CreateBuildPlayerOptions(string apkPath, BuildOptions options)
         {
             var scenesInBuild = PlayInstantBuildConfiguration.ScenesInBuild;
-            if (scenesInBuild == null || scenesInBuild.Length == 0)
+            if (scenesInBuild.Length == 0)
             {
                 scenesInBuild = GetEditorBuildEnabledScenes();
             }

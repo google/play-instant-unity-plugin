@@ -50,7 +50,11 @@ namespace GooglePlayInstant.Editor
         /// <returns>true if the specified APK uses APK Signature Scheme V2, false otherwise</returns>
         public static bool Verify(string apkPath)
         {
-            var arguments = string.Format("-jar {0} verify {1}", GetApkSignerJarPath(), apkPath);
+            var arguments = string.Format(
+                "-jar {0} verify {1}",
+                CommandLine.QuotePathIfNecessary(GetApkSignerJarPath()),
+                CommandLine.QuotePathIfNecessary(apkPath));
+
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
             if (result.exitCode == 0)
             {
@@ -105,9 +109,16 @@ namespace GooglePlayInstant.Editor
                 return false;
             }
 
+            // This command will sign the APK file {3} using key {2} contained in keystore file {1}.
+            // ApkSignerResponder will provide passwords using the default method of stdin, so no need
+            // to specify "--ks-pass" or "--key-pass". ApkSignerResponder will encode the passwords
+            // with UTF8, so we specify "--pass-encoding utf-8" here.
             var arguments = string.Format(
                 "-jar {0} sign --ks {1} --ks-key-alias {2} --pass-encoding utf-8 {3}",
-                GetApkSignerJarPath(), keystoreName, keyaliasName, apkPath);
+                CommandLine.QuotePathIfNecessary(GetApkSignerJarPath()),
+                CommandLine.QuotePathIfNecessary(keystoreName),
+                keyaliasName,
+                CommandLine.QuotePathIfNecessary(apkPath));
 
             var promptToPasswordDictionary = new Dictionary<string, string>
             {
@@ -181,6 +192,7 @@ namespace GooglePlayInstant.Editor
                 }
 
                 Flush();
+                // UTF8 to match "--pass-encoding utf-8" argument passed to apksigner.
                 foreach (var value in Encoding.UTF8.GetBytes(password + Environment.NewLine))
                 {
                     stdin.BaseStream.WriteByte(value);
