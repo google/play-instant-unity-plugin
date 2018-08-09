@@ -36,13 +36,13 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// <summary>
         /// Creates a dialog box that details the success or failure of an AssetBundle retrieval from a given assetBundleUrl.
         /// </summary>
-        public static void ShowWindow()
+        public static void ShowWindow(string assetBundleUrl)
         {
             // Set AssetBundle url in a private variable so that information displayed in window is consistent with
             // the url that this was called on. 
             var window = (AssetBundleVerifierWindow) GetWindow(typeof(AssetBundleVerifierWindow), true,
                 "Play Instant AssetBundle Verify");
-            window._assetBundleUrl = QuickDeployConfig.Config.assetBundleUrl;
+            window._assetBundleUrl = assetBundleUrl;
 
             window.StartAssetBundleVerificationDownload();
         }
