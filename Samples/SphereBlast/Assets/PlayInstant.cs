@@ -20,11 +20,50 @@ using GooglePlayInstant;
 
 public class PlayInstant : MonoBehaviour
 {
-	// Use this for initialization
-	void Start()
-	{
-		
-	}
+
+    /// <summary>
+    /// Provides methods that an instant app can use to display a Play Store install dialog. This dialog will allow
+    /// the user to install the current instant app as a full app.
+    ///
+    /// Provides methods that an instant app can use for howing the install prompt, and set and get strings via the
+    /// cookie API, and that installed apps can also use to get values from via the cookie. Both instant and
+    /// installed apps can call the isInstantApp method to check if this current app is an instant app.
+    /// 
+    /// 
+    /// Example code for the instant app's install button click handler:
+    /// <code>
+    /// pi = new PlayInstant();
+    /// install();
+    /// </code>
+    /// 
+    /// Or, you can call install with a referrer id
+    /// 
+    /// <code>
+    /// pi = new PlayInstant();
+    /// pi.install ("YOUR_CAMPAING_ID");
+    /// </code>
+    ///
+    /// Example code for setting a cookie
+    /// <code>
+    /// pi = new PlayInstant();
+    /// string gameStateCSV = level + "," + score;
+    /// pi.SetCookie(gameStateCSV);
+    /// </code>
+    /// 
+    /// Example code for getting a cookie
+    /// <code>
+    /// pi = new PlayInstant();
+    /// string results = pi.GetCookie();
+    /// </code>
+    /// 
+    /// Example code for checking if currently running game is an instant app
+    /// <code>
+    /// if (pi.IsInstantApp())
+    /// {
+    ///     Debug.Log("This app is an instant app");
+    /// }
+    /// </code>
+    /// </summary>
 
 	public void Install()
 	{
@@ -84,7 +123,10 @@ public class PlayInstant : MonoBehaviour
 
 	public void SetCookie(string content)
 	{
-		try
+		// Uses the PackageManagerCompat class to set a cookie. Relies on Play Services version
+        // of the InstantApps module. Takes a string and converts it to byte array befor calling
+        // setInstantAppCookie
+        try
 		{
 			using (var currentActivity = InstallLauncher.GetCurrentActivity())
 			{
@@ -93,10 +135,10 @@ public class PlayInstant : MonoBehaviour
 				{
 					var pm = instantAppsClazz.CallStatic<AndroidJavaObject>
 						("getPackageManagerCompat",
-						         currentActivity);
+						 currentActivity);
 					var cookieResult = pm.Call<bool>
 						("setInstantAppCookie", 
-						                   System.Text.Encoding.ASCII.GetBytes(content));
+						 System.Text.Encoding.ASCII.GetBytes(content));
 					Debug.Log("setCookie result " + cookieResult);
 					Debug.Log("Check if cookie is set " + GetCookie());
 				}
@@ -111,6 +153,9 @@ public class PlayInstant : MonoBehaviour
 
 	public string GetCookie()
 	{
+        // Uses the PackageManagerCompat class to get a cookie. Relies on Play Services version
+        // of the InstantApps module. Returns a string from the byte array returned by
+        // call to getInstantAppCookie
 		try
 		{
 			using (var currentActivity = InstallLauncher.GetCurrentActivity())
@@ -138,6 +183,8 @@ public class PlayInstant : MonoBehaviour
 
 	public bool IsInstantApp()
 	{
+        // Uses the PackageManagerCompat class to get a cookie. Relies on Play Services version
+        // of the InstantApps module. Returns the boolean returned by isInstantApp
 		try
 		{
 			using (var currentActivity = InstallLauncher.GetCurrentActivity())
@@ -154,24 +201,6 @@ public class PlayInstant : MonoBehaviour
 			Debug.Log("Exception in isInstantApp:\n"
 				+ e.Message + "\n" + e.StackTrace);
 			return false;
-		}
-	}
-
-	IEnumerator DownloadAsset(string sceneURL, bool loadScene)
-	{
-		// downloads and loads scenes
-		WWW bundleWWW = WWW.LoadFromCacheOrDownload(sceneURL, 0);
-		yield return bundleWWW;
-		var assetBundle = bundleWWW.assetBundle;
-		if (loadScene)
-		{
-			if (assetBundle.isStreamedSceneAssetBundle)
-			{
-				string[] scenePaths = assetBundle.GetAllScenePaths();
-				string sceneName =
-					System.IO.Path.GetFileNameWithoutExtension(scenePaths[0]);
-				UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-			}
 		}
 	}
 
