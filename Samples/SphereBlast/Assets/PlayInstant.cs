@@ -63,6 +63,7 @@ public class PlayInstant : MonoBehaviour
     ///     Debug.Log("This app is an instant app");
     /// }
     /// </code>
+    /// 
     /// </summary>
 
 	public void Install()
