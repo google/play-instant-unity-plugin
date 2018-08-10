@@ -54,7 +54,8 @@ namespace GooglePlayInstant.LoadingScreen
             else
             {
                 var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
-                yield return LoadingBar.UpdateLoadingBar(sceneLoadOperation, LoadingBar.SceneLoadingMaxWidthPercentage);
+
+                yield return LoadingBar.Update(sceneLoadOperation, LoadingBar.SceneLoadingMaxWidthPercentage);
             }
         }
 
@@ -70,7 +71,9 @@ namespace GooglePlayInstant.LoadingScreen
             var webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
             var assetbundleDownloadOperation = webRequest.Send();
 #endif
-            yield return LoadingBar.UpdateLoadingBar(assetbundleDownloadOperation,
+            LoadingBar.UpdateSizeAndPostition();
+
+            yield return LoadingBar.Update(assetbundleDownloadOperation,
                 LoadingBar.AssetBundleDownloadMaxWidthPercentage);
 
 #if UNITY_2017_1_OR_NEWER
@@ -84,6 +87,10 @@ namespace GooglePlayInstant.LoadingScreen
                     _assetBundleRetrievalAttemptCount++;
                     Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
                     yield return new WaitForSeconds(2);
+
+                    //TODO: revisit this methodology of setting the loading bar
+                    LoadingBar.Reset();
+
                     yield return GetAssetBundle(assetBundleUrl);
                 }
                 else
