@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e95bb087228394c788169e36ad42368c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  assetBundleURL: https://s3.amazonaws.com/www.concussionjs.com/unity/spherescene
+  assetBundleURL: https://google.github.io/play-instant-unity-plugin/spherescene
 --- !u!4 &203794488
 Transform:
   m_ObjectHideFlags: 0
@@ -246,7 +246,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -579, y: 263}
+  m_AnchoredPosition: {x: -543, y: 99}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &866182237
@@ -269,8 +269,8 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 20d8cec9058614bd592603ca297ddc09, type: 3}
-    m_FontSize: 150
+    m_Font: {fileID: 12800000, guid: ec27294ecbaee4eabbda65c83af73f57, type: 3}
+    m_FontSize: 75
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
