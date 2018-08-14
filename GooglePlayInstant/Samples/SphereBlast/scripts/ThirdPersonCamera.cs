@@ -1,28 +1,36 @@
-﻿using System.Collections;
+﻿// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class thirdPersonCamera : MonoBehaviour {
+public class ThirdPersonCamera : MonoBehaviour {
 
-    Quaternion rotation;
     public Transform sphere;
-    Vector3 offset;
+    private Vector3 _offset;
 
     void Start () {
-        offset = transform.position - sphere.transform.position;
+        _offset = transform.position - sphere.transform.position;
     }
 
-    void FixedUpdate()
-    {
+    void FixedUpdate () {
         if (sphere == null)
             return;
-        transform.LookAt(sphere);
-        Vector3 desiredPosition = sphere.transform.position + offset;
+        transform.LookAt (sphere);
+        Vector3 desiredPosition = sphere.transform.position + _offset;
         transform.position = desiredPosition;
-    }    
+    }
 
-//    void LateUpdate()
-//    {
-//        transform.rotation = rotation;
-//    }
 }

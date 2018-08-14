@@ -17,89 +17,76 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BallMovement : MonoBehaviour
-{
-	private float speed = 20F;
-	private float boostMultiplier = 100F;
-	private float keyDownMultiplier = 10F;
-	private Rigidbody rb;
-	private BaseGame baseGame;
-	string[] outOfBoundsObjectNames = new string[]
-	{
-		"OOBNorth",
-		"OOBEast",
-		"OOBSouth",
-		"OOBWest",
-		"OOBBottom",
-		"OOBTop"
-	};
+public class BallMovement : MonoBehaviour {
+    private float _speed = 20F;
+    private float _boostMultiplier = 100F;
+    private float _keyDownMultiplier = 10F;
+    private Rigidbody _rb;
+    private BaseGame _baseGame;
+    private string[] _outOfBoundsObjectNames = new string[] {
+        "OOBNorth",
+        "OOBEast",
+        "OOBSouth",
+        "OOBWest",
+        "OOBBottom",
+        "OOBTop"
+    };
 
-	void Start()
-	{
-		rb = GetComponent<Rigidbody>();
-		baseGame = GameObject.Find("BaseGame").GetComponent<BaseGame>();
-	}
+    void Start () {
+        _rb = GetComponent<Rigidbody> ();
+        _baseGame = GameObject.Find ("BaseGame").GetComponent<BaseGame> ();
+    }
 
-	void FixedUpdate()
-	{
-		Vector3 acc = Input.acceleration;
-		rb.AddForce(acc.x * speed * acc.magnitude, 0, acc.y * speed * acc.magnitude);
-		if (Input.GetKeyDown(KeyCode.DownArrow))
-		{
-			//Debug.Log ("DownArrow down " + Vector3.back);
-			rb.AddForce(Vector3.back * speed * keyDownMultiplier);
-		}
+    void FixedUpdate () {
+        Vector3 acc = Input.acceleration;
+        _rb.AddForce (acc.x * _speed * acc.magnitude, 0, acc.y * _speed * acc.magnitude);
+        if (Input.GetKeyDown (KeyCode.DownArrow)) {
+            //Debug.Log ("DownArrow down " + Vector3.back);
+            _rb.AddForce (Vector3.back * _speed * _keyDownMultiplier);
+        }
 
-		if (Input.GetKeyDown(KeyCode.UpArrow))
-		{
-			//Debug.Log ("UpArrow down " + Vector3.forward);
-			rb.AddForce(Vector3.forward * speed * keyDownMultiplier);
-		}
+        if (Input.GetKeyDown (KeyCode.UpArrow)) {
+            //Debug.Log ("UpArrow down " + Vector3.forward);
+            _rb.AddForce (Vector3.forward * _speed * _keyDownMultiplier);
+        }
 
-		if (Input.GetKeyDown(KeyCode.LeftArrow))
-		{
-			//Debug.Log ("DownArrow down " + Vector3.back);
-			rb.AddForce(Vector3.left * speed * keyDownMultiplier);
-		}
+        if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+            //Debug.Log ("DownArrow down " + Vector3.back);
+            _rb.AddForce (Vector3.left * _speed * _keyDownMultiplier);
+        }
 
-		if (Input.GetKeyDown(KeyCode.RightArrow))
-		{
-			//Debug.Log ("DownArrow down " + Vector3.back);
-			rb.AddForce(Vector3.right * speed * keyDownMultiplier);
-		}
+        if (Input.GetKeyDown (KeyCode.RightArrow)) {
+            //Debug.Log ("DownArrow down " + Vector3.back);
+            _rb.AddForce (Vector3.right * _speed * _keyDownMultiplier);
+        }
 
-		if (Input.GetKeyDown(KeyCode.Space))
-		{
-			Boost();
-		}
+        if (Input.GetKeyDown (KeyCode.Space)) {
+            Boost ();
+        }
 
-		UpdateSpeed();
+        UpdateSpeed ();
 
-	}
+    }
 
-	public void UpdateSpeed()
-	{
-		Vector3 velocity = GetComponent<Rigidbody>().velocity;      //to get a Vector3 representation of the velocity
-		double speed = System.Math.Round(velocity.magnitude, 1);
-		GameObject.Find("SpeedText").GetComponent<Text>().text = "" + speed;
-	}
+    public void UpdateSpeed () {
+        Vector3 velocity = GetComponent<Rigidbody> ().velocity; //to get a Vector3 representation of the velocity
+        double speed = System.Math.Round (velocity.magnitude, 1);
+        GameObject.Find ("SpeedText").GetComponent<Text> ().text = "" + speed;
+    }
 
-	public void Boost()
-	{
-		Rigidbody rb = GameObject.Find("Sphere").GetComponent<Rigidbody>();
-		Vector3 localVelocity = rb.velocity;
-		//Debug.Log ("localVelocity" + localVelocity.x + " " + localVelocity.y);
-		rb.AddForce(localVelocity.x * boostMultiplier, localVelocity.y * boostMultiplier, localVelocity.z * boostMultiplier);
-	}
+    public void Boost () {
+        Rigidbody rb = GameObject.Find ("Sphere").GetComponent<Rigidbody> ();
+        Vector3 localVelocity = rb.velocity;
+        //Debug.Log ("localVelocity" + localVelocity.x + " " + localVelocity.y);
+        rb.AddForce (localVelocity.x * _boostMultiplier, localVelocity.y * _boostMultiplier, localVelocity.z * _boostMultiplier);
+    }
 
-	void OnCollisionEnter(Collision collision)
-	{
-		Debug.Log("Collision with " + collision.gameObject.name);
-		if (System.Array.IndexOf(outOfBoundsObjectNames, collision.gameObject.name) > -1)
-		{
-			baseGame.ShowGameOver();
-			Destroy(this);
-		}
-	}
+    void OnCollisionEnter (Collision collision) {
+        Debug.Log ("Collision with " + collision.gameObject.name);
+        if (System.Array.IndexOf (_outOfBoundsObjectNames, collision.gameObject.name) > -1) {
+            _baseGame.ShowGameOver ();
+            Destroy (this);
+        }
+    }
 
 }

@@ -14,20 +14,17 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using GooglePlayInstant;
 using UnityEngine;
 using UnityEngine.UI;
-using GooglePlayInstant;
 
-public class PlayInstant : MonoBehaviour
-{
+public class PlayInstant : MonoBehaviour {
 	// Use this for initialization
-	void Start()
-	{
-		
+	void Start () {
+
 	}
 
-	public void Install()
-	{
+	public void Install () {
 		// The requestCode referenced in the onActivityResult() callback to the
 		// activity. Extend UnityPlayerActivity and check for the specified
 		// requestCode integer to know whether the dialog was cancelled. Use
@@ -35,22 +32,18 @@ public class PlayInstant : MonoBehaviour
 		// Unity scripts
 		const int requestCode = 123;
 		// The activity that should launch the store's install dialog.
-		using (var currentActivity = InstallLauncher.GetCurrentActivity())
-		{
+		using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
 			// The intent to launch after the instant app has been installed.
 			// Must resolve to an activity in the installed app package, or it will
 			// not be used
-			using (var postInstallIntent
-				= InstallLauncher.CreatePostInstallIntent(currentActivity))
-			{
-				InstallLauncher.ShowInstallPrompt(currentActivity, requestCode,
+			using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent (currentActivity)) {
+				InstallLauncher.ShowInstallPrompt (currentActivity, requestCode,
 					postInstallIntent, null);
 			}
 		}
 	}
 
-	public void Install(string referrerId)
-	{
+	public void Install (string referrerId) {
 		// The requestCode referenced in the onActivityResult() callback to the
 		// activity. Extend UnityPlayerActivity and check for the specified
 		// requestCode integer to know whether the dialog was cancelled. Use
@@ -58,119 +51,93 @@ public class PlayInstant : MonoBehaviour
 		// Unity scripts
 		const int requestCode = 123;
 		// The activity that should launch the store's install dialog.
-		try
-		{
-			using (var currentActivity = InstallLauncher.GetCurrentActivity())
-			{
+		try {
+			using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
 				// The intent to launch after the instant app has been installed.
 				// Must resolve to an activity in the installed app package, or it will
 				// not be used
-				using (var postInstallIntent
-					= InstallLauncher.CreatePostInstallIntent(currentActivity))
-				{	
+				using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent (currentActivity)) {
 					// Optional install referrer string can be used as a way to pass
 					// information to the installed app about the source of the install
-					InstallLauncher.ShowInstallPrompt(currentActivity, requestCode,
+					InstallLauncher.ShowInstallPrompt (currentActivity, requestCode,
 						postInstallIntent, referrerId);
 				}
 			}
-		}
-		catch (System.Exception e)
-		{
-			Debug.Log("Exception in setCookie:\n" + e.Message + "\n" + e.StackTrace);
+		} catch (System.Exception e) {
+			Debug.Log ("Exception in setCookie:\n" + e.Message + "\n" + e.StackTrace);
 			return;
 		}
 	}
 
-	public void SetCookie(string content)
-	{
-		try
-		{
-			using (var currentActivity = InstallLauncher.GetCurrentActivity())
-			{
+	public void SetCookie (string content) {
+		try {
+			using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
 				using (var instantAppsClazz =
-					       new AndroidJavaClass("com.google.android.gms.instantapps.InstantApps"))
-				{
+					new AndroidJavaClass ("com.google.android.gms.instantapps.InstantApps")) {
 					var pm = instantAppsClazz.CallStatic<AndroidJavaObject>
 						("getPackageManagerCompat",
-						         currentActivity);
+							currentActivity);
 					var cookieResult = pm.Call<bool>
-						("setInstantAppCookie", 
-						                   System.Text.Encoding.ASCII.GetBytes(content));
-					Debug.Log("setCookie result " + cookieResult);
-					Debug.Log("Check if cookie is set " + GetCookie());
+						("setInstantAppCookie",
+							System.Text.Encoding.ASCII.GetBytes (content));
+					Debug.Log ("setCookie result " + cookieResult);
+					Debug.Log ("Check if cookie is set " + GetCookie ());
 				}
 			}
-		}
-		catch (System.Exception e)
-		{
-			Debug.Log("Exception in setCookie:\n" + e.Message + "\n" + e.StackTrace);
+		} catch (System.Exception e) {
+			Debug.Log ("Exception in setCookie:\n" + e.Message + "\n" + e.StackTrace);
 			return;
 		}
 	}
 
-	public string GetCookie()
-	{
-		try
-		{
-			using (var currentActivity = InstallLauncher.GetCurrentActivity())
-			{
+	public string GetCookie () {
+		try {
+			using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
 				using (var instantAppsClazz =
-					        new AndroidJavaClass("com.google.android.gms.instantapps.InstantApps"))
-				{
+					new AndroidJavaClass ("com.google.android.gms.instantapps.InstantApps")) {
 					var pm = instantAppsClazz.CallStatic<AndroidJavaObject>
 						("getPackageManagerCompat",
-						          currentActivity);
+							currentActivity);
 					var cookieContent = pm.Call<byte[]>
 						("getInstantAppCookie");
-					Debug.Log("Retrieved cookie content "
-						+ System.Text.Encoding.ASCII.GetString(cookieContent));
-					return System.Text.Encoding.ASCII.GetString(cookieContent);
+					Debug.Log ("Retrieved cookie content " +
+						System.Text.Encoding.ASCII.GetString (cookieContent));
+					return System.Text.Encoding.ASCII.GetString (cookieContent);
 				}
 			}
-		}
-		catch (System.Exception e)
-		{
-			Debug.Log("Exception in getCookie:\n" + e.Message + "\n" + e.StackTrace);
+		} catch (System.Exception e) {
+			Debug.Log ("Exception in getCookie:\n" + e.Message + "\n" + e.StackTrace);
 			return null;
 		}
 	}
 
-	public bool IsInstantApp()
-	{
-		try
-		{
-			using (var currentActivity = InstallLauncher.GetCurrentActivity())
-			{
+	public bool IsInstantApp () {
+		try {
+			using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
 				var pm = currentActivity.Call<AndroidJavaObject>
 					("getPackageManager");
 				bool isIA = pm.Call<bool>
 					("isInstantApp");
 				return isIA;
 			}
-		}
-		catch (System.Exception e)
-		{
-			Debug.Log("Exception in isInstantApp:\n"
-				+ e.Message + "\n" + e.StackTrace);
+		} catch (System.Exception e) {
+			Debug.Log ("Exception in isInstantApp:\n" +
+				e.Message + "\n" + e.StackTrace);
 			return false;
 		}
 	}
 
-	IEnumerator DownloadAsset(string sceneURL, bool loadScene)
-	{
+	IEnumerator DownloadAsset (string sceneURL, bool loadScene) {
 		// downloads and loads scenes
-		WWW bundleWWW = WWW.LoadFromCacheOrDownload(sceneURL, 0);
+		WWW bundleWWW = WWW.LoadFromCacheOrDownload (sceneURL, 0);
 		yield return bundleWWW;
 		var assetBundle = bundleWWW.assetBundle;
-		if (loadScene)
-		{
-			if (assetBundle.isStreamedSceneAssetBundle)
-			{
-				string[] scenePaths = assetBundle.GetAllScenePaths();
+		if (loadScene) {
+			if (assetBundle.isStreamedSceneAssetBundle) {
+				string[] scenePaths = assetBundle.GetAllScenePaths ();
 				string sceneName =
-					System.IO.Path.GetFileNameWithoutExtension(scenePaths[0]);
-				UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+					System.IO.Path.GetFileNameWithoutExtension (scenePaths[0]);
+				UnityEngine.SceneManagement.SceneManager.LoadScene (sceneName);
 			}
 		}
 	}

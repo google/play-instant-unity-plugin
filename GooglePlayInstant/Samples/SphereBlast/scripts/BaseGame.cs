@@ -14,257 +14,215 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using GooglePlayInstant;
 using UnityEngine;
 using UnityEngine.UI;
-using GooglePlayInstant;
 
-public class BaseGame : MonoBehaviour
-{
-	public Transform crate;
+public class BaseGame : MonoBehaviour {
+    public Transform crate;
     public Camera thirdPersonCamera;
     public Camera overheadCamera;
-	private static Vector3 position1 = new Vector3(37, 3.87f, 11);
-    private static Vector3 position2 = new Vector3(37, 3.87f, -4);
-    private static Vector3 position3 = new Vector3(37, 3.87f, -16);
-    private static Vector3 position4 = new Vector3(0, 3.87f, -16);
-    private static Vector3 position5 = new Vector3(0, 3.87f, -4);
-    private static Vector3 position6 = new Vector3(0, 3.87f, 11);
-    private static Vector3 position7 = new Vector3(-23, 3.87f, 11);
-    private static Vector3 position8 = new Vector3(-23, 3.87f, -4);
-    private static Vector3 position9 = new Vector3(-23, 3.87f, -16);
+    private const int MAX_SCORE_PER_LEVEL = 5;
+    private int _maxTime = 10;
+    private int _timer;
+    private int _level;
+    private int _score;
+    private float _deltaTimeSum;
+    private GameObject _gameOver;
+    private GameObject _sphere;
+    private GameObject _installButtonPersistent;
+    private GameObject _installButton;
+    private Text _timeLeftText;
+    private Text _levelText;
+    private Text _scoreText;
+    private PlayInstant _pi;
 
-	private int MAX_TIME = 10;
-	private static int MAX_SCORE_PER_LEVEL = 5;
-	private int timer;
-	private int level;
-	private int score;
-	private float deltaTimeSum;
-	private GameObject gameOver;
-	private GameObject sphere;
-	private GameObject installButtonPersistent;
-	private GameObject installButton;
-	private Text timeLeftText;
-	private Text levelText;
-	private Text scoreText;
-	private PlayInstant pi;
+    private int[] levelTimeLimitMapping = new int[] {
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4
+    };
 
+    static Vector3[] positions = new Vector3[] {
+        new Vector3 (37, 3.87f, 11),
+        new Vector3 (37, 3.87f, -4),
+        new Vector3 (37, 3.87f, -16),
+        new Vector3 (0, 3.87f, -16),
+        new Vector3 (0, 3.87f, -4),
+        new Vector3 (0, 3.87f, 11),
+        new Vector3 (-23, 3.87f, 11),
+        new Vector3 (-23, 3.87f, -4),
+        new Vector3 (-23, 3.87f, -16)
+    };
 
+    // Use this for initialization
+    void Start () {
+        _timer = _maxTime;
+        _gameOver = GameObject.Find ("GameOverPanel").gameObject;
+        _timeLeftText = GameObject.Find ("TimeLeftText").GetComponent<Text> ();
+        _levelText = GameObject.Find ("LevelText").GetComponent<Text> ();
+        _scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
+        _sphere = GameObject.Find ("Sphere");
+        _installButton = GameObject.Find ("InstallButton");
+        _installButtonPersistent = GameObject.Find ("InstallButtonPersistent");
+        _installButton.SetActive (false);
+        _installButtonPersistent.SetActive (false);
+        _pi = new PlayInstant ();
+        SetUpGameState ();
+        UpdateTimer ();
+        ReadGameStateFromCookie ();
+        SetLevel (_level);
+        SetScore (_score);
+        HideGameOver ();
+        CreateCrate ();
+    }
 
-	private int[] levelTimeLimitMapping = new int []
-	{
-		10,
-		9,
-		8,
-		7,
-		6,
-		5,
-		4
-	};
+    void SetUpGameState () {
+        _level = 1;
+        _deltaTimeSum = 0;
+        _score = 0;
+#if PLAY_INSTANT
+        _installButton.SetActive (true);
+        _installButtonPersistent.SetActive (true);
+#endif
+    }
 
-	static Vector3[] positions = new Vector3 []
-	{
-		position1,
-		position2,
-		position3,
-		position4,
-		position5,
-		position6,
-		position7,
-		position8,
-		position9
-	};
+    void FixedUpdate () {
+        if (_timer == -1) {
+            return;
+        }
 
-	// Use this for initialization
-	void Start()
-	{
-		timer = MAX_TIME;
-		gameOver = GameObject.Find("GameOverPanel").gameObject;
-		timeLeftText = GameObject.Find("TimeLeftText").GetComponent<Text>();
-		levelText = GameObject.Find("LevelText").GetComponent<Text>();
-		scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
-		sphere = GameObject.Find("Sphere");
-		installButton = GameObject.Find("InstallButton");
-		installButtonPersistent = GameObject.Find("InstallButtonPersistent");
-		installButton.SetActive(false);
-		installButtonPersistent.SetActive(false);
-		pi = new PlayInstant();
-		SetUpGameState();
-		UpdateTimer();
-		ReadGameStateFromCookie();
-		SetLevel(level);
-		SetScore(score);
-		HideGameOver();
-		CreateCrate();
-        //ShowFirstPersonView();
-	}
+        _deltaTimeSum += Time.deltaTime;
+        if ((int) _deltaTimeSum == 1) {
+            _timer--;
+            _deltaTimeSum = 0;
+        }
 
-	void SetUpGameState()
-	{
-		level = 1;
-		deltaTimeSum = 0;
-		score = 0;
-		#if PLAY_INSTANT
-		installButton.SetActive(true);
-		installButtonPersistent.SetActive(true);
-		#endif
-	}
+        UpdateTimer ();
 
-	void FixedUpdate()
-	{
-		if (timer == -1)
-		{
-			return;
-		}
+        if (_timer <= 0) {
+            Destroy (_sphere);
+            ShowGameOver ();
+        }
+    }
 
-		deltaTimeSum += Time.deltaTime;
-		if ((int)deltaTimeSum == 1)
-		{
-			timer--;
-			deltaTimeSum = 0;
-		}
+    /* TIMER METHODS */
 
-		UpdateTimer();
+    public void ResetTimer () {
+        if (_timer > 0) {
+            _timer = _maxTime;
+        }
+    }
 
-		if (timer <= 0)
-		{
-			Destroy(sphere);
-			ShowGameOver();
-		}
-	}
-
-	/* TIMER METHODS */
-
-	public void ResetTimer()
-	{
-		if (timer > 0)
-		{
-			timer = MAX_TIME;
-		}
-	}
-
-	public void UpdateTimer()
-	{
-		timeLeftText.text = "" + System.Math.Max(timer, 0);
-	}
+    public void UpdateTimer () {
+        _timeLeftText.text = "" + System.Math.Max (_timer, 0);
+    }
 
     /* SCENE SET UP METHODS */
 
-	public void CreateCrate()
-	{
-		int randomPosition = Random.Range(0, 9);
-		Instantiate(crate, positions[randomPosition], Quaternion.identity);
-	}
+    public void CreateCrate () {
+        int randomPosition = Random.Range (0, 9);
+        Instantiate (crate, positions[randomPosition], Quaternion.identity);
+    }
 
-	public void WriteGameStateToCookie(int level, int score)
-	{
-		string gameStateCSV = level + "," + score;
-		pi.SetCookie(gameStateCSV);
-	}
+    public void WriteGameStateToCookie (int level, int score) {
+        string gameStateCSV = level + "," + score;
+        _pi.SetCookie (gameStateCSV);
+    }
 
-	public void ReadGameStateFromCookie()
-	{
-		string results = pi.GetCookie();
-		Debug.Log("readGameStateFromCookie: " + results);
-		if (results != null
-		    && results.Length > 0)
-		{
-			string[] attributes = results.Split(',');
-			if (attributes.Length < 2)
-			{
-				return;
-			}
-			string cookieLevel = attributes[0];
-			string cookieScore = attributes[1];
-			level = int.Parse(cookieLevel);
-			score = int.Parse(cookieScore);
-			Debug.Log("CookieLevel: " + cookieLevel);
-			Debug.Log("CookieScore: " + cookieScore);
-		}
-	}
+    public void ReadGameStateFromCookie () {
+        string results = _pi.GetCookie ();
+        Debug.Log ("readGameStateFromCookie: " + results);
+        if (results != null &&
+            results.Length > 0) {
+            string[] attributes = results.Split (',');
+            if (attributes.Length < 2) {
+                return;
+            }
+            string cookieLevel = attributes[0];
+            string cookieScore = attributes[1];
+            _level = int.Parse (cookieLevel);
+            _score = int.Parse (cookieScore);
+            Debug.Log ("CookieLevel: " + cookieLevel);
+            Debug.Log ("CookieScore: " + cookieScore);
+        }
+    }
 
-	/* LEVEL METHODS */
+    /* LEVEL METHODS */
 
-	public void IncrementLevel()
-	{
-		SetLevel(level + 1);
-	}
+    public void IncrementLevel () {
+        SetLevel (_level + 1);
+    }
 
-	public void SetLevel(int newLevel)
-	{
-		level = newLevel;
-		MAX_TIME = levelTimeLimitMapping[level - 1];
-		timer = MAX_TIME;
-		levelText.text = "" + level;
-	}
+    public void SetLevel (int newLevel) {
+        _level = newLevel;
+        _maxTime = levelTimeLimitMapping[_level - 1];
+        _timer = _maxTime;
+        _levelText.text = "" + _level;
+    }
 
-	public int GetLevel()
-	{
-		return level;
-	}
+    public int GetLevel () {
+        return _level;
+    }
 
-	/* UI METHODS */
+    /* UI METHODS */
 
-	public void ShowGameOver()
-	{	
-		gameOver.SetActive(true);
-	}
+    public void ShowGameOver () {
+        _gameOver.SetActive (true);
+    }
 
-	public void HideGameOver()
-	{
-		gameOver.SetActive(false);
-	}
+    public void HideGameOver () {
+        _gameOver.SetActive (false);
+    }
 
-	public void UpdateScoreDisplay()
-	{
-		int displayScore = score % MAX_SCORE_PER_LEVEL;
-		scoreText.text = "" + displayScore;
-	}
+    public void UpdateScoreDisplay () {
+        int displayScore = _score % MAX_SCORE_PER_LEVEL;
+        _scoreText.text = "" + displayScore;
+    }
 
-	public void SetScore(int newScore)
-	{
-		score = newScore;
-		Debug.Log("Is instant app: " + pi.IsInstantApp());
-		Debug.Log("before setting level " + (score % MAX_SCORE_PER_LEVEL > 0));
-		if (score != 0
-		    && score % MAX_SCORE_PER_LEVEL == 0)
-		{
-			IncrementLevel();
-		}
-		UpdateScoreDisplay();
-	}
+    public void SetScore (int newScore) {
+        _score = newScore;
+        Debug.Log ("Is instant app: " + _pi.IsInstantApp ());
+        Debug.Log ("before setting level " + (_score % MAX_SCORE_PER_LEVEL > 0));
+        if (_score != 0 &&
+            _score % MAX_SCORE_PER_LEVEL == 0) {
+            IncrementLevel ();
+        }
+        UpdateScoreDisplay ();
+    }
 
-	public void QuitGame()
-	{
-		Application.Quit();
-	}
+    public void QuitGame () {
+        Application.Quit ();
+    }
 
-	public void RestartGame()
-	{
-		Application.LoadLevel("SphereScene");
-	}
+    public void RestartGame () {
+        Application.LoadLevel ("SphereScene");
+    }
 
-	public void IncrementScore()
-	{
-		Debug.Log("Increment score");
-		SetScore(score + 1);
-	}
+    public void IncrementScore () {
+        Debug.Log ("Increment score");
+        SetScore (_score + 1);
+    }
 
-	public void Install()
-	{
-		Debug.Log("Installing game");
-		WriteGameStateToCookie(level, score);
-		Debug.Log("After writing GameState");
-		ReadGameStateFromCookie();
-		Debug.Log("After reading GameState");
-		pi.Install();
-	}
+    public void Install () {
+        Debug.Log ("Installing game");
+        WriteGameStateToCookie (_level, _score);
+        Debug.Log ("After writing GameState");
+        ReadGameStateFromCookie ();
+        Debug.Log ("After reading GameState");
+        _pi.Install ();
+    }
 
-    public void ShowOverheadView() {
+    public void ShowOverheadView () {
         thirdPersonCamera.enabled = false;
         overheadCamera.enabled = true;
     }
 
-    public void ShowFirstPersonView() {
+    public void ShowFirstPersonView () {
         thirdPersonCamera.enabled = true;
         overheadCamera.enabled = false;
     }

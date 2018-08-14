@@ -14,16 +14,14 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
-public class AnimateLoadingText : MonoBehaviour
-{
-	private UnityEngine.UI.Text loadingText;
-	private int timer = 0;
-	private int numCharacters;
-	private float deltaTimeSum = 0;
-	string[] loading = new string []
-	{
+public class AnimateLoadingText : MonoBehaviour {
+	private UnityEngine.UI.Text _loadingText;
+	private int _timeElapsed = 0;
+	private float _deltaTimeSum = 0;
+	private string[] _loading = new string[] {
 		"L",
 		"O",
 		"A",
@@ -34,32 +32,26 @@ public class AnimateLoadingText : MonoBehaviour
 	};
 
 	// Use this for initialization
-	void Start()
-	{
-		loadingText = GetComponent<UnityEngine.UI.Text>();
-		loadingText.text = loading[0];
-		numCharacters = loading.Length;
+	void Start () {
+		_loadingText = GetComponent<UnityEngine.UI.Text> ();
+		_loadingText.text = _loading[0];
 	}
-	
+
 	// Update is called once per frame
-	void FixedUpdate()
-	{
-		deltaTimeSum += Time.deltaTime;
-		if ((int)deltaTimeSum == 1)
-		{
-			timer++;
-			deltaTimeSum = 0;
-			loadingText.text = ConstructString(timer);
+	void FixedUpdate () {
+		_deltaTimeSum += Time.deltaTime;
+		if ((int) _deltaTimeSum == 1) {
+			_timeElapsed++;
+			_deltaTimeSum = 0;
+			_loadingText.text = GetLoadingText (_timeElapsed);
 		}
 	}
 
-	string ConstructString(int index)
-	{
-		string myLoadingText = "";
-		for (int i = 0; i <= timer % numCharacters; i++)
-		{
-			myLoadingText += loading[i];
+	private string GetLoadingText (int timeElapsed) {
+		StringBuilder loadingText = new StringBuilder ();
+		for (int i = 0; i <= timeElapsed % _loading.Length; i++) {
+			loadingText.Append (_loading[i]);
 		}
-		return myLoadingText;	
+		return loadingText.ToString ();
 	}
 }

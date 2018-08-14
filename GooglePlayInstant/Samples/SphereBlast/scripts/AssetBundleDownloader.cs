@@ -16,34 +16,32 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AssetBundleDownloader : MonoBehaviour
-{
+public class AssetBundleDownloader : MonoBehaviour {
 
 	// Use this for initialization
 	public string assetBundleURL;
 
-	IEnumerator Start()
-	{
-		// download and load required scenes
-        Caching.CleanCache();
-        yield return StartCoroutine(
-			DownloadAsset(assetBundleURL, true));
+	IEnumerator Start () {
+		// Cleans local cache of asset bundles. 
+		// This here for download validation purposes
+		// and should be removed from published builds
+		Caching.ClearCache ();
+		// Download and load required scenes
+		yield return StartCoroutine (
+			DownloadAsset (assetBundleURL, true));
 	}
 
-	IEnumerator DownloadAsset(string sceneURL, bool loadScene)
-	{
-		// downloads and loads scenes
-		WWW bundleWWW = WWW.LoadFromCacheOrDownload(sceneURL, 0);
+	IEnumerator DownloadAsset (string sceneURL, bool loadScene) {
+		// Downloads and loads scenes
+		WWW bundleWWW = WWW.LoadFromCacheOrDownload (sceneURL, 0);
 		yield return bundleWWW;
 		var assetBundle = bundleWWW.assetBundle;
-		if (loadScene)
-		{
-			if (assetBundle.isStreamedSceneAssetBundle)
-			{
-				string[] scenePaths = assetBundle.GetAllScenePaths();
+		if (loadScene) {
+			if (assetBundle.isStreamedSceneAssetBundle) {
+				string[] scenePaths = assetBundle.GetAllScenePaths ();
 				string sceneName =
-					System.IO.Path.GetFileNameWithoutExtension(scenePaths[0]);
-				UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+					System.IO.Path.GetFileNameWithoutExtension (scenePaths[0]);
+				UnityEngine.SceneManagement.SceneManager.LoadScene (sceneName);
 			}
 		}
 	}
