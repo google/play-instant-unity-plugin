@@ -75,7 +75,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             _toolbarSelectedButtonIndex = GUILayout.Toolbar(_toolbarSelectedButtonIndex, ToolbarButtonNames);
             var currentTab = (ToolBarSelectedButton) _toolbarSelectedButtonIndex;
-            UpdateGUIFocus(currentTab);
+            UpdateGuiFocus(currentTab);
             switch (currentTab)
             {
                 case ToolBarSelectedButton.CreateBundle:
@@ -114,7 +114,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         /// <param name="currentTab">A ToolBarSelectedButton instance representing the current quick deploy tab.</param>
         /// <see cref="b/112536394"/>
-        private static void UpdateGUIFocus(ToolBarSelectedButton currentTab)
+        private static void UpdateGuiFocus(ToolBarSelectedButton currentTab)
         {
             if (currentTab != _previousTab)
             {
@@ -218,7 +218,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 }
                 else
                 {
-                    AssetBundleVerifierWindow.ShowWindow(_assetBundleUrl);
+                    var window = AssetBundleVerifierWindow.ShowWindow();
+                    window.StartAssetBundleVerificationDownload(_assetBundleUrl);
                 }
             }
 
