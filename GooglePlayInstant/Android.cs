@@ -20,11 +20,22 @@ namespace GooglePlayInstant
     /// </summary>
     public static class Android
     {
-        public const string PlayStorePackageName = "com.android.vending";
+        public const string GooglePlayServicesPackageName = "com.google.android.gms";
+        public const string GooglePlayStorePackageName = "com.android.vending";
 
         public const string ActivityMethodGetIntent = "getIntent";
         public const string ActivityMethodStartActivityForResult = "startActivityForResult";
 
+        public const string BundleClass = "android.os.Bundle";
+        public const string BundleMethodGetBoolean = "getBoolean";
+        public const string BundleMethodGetByteArray = "getByteArray";
+        public const string BundleMethodGetInt = "getInt";
+        public const string BundleMethodPutByteArray = "putByteArray";
+        public const string BundleMethodPutInt = "putInt";
+
+        public const string ContentResolverMethodCall = "call";
+
+        public const string ContextMethodGetContentResolver = "getContentResolver";
         public const string ContextMethodGetPackageManager = "getPackageManager";
 
         public const string IntentActionMain = "android.intent.action.MAIN";
@@ -41,7 +52,22 @@ namespace GooglePlayInstant
 
         public const string ObjectMethodGetClass = "getClass";
 
+        public const string PackageInfoFieldSignatures = "signatures";
+
+        public const int PackageManagerFieldGetSignatures = 64;
+        public const string PackageManagerMethodGetPackageInfo = "getPackageInfo";
         public const string PackageManagerMethodResolveActivity = "resolveActivity";
+        public const string PackageManagerMethodResolveContentProvider = "resolveContentProvider";
+
+        public const string ProcessClass = "android.os.Process";
+        public const string ProcessMethodMyUid = "myUid";
+
+        public const string ProviderInfoFieldPackageName = "packageName";
+
+        public const string SignatureMethodToByteArray = "toByteArray";
+
+        public const string UriClass = "android.net.Uri";
+        public const string UriMethodParse = "parse";
 
         public const string UriBuilderClass = "android.net.Uri$Builder";
         public const string UriBuilderMethodAppendQueryParameter = "appendQueryParameter";
