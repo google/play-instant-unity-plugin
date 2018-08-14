@@ -34,9 +34,12 @@ namespace GooglePlayInstant
         {
             try
             {
+                // Java: PackageInfo packageInfo =
+                //           packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
                 using (var packageInfo = packageManager.Call<AndroidJavaObject>(
                     Android.PackageManagerMethodGetPackageInfo, packageName, Android.PackageManagerFieldGetSignatures))
                 {
+                    // Java: Signature[] signatures = packageInfo.signatures
                     var signatures = packageInfo.Get<AndroidJavaObject[]>(Android.PackageInfoFieldSignatures);
                     if (signatures.Length != 1)
                     {
@@ -45,6 +48,7 @@ namespace GooglePlayInstant
                         return false;
                     }
 
+                    // Java: byte[] bytes = signatures[0].toByteArray()
                     var signature = signatures[0];
                     var bytes = signature.Call<byte[]>(Android.SignatureMethodToByteArray);
                     return Enumerable.SequenceEqual(bytes, GooglePlayPackageSignature);

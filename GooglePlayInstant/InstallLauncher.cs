@@ -89,6 +89,8 @@ namespace GooglePlayInstant
                 throw new ArgumentNullException("postInstallIntent");
             }
 
+            // Java: new Intent("com.google...").setData(uri).setPackage("com.android.vending")
+            //               .putExtra("postInstallIntent", postInstallIntent)
             using (var uri = CreateMarketDetailsUri(referrer))
             using (var installIntent = new AndroidJavaObject(Android.IntentClass, IntentActionInstantAppInstall))
             using (installIntent.Call<AndroidJavaObject>(Android.IntentMethodSetData, uri))
@@ -122,6 +124,7 @@ namespace GooglePlayInstant
         /// <returns>A wrapped Intent object. The AndroidJavaObject should be disposed.</returns>
         public static AndroidJavaObject CreatePostInstallIntent(AndroidJavaObject activity)
         {
+            // Java: new Intent(activity, activity.getClass())
             using (var activityClass = activity.Call<AndroidJavaObject>(Android.ObjectMethodGetClass))
             {
                 return new AndroidJavaObject(Android.IntentClass, activity, activityClass);
@@ -138,6 +141,7 @@ namespace GooglePlayInstant
         public static void PutPostInstallIntentStringExtra(
             AndroidJavaObject postInstallIntent, string extraKey, string extraValue)
         {
+            // Java: postInstallIntent.putExtra(extraKey, extraValue)
             using (postInstallIntent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, extraKey, extraValue))
             {
             }
@@ -152,6 +156,7 @@ namespace GooglePlayInstant
         /// <returns>The string extra value.</returns>
         public static string GetPostInstallIntentStringExtra(string extraKey)
         {
+            // Java: currentActivity.getIntent().getStringExtra(extraKey)
             using (var activity = UnityPlayerHelper.GetCurrentActivity())
             using (var intent = activity.Call<AndroidJavaObject>(Android.ActivityMethodGetIntent))
             {
@@ -161,6 +166,7 @@ namespace GooglePlayInstant
 
         private static AndroidJavaObject CreateMarketDetailsUri(string referrer)
         {
+            // Java: new Uri.Builder().scheme("market").authority("details").appendQueryParameter("id", packageName)
             using (var uriBuilder = new AndroidJavaObject(Android.UriBuilderClass))
             using (uriBuilder.Call<AndroidJavaObject>(Android.UriBuilderMethodScheme, "market"))
             using (uriBuilder.Call<AndroidJavaObject>(Android.UriBuilderMethodAuthority, "details"))
@@ -181,6 +187,7 @@ namespace GooglePlayInstant
 
         private static bool IsLegacyPlayStore(AndroidJavaObject context, AndroidJavaObject installIntent)
         {
+            // Java: context.getPackageManager().resolveActivity(installIntent, 0)
             using (var packageManager = context.Call<AndroidJavaObject>(Android.ContextMethodGetPackageManager))
             using (var resolveInfo =
                 packageManager.Call<AndroidJavaObject>(Android.PackageManagerMethodResolveActivity, installIntent, 0))
@@ -191,6 +198,9 @@ namespace GooglePlayInstant
 
         private static void ShowLegacyInstallPrompt(AndroidJavaObject activity, int requestCode, AndroidJavaObject uri)
         {
+            // Java: new Intent(Intent.ACTION_VIEW).addCategory(Intent.CATEGORY_DEFAULT)
+            //               .setPackage("com.android.vending").setData(uri)
+            //               .putExtra("callerId", packageName).putExtra("overlay", true)
             using (var intent = new AndroidJavaObject(Android.IntentClass, Android.IntentActionView))
             using (intent.Call<AndroidJavaObject>(Android.IntentMethodAddCategory, Android.IntentCategoryDefault))
             using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetPackage, Android.GooglePlayStorePackageName))

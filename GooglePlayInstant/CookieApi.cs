@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Text;
 using UnityEngine;
 
 namespace GooglePlayInstant
@@ -31,13 +32,13 @@ namespace GooglePlayInstant
         /// An exception thrown by the methods of <see cref="CookieApi"/> if there is a failure while
         /// making a call to Google Play Services.
         /// </summary>
-        public class InstantAppCookieException : Exception
+        public class CookieApiException : Exception
         {
-            public InstantAppCookieException(string message, Exception innerException) : base(message, innerException)
+            public CookieApiException(string message, Exception innerException) : base(message, innerException)
             {
             }
 
-            public InstantAppCookieException(string message) : base(message)
+            public CookieApiException(string message) : base(message)
             {
             }
         }
@@ -57,8 +58,8 @@ namespace GooglePlayInstant
         /// <summary>
         /// Gets the maximum size in bytes of the cookie data an instant app can store on the device.
         /// </summary>
-        /// <exception cref="InstantAppCookieException">Thrown if there is a failure to obtain the size.</exception>
-        public static int GetInstantAppCookieMaxSize()
+        /// <exception cref="CookieApiException">Thrown if there is a failure to obtain the size.</exception>
+        public static int GetInstantAppCookieMaxSizeBytes()
         {
             using (var extrasBundle = new AndroidJavaObject(Android.BundleClass))
             using (var resultBundle = CallMethod(MethodGetInstantAppCookieMaxSize, extrasBundle))
@@ -68,13 +69,25 @@ namespace GooglePlayInstant
         }
 
         /// <summary>
-        /// Gets the instant application cookie for this app. Non instant apps and apps that were instant but
+        /// Gets the instant app cookie for this app as a string. Assumes that the cookie was encoded with UTF-8,
+        /// for example by <see cref="SetInstantAppCookie"/>. See <see cref="GetInstantAppCookieBytes"/>
+        /// for more details.
+        /// </summary>
+        /// <exception cref="CookieApiException">Thrown if there is a failure to obtain the cookie.</exception>
+        public static string GetInstantAppCookie()
+        {
+            var cookieBytes = GetInstantAppCookieBytes();
+            return cookieBytes == null ? null : Encoding.UTF8.GetString(cookieBytes);
+        }
+
+        /// <summary>
+        /// Gets the instant app cookie for this app as bytes. Non instant apps and apps that were instant but
         /// were upgraded to normal apps can still access this API. For instant apps this cookie is cached for
         /// some time after uninstall while for normal apps the cookie is deleted after the app is uninstalled.
         /// The cookie is always present while the app is installed.
         /// </summary>
-        /// <exception cref="InstantAppCookieException">Thrown if there is a failure to obtain the cookie.</exception>
-        public static byte[] GetInstantAppCookie()
+        /// <exception cref="CookieApiException">Thrown if there is a failure to obtain the cookie.</exception>
+        public static byte[] GetInstantAppCookieBytes()
         {
             using (var extrasBundle = new AndroidJavaObject(Android.BundleClass))
             {
@@ -87,17 +100,33 @@ namespace GooglePlayInstant
         }
 
         /// <summary>
-        /// Sets the instant application cookie for the calling app. Non instant apps and apps that were instant but
-        /// were upgraded to normal apps can still access this API. For instant apps this cookie is cached for
-        /// some time after uninstall while for normal apps the cookie is deleted after the app is uninstalled.
-        /// The cookie is always present while the app is installed. The cookie size is limited by
-        /// <see cref="GetInstantAppCookieMaxSize"/>. If the provided cookie size is over the limit this method
-        /// returns false. Passing null or an empty array clears the cookie.
+        /// Sets the instant app cookie as a string for the calling app. The cookie string will be encoded with UTF-8
+        /// and can be recalled using <see cref="GetInstantAppCookie"/>. See <see cref="SetInstantAppCookieBytes"/>
+        /// for more details.
+        /// Note: the length of the cookie string may not be directly comparable to the size limit indicated by
+        /// <see cref="GetInstantAppCookieMaxSizeBytes"/>.
         /// </summary>
-        /// <param name="cookie">The cookie data.</param>
+        /// <param name="cookie">The cookie string.</param>
         /// <returns>True if the cookie was set. False if cookie is too large or I/O fails.</returns>
-        /// <exception cref="InstantAppCookieException">Thrown if there is a failure to set the cookie.</exception>
-        public static bool SetInstantAppCookie(byte[] cookie)
+        /// <exception cref="CookieApiException">Thrown if there is a failure to set the cookie.</exception>
+        public static bool SetInstantAppCookie(string cookie)
+        {
+            var cookieBytes = cookie == null ? null : Encoding.UTF8.GetBytes(cookie);
+            return SetInstantAppCookieBytes(cookieBytes);
+        }
+
+        /// <summary>
+        /// Sets the instant app cookie as bytes for the calling app. Non instant apps and apps that were instant
+        /// but were upgraded to normal apps can still access this API. For instant apps this cookie is cached
+        /// for some time after uninstall while for normal apps the cookie is deleted after the app is uninstalled.
+        /// The cookie is always present while the app is installed. The cookie size is limited by
+        /// <see cref="GetInstantAppCookieMaxSizeBytes"/>. If the provided cookie size is over the limit,
+        /// this method returns false. Passing null or an empty array clears the cookie.
+        /// </summary>
+        /// <param name="cookie">The cookie bytes.</param>
+        /// <returns>True if the cookie was set. False if cookie is too large or I/O fails.</returns>
+        /// <exception cref="CookieApiException">Thrown if there is a failure to set the cookie.</exception>
+        public static bool SetInstantAppCookieBytes(byte[] cookie)
         {
             using (var extrasBundle = new AndroidJavaObject(Android.BundleClass))
             {
@@ -117,6 +146,7 @@ namespace GooglePlayInstant
                 return;
             }
 
+            // Java: currentActivity.getPackageManager().resolveContentProvider("com.google.android.gms...", 0)
             using (var context = UnityPlayerHelper.GetCurrentActivity())
             using (var packageManager = context.Call<AndroidJavaObject>(Android.ContextMethodGetPackageManager))
             using (var providerInfo = packageManager.Call<AndroidJavaObject>(
@@ -124,18 +154,18 @@ namespace GooglePlayInstant
             {
                 if (!PlaySignatureVerifier.VerifyGooglePlayServices(packageManager))
                 {
-                    throw new InstantAppCookieException("Failed to verify the signature of Google Play Services.");
+                    throw new CookieApiException("Failed to verify the signature of Google Play Services.");
                 }
 
                 if (providerInfo == null)
                 {
-                    throw new InstantAppCookieException("Failed to resolve the instant apps content provider.");
+                    throw new CookieApiException("Failed to resolve the instant apps content provider.");
                 }
 
                 var packageName = providerInfo.Get<string>(Android.ProviderInfoFieldPackageName);
                 if (!string.Equals(packageName, Android.GooglePlayServicesPackageName))
                 {
-                    throw new InstantAppCookieException(
+                    throw new CookieApiException(
                         string.Format("Package \"{0}\" is an invalid instant apps content provider.", packageName));
                 }
             }
@@ -150,6 +180,7 @@ namespace GooglePlayInstant
             AndroidJavaObject resultBundle;
             try
             {
+                // Java: currentActivity.getContentResolver().call(Uri.parse("content://..."), methodName, null, extras)
                 using (var context = UnityPlayerHelper.GetCurrentActivity())
                 using (var contentResolver = context.Call<AndroidJavaObject>(Android.ContextMethodGetContentResolver))
                 using (var uriClass = new AndroidJavaClass(Android.UriClass))
@@ -161,14 +192,14 @@ namespace GooglePlayInstant
             }
             catch (AndroidJavaException ex)
             {
-                throw new InstantAppCookieException(
+                throw new CookieApiException(
                     string.Format("Failed to call {0} on the instant apps content provider.", methodName), ex);
             }
 
             if (resultBundle == null)
             {
                 // This should only happen if the content provider is unavailable.
-                throw new InstantAppCookieException(
+                throw new CookieApiException(
                     string.Format("Null result calling {0} on the instant apps content provider.", methodName));
             }
 
@@ -177,6 +208,7 @@ namespace GooglePlayInstant
 
         private static int ProcessGetMyUid()
         {
+            // Java: Process.myUid()
             using (var processClass = new AndroidJavaClass(Android.ProcessClass))
             {
                 return processClass.CallStatic<int>(Android.ProcessMethodMyUid);
