@@ -27,7 +27,7 @@ namespace GooglePlayInstant.Editor
 {
     /// <summary>
     /// Provides methods that call the Android SDK build tool "apksigner" to verify whether an APK complies with
-    /// <see href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</see> and to re-sign
+    /// <a href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</a> and to re-sign
     /// the APK if not. Instant apps require Signature Scheme V2 starting with Android O, however some Unity versions
     /// do not produce compliant APKs. Without this "adb install --ephemeral" on an Android O device will fail with
     /// "INSTALL_PARSE_FAILED_NO_CERTIFICATES: No APK Signature Scheme v2 signature in ephemeral package".
