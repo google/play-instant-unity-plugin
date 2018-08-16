@@ -13,12 +13,15 @@
 // limitations under the License.
 
 using System.IO;
+using System.Runtime.CompilerServices;
 using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
+[assembly: InternalsVisibleTo("GooglePlayInstant.Tests.Editor.QuickDeploy")]
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
@@ -29,19 +32,24 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     {
         public const string LoadingSceneName = "play-instant-loading-screen-scene";
 
-        private const string PlayInstantCanvasName = "Play Instant Canvas";
-
-        private const string LoadingScreenJsonFileName = "LoadingScreenConfig.json";
+        private const string LoadingScreenCanvasName = "Loading Screen Canvas";
 
         private static readonly string LoadingScreenScenePath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
 
         private static readonly string LoadingScreenResourcesPath = Path.Combine(LoadingScreenScenePath, "Resources");
 
+        private static readonly string LoadingScreenJsonPath =
+            Path.Combine(LoadingScreenResourcesPath, LoadingScreenJsonFileName);
+
+        // Visible for testing
+        internal const string LoadingScreenJsonFileName = "LoadingScreenConfig.json";
+
         /// <summary>
         /// The path to a fullscreen image displayed in the background while the game loads.
         /// </summary>
         public static string LoadingScreenImagePath { get; set; }
+
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are
@@ -59,29 +67,37 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // Removes the loading scene if it is present, otherwise does nothing.
             EditorSceneManager.CloseScene(SceneManager.GetSceneByName(LoadingSceneName), true);
 
+            var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+
             Directory.CreateDirectory(LoadingScreenResourcesPath);
 
-            GenerateLoadingScreenConfigFile(assetBundleUrl);
+            GenerateLoadingScreenConfigFile(assetBundleUrl, LoadingScreenJsonPath);
 
-            var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-            var loadingScreenGameObject = new GameObject(PlayInstantCanvasName);
+            var loadingScreenGameObject = new GameObject(LoadingScreenCanvasName);
 
             AddLoadingScreenImageToScene(loadingScreenGameObject, LoadingScreenImagePath);
             AddLoadingScreenScript(loadingScreenGameObject);
 
             LoadingBar.AddLoadingScreenBarComponent(loadingScreenGameObject);
 
-            EditorSceneManager.SaveScene(loadingScreenScene,
+            bool saveOK = EditorSceneManager.SaveScene(loadingScreenScene,
                 Path.Combine(LoadingScreenScenePath, LoadingSceneName + ".unity"));
+
+            if (!saveOK)
+            {
+                Debug.LogErrorFormat("Loading screen generator error: Issue while saving scene {0}.", LoadingSceneName);
+            }
         }
 
-        private static void AddLoadingScreenScript(GameObject loadingScreenGameObject)
+        // Visible for testing
+        internal static void AddLoadingScreenScript(GameObject loadingScreenGameObject)
         {
             loadingScreenGameObject.AddComponent<LoadingScreenScript>();
         }
 
 
-        private static void AddLoadingScreenImageToScene(GameObject loadingScreenGameObject,
+        // Visible for testing
+        internal static void AddLoadingScreenImageToScene(GameObject loadingScreenGameObject,
             string pathToLoadingScreenImage)
         {
             loadingScreenGameObject.AddComponent<Canvas>();
@@ -99,19 +115,18 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingScreenImage.sprite = loadingImageSprite;
         }
 
-        private static void GenerateLoadingScreenConfigFile(string assetBundleUrl)
+        // Visible for testing
+        internal static void GenerateLoadingScreenConfigFile(string assetBundleUrl, string targetLoadingScreenJsonPath)
         {
             var loadingScreenConfig =
                 new LoadingScreenConfig {assetBundleUrl = assetBundleUrl};
 
             var loadingScreenConfigJson = EditorJsonUtility.ToJson(loadingScreenConfig);
 
-            var loadingScreenJsonPath = Path.Combine(LoadingScreenResourcesPath, LoadingScreenJsonFileName);
-
-            File.WriteAllText(loadingScreenJsonPath, loadingScreenConfigJson);
+            File.WriteAllText(targetLoadingScreenJsonPath, loadingScreenConfigJson);
 
             // Force asset to import synchronously so that testing can be completed immediately after generating a loading screen.
-            AssetDatabase.ImportAsset(loadingScreenJsonPath, ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.ImportAsset(targetLoadingScreenJsonPath, ImportAssetOptions.ForceSynchronousImport);
         }
     }
 }
