@@ -71,6 +71,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _apkFileName = QuickDeployConfig.Config.apkFileName;
         }
 
+        void Update()
+        {
+            // Call Update() on AccessTokenGetter and on WwwRequestInProgress to trigger execution of pending tasks
+            // if there are any.
+            AccessTokenGetter.Update();
+            WwwRequestInProgress.Update();
+        }
+
         void OnGUI()
         {
             _toolbarSelectedButtonIndex = GUILayout.Toolbar(_toolbarSelectedButtonIndex, ToolbarButtonNames);
@@ -190,9 +198,16 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _cloudCredentialsFileName =
                 EditorGUILayout.TextField(_cloudCredentialsFileName, GUILayout.MinWidth(FieldMinWidth));
             EditorGUILayout.EndHorizontal();
-            GUILayout.Button("Upload to Google Cloud Storage", GUILayout.Width(LongButtonWidth));
+            if (GUILayout.Button("Upload to Google Cloud Storage", GUILayout.Width(LongButtonWidth)))
+            {
+                GcpClient.DeployConfiguredFile();
+            }
+
             EditorGUILayout.Space();
-            GUILayout.Button("Open Google Cloud Storage Console", GUILayout.Width(LongButtonWidth));
+            if (GUILayout.Button("Open Google Cloud Storage Console", GUILayout.Width(LongButtonWidth)))
+            {
+                Application.OpenURL("https://console.cloud.google.com/storage/browser");
+            }
         }
 
         private void OnGuiVerifyBundleSelect()

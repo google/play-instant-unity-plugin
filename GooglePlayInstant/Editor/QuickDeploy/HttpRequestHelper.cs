@@ -104,7 +104,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (getParams != null)
             {
                 uriBuilder.Query = string.Join("&",
-                    getParams.Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value)))
+                    getParams.Select(kvp =>
+                            string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value)))
                         .ToArray());
             }
 

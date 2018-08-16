@@ -45,7 +45,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Config.cloudCredentialsFileName = cloudCredentialsFileName;
             Config.assetBundleUrl = assetBundleUrl;
             Config.apkFileName = apkFileName;
-            
+
             File.WriteAllText(ConfigurationFilePath, JsonUtility.ToJson(Config));
         }
 
