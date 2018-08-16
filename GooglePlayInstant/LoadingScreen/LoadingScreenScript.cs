@@ -64,7 +64,7 @@ namespace GooglePlayInstant.LoadingScreen
 #if UNITY_2018_1_OR_NEWER
             var webRequest = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUrl);
             var assetbundleDownloadOperation = webRequest.SendWebRequest();
-#elif UNITY_2017_1_OR_NEWER
+#elif UNITY_2017_2_OR_NEWER
             var webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
             var assetbundleDownloadOperation = webRequest.SendWebRequest();
 #else

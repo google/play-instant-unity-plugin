@@ -67,11 +67,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 #if UNITY_2018_1_OR_NEWER
             _webRequest = UnityWebRequestAssetBundle.GetAssetBundle(AssetBundleUrl);
             _webRequest.SendWebRequest();
-#elif UNITY_2017_1_OR_NEWER
-            _webRequest = UnityWebRequest.GetAssetBundle(_assetBundleUrl);
+#elif UNITY_2017_2_OR_NEWER
+            _webRequest = UnityWebRequest.GetAssetBundle(AssetBundleUrl);
             _webRequest.SendWebRequest();
 #else
-            _webRequest = UnityWebRequest.GetAssetBundle(_assetBundleUrl);
+            _webRequest = UnityWebRequest.GetAssetBundle(AssetBundleUrl);
             _webRequest.Send();
 #endif
         }
