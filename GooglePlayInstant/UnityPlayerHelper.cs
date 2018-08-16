@@ -32,5 +32,22 @@ namespace GooglePlayInstant
                 return unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             }
         }
+
+        public static bool IsInstantApp () {
+		try {
+			using (var currentActivity = GetCurrentActivity ()) {
+				var pm = currentActivity.Call<AndroidJavaObject>
+					("getPackageManager");
+				bool isIA = pm.Call<bool>
+					("isInstantApp");
+				return isIA;
+			}
+		} catch (System.Exception e) {
+			Debug.Log ("Exception in isInstantApp:\n" +
+				e.Message + "\n" + e.StackTrace);
+			return false;
+		}
+	}
+
     }
 }

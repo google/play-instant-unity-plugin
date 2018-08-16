@@ -35,7 +35,6 @@ public class BaseGame : MonoBehaviour {
     private Text _timeLeftText;
     private Text _levelText;
     private Text _scoreText;
-    private PlayInstant _pi;
 
     private int[] levelTimeLimitMapping = new int[] {
         10,
@@ -71,7 +70,6 @@ public class BaseGame : MonoBehaviour {
         _installButtonPersistent = GameObject.Find ("InstallButtonPersistent");
         _installButton.SetActive (false);
         _installButtonPersistent.SetActive (false);
-        _pi = new PlayInstant ();
         SetUpGameState ();
         UpdateTimer ();
         ReadGameStateFromCookie ();
@@ -131,11 +129,11 @@ public class BaseGame : MonoBehaviour {
 
     public void WriteGameStateToCookie (int level, int score) {
         string gameStateCSV = level + "," + score;
-        _pi.SetCookie (gameStateCSV);
+        CookieApi.SetInstantAppCookie (gameStateCSV);
     }
 
     public void ReadGameStateFromCookie () {
-        string results = _pi.GetCookie ();
+        string results = CookieApi.GetInstantAppCookie ();
         Debug.Log ("readGameStateFromCookie: " + results);
         if (results != null &&
             results.Length > 0) {
@@ -186,7 +184,7 @@ public class BaseGame : MonoBehaviour {
 
     public void SetScore (int newScore) {
         _score = newScore;
-        Debug.Log ("Is instant app: " + _pi.IsInstantApp ());
+        Debug.Log ("Is instant app: " + UnityPlayerHelper.IsInstantApp ());
         Debug.Log ("before setting level " + (_score % MAX_SCORE_PER_LEVEL > 0));
         if (_score != 0 &&
             _score % MAX_SCORE_PER_LEVEL == 0) {
@@ -214,7 +212,7 @@ public class BaseGame : MonoBehaviour {
         Debug.Log ("After writing GameState");
         ReadGameStateFromCookie ();
         Debug.Log ("After reading GameState");
-        _pi.Install ();
+        InstallLauncher.ShowInstallPrompt ();
     }
 
     public void ShowOverheadView () {

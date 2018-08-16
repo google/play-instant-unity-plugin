@@ -15,8 +15,7 @@
 using System;
 using UnityEngine;
 
-namespace GooglePlayInstant
-{
+namespace GooglePlayInstant {
     /// <summary>
     /// Provides methods that an instant app can use to display a Play Store install dialog. This dialog will allow
     /// the user to install the current instant app as a full app.
@@ -41,20 +40,40 @@ namespace GooglePlayInstant
     /// <a href="https://developers.google.com/android/reference/com/google/android/gms/instantapps/InstantApps">
     /// Google Play Services' InstantApps class</a>.
     /// </summary>
-    public static class InstallLauncher
-    {
+    public static class InstallLauncher {
         private const string IntentActionInstantAppInstall = "com.google.android.finsky.action.IA_INSTALL";
         private const int IgnoredRequestCode = 1001;
 
         /// <summary>
         /// Shows a dialog that allows the user to install the current instant app.
         /// </summary>
-        public static void ShowInstallPrompt()
-        {
-            using (var activity = UnityPlayerHelper.GetCurrentActivity())
-            using (var postInstallIntent = CreatePostInstallIntent(activity))
-            {
-                ShowInstallPrompt(activity, IgnoredRequestCode, postInstallIntent, null);
+        public static void ShowInstallPrompt () {
+            using (var activity = UnityPlayerHelper.GetCurrentActivity ())
+            using (var postInstallIntent = CreatePostInstallIntent (activity)) {
+                ShowInstallPrompt (activity, IgnoredRequestCode, postInstallIntent, null);
+            }
+        }
+
+        public static void ShowInstallPrompt (string referrerId) {
+            // // The requestCode referenced in the onActivityResult() callback to the
+            // // activity. Extend UnityPlayerActivity and check for the specified
+            // // requestCode integer to know whether the dialog was cancelled. Use
+            // // UnityPlayer.UnitySendMessage() to relay the response from Java back to
+            // // Unity scripts
+
+            const int requestCode = 123;
+            // The activity that should launch the store's install dialog.
+
+            using (var currentActivity = InstallLauncher.GetCurrentActivity ()) {
+                // The intent to launch after the instant app has been installed.
+                // Must resolve to an activity in the installed app package, or it will
+                // not be used
+                using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent (currentActivity)) {
+                    // Optional install referrer string can be used as a way to pass
+                    // information to the installed app about the source of the install
+                    InstallLauncher.ShowInstallPrompt (currentActivity, requestCode,
+                        postInstallIntent, referrerId);
+                }
             }
         }
 
@@ -72,48 +91,40 @@ namespace GooglePlayInstant
         ///     Must resolve to an activity in the installed app package, or it will not be used.</param>
         /// <param name="referrer">Optional install referrer string.</param>
         /// <exception cref="ArgumentNullException">If either activity or postInstallIntent are null.</exception>
-        public static void ShowInstallPrompt(
-            AndroidJavaObject activity, int requestCode, AndroidJavaObject postInstallIntent, string referrer)
-        {
+        public static void ShowInstallPrompt (
+            AndroidJavaObject activity, int requestCode, AndroidJavaObject postInstallIntent, string referrer) {
 #if !PLAY_INSTANT
             return;
 #endif
 
-            if (activity == null)
-            {
-                throw new ArgumentNullException("activity");
+            if (activity == null) {
+                throw new ArgumentNullException ("activity");
             }
 
-            if (postInstallIntent == null)
-            {
-                throw new ArgumentNullException("postInstallIntent");
+            if (postInstallIntent == null) {
+                throw new ArgumentNullException ("postInstallIntent");
             }
 
             // Java: new Intent("com.google...").setData(uri).setPackage("com.android.vending")
             //               .putExtra("postInstallIntent", postInstallIntent)
-            using (var uri = CreateMarketDetailsUri(referrer))
-            using (var installIntent = new AndroidJavaObject(Android.IntentClass, IntentActionInstantAppInstall))
-            using (installIntent.Call<AndroidJavaObject>(Android.IntentMethodSetData, uri))
-            using (installIntent.Call<AndroidJavaObject>(
+            using (var uri = CreateMarketDetailsUri (referrer))
+            using (var installIntent = new AndroidJavaObject (Android.IntentClass, IntentActionInstantAppInstall))
+            using (installIntent.Call<AndroidJavaObject> (Android.IntentMethodSetData, uri))
+            using (installIntent.Call<AndroidJavaObject> (
                 Android.IntentMethodSetPackage, Android.GooglePlayStorePackageName))
-            using (installIntent.Call<AndroidJavaObject>(
-                Android.IntentMethodPutExtra, "postInstallIntent", postInstallIntent))
-            {
-                if (IsLegacyPlayStore(activity, installIntent))
-                {
-                    ShowLegacyInstallPrompt(activity, requestCode, uri);
-                }
-                else
-                {
-                    activity.Call(Android.ActivityMethodStartActivityForResult, installIntent, requestCode);
+            using (installIntent.Call<AndroidJavaObject> (
+                Android.IntentMethodPutExtra, "postInstallIntent", postInstallIntent)) {
+                if (IsLegacyPlayStore (activity, installIntent)) {
+                    ShowLegacyInstallPrompt (activity, requestCode, uri);
+                } else {
+                    activity.Call (Android.ActivityMethodStartActivityForResult, installIntent, requestCode);
                 }
             }
         }
 
-        [Obsolete("Use UnityPlayerHelper.GetCurrentActivity() instead.")]
-        public static AndroidJavaObject GetCurrentActivity()
-        {
-            return UnityPlayerHelper.GetCurrentActivity();
+        [Obsolete ("Use UnityPlayerHelper.GetCurrentActivity() instead.")]
+        public static AndroidJavaObject GetCurrentActivity () {
+            return UnityPlayerHelper.GetCurrentActivity ();
         }
 
         /// <summary>
@@ -122,12 +133,10 @@ namespace GooglePlayInstant
         /// This object should be disposed after use.
         /// </summary>
         /// <returns>A wrapped Intent object. The AndroidJavaObject should be disposed.</returns>
-        public static AndroidJavaObject CreatePostInstallIntent(AndroidJavaObject activity)
-        {
+        public static AndroidJavaObject CreatePostInstallIntent (AndroidJavaObject activity) {
             // Java: new Intent(activity, activity.getClass())
-            using (var activityClass = activity.Call<AndroidJavaObject>(Android.ObjectMethodGetClass))
-            {
-                return new AndroidJavaObject(Android.IntentClass, activity, activityClass);
+            using (var activityClass = activity.Call<AndroidJavaObject> (Android.ObjectMethodGetClass)) {
+                return new AndroidJavaObject (Android.IntentClass, activity, activityClass);
             }
         }
 
@@ -138,13 +147,10 @@ namespace GooglePlayInstant
         /// <param name="postInstallIntent">An Intent obtained from <see cref="CreatePostInstallIntent"/>.</param>
         /// <param name="extraKey">Key for a string extra to add to the post install intent.</param>
         /// <param name="extraValue">Value for a string extra to add to the post install intent.</param>
-        public static void PutPostInstallIntentStringExtra(
-            AndroidJavaObject postInstallIntent, string extraKey, string extraValue)
-        {
+        public static void PutPostInstallIntentStringExtra (
+            AndroidJavaObject postInstallIntent, string extraKey, string extraValue) {
             // Java: postInstallIntent.putExtra(extraKey, extraValue)
-            using (postInstallIntent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, extraKey, extraValue))
-            {
-            }
+            using (postInstallIntent.Call<AndroidJavaObject> (Android.IntentMethodPutExtra, extraKey, extraValue)) { }
         }
 
         /// <summary>
@@ -154,61 +160,50 @@ namespace GooglePlayInstant
         /// </summary>
         /// <param name="extraKey">Key for obtaining a string extra from current activity's intent.</param>
         /// <returns>The string extra value.</returns>
-        public static string GetPostInstallIntentStringExtra(string extraKey)
-        {
+        public static string GetPostInstallIntentStringExtra (string extraKey) {
             // Java: currentActivity.getIntent().getStringExtra(extraKey)
-            using (var activity = UnityPlayerHelper.GetCurrentActivity())
-            using (var intent = activity.Call<AndroidJavaObject>(Android.ActivityMethodGetIntent))
-            {
-                return intent.Call<string>(Android.IntentMethodGetStringExtra, extraKey);
+            using (var activity = UnityPlayerHelper.GetCurrentActivity ())
+            using (var intent = activity.Call<AndroidJavaObject> (Android.ActivityMethodGetIntent)) {
+                return intent.Call<string> (Android.IntentMethodGetStringExtra, extraKey);
             }
         }
 
-        private static AndroidJavaObject CreateMarketDetailsUri(string referrer)
-        {
+        private static AndroidJavaObject CreateMarketDetailsUri (string referrer) {
             // Java: new Uri.Builder().scheme("market").authority("details").appendQueryParameter("id", packageName)
-            using (var uriBuilder = new AndroidJavaObject(Android.UriBuilderClass))
-            using (uriBuilder.Call<AndroidJavaObject>(Android.UriBuilderMethodScheme, "market"))
-            using (uriBuilder.Call<AndroidJavaObject>(Android.UriBuilderMethodAuthority, "details"))
-            using (uriBuilder.Call<AndroidJavaObject>(
-                Android.UriBuilderMethodAppendQueryParameter, "id", Application.identifier))
-            {
-                if (!string.IsNullOrEmpty(referrer))
-                {
-                    using (uriBuilder.Call<AndroidJavaObject>(
-                        Android.UriBuilderMethodAppendQueryParameter, "referrer", referrer))
-                    {
-                    }
+            using (var uriBuilder = new AndroidJavaObject (Android.UriBuilderClass))
+            using (uriBuilder.Call<AndroidJavaObject> (Android.UriBuilderMethodScheme, "market"))
+            using (uriBuilder.Call<AndroidJavaObject> (Android.UriBuilderMethodAuthority, "details"))
+            using (uriBuilder.Call<AndroidJavaObject> (
+                Android.UriBuilderMethodAppendQueryParameter, "id", Application.identifier)) {
+                if (!string.IsNullOrEmpty (referrer)) {
+                    using (uriBuilder.Call<AndroidJavaObject> (
+                        Android.UriBuilderMethodAppendQueryParameter, "referrer", referrer)) { }
                 }
 
-                return uriBuilder.Call<AndroidJavaObject>(Android.UriBuilderMethodBuild);
+                return uriBuilder.Call<AndroidJavaObject> (Android.UriBuilderMethodBuild);
             }
         }
 
-        private static bool IsLegacyPlayStore(AndroidJavaObject context, AndroidJavaObject installIntent)
-        {
+        private static bool IsLegacyPlayStore (AndroidJavaObject context, AndroidJavaObject installIntent) {
             // Java: context.getPackageManager().resolveActivity(installIntent, 0)
-            using (var packageManager = context.Call<AndroidJavaObject>(Android.ContextMethodGetPackageManager))
+            using (var packageManager = context.Call<AndroidJavaObject> (Android.ContextMethodGetPackageManager))
             using (var resolveInfo =
-                packageManager.Call<AndroidJavaObject>(Android.PackageManagerMethodResolveActivity, installIntent, 0))
-            {
+                packageManager.Call<AndroidJavaObject> (Android.PackageManagerMethodResolveActivity, installIntent, 0)) {
                 return resolveInfo == null;
             }
         }
 
-        private static void ShowLegacyInstallPrompt(AndroidJavaObject activity, int requestCode, AndroidJavaObject uri)
-        {
+        private static void ShowLegacyInstallPrompt (AndroidJavaObject activity, int requestCode, AndroidJavaObject uri) {
             // Java: new Intent(Intent.ACTION_VIEW).addCategory(Intent.CATEGORY_DEFAULT)
             //               .setPackage("com.android.vending").setData(uri)
             //               .putExtra("callerId", packageName).putExtra("overlay", true)
-            using (var intent = new AndroidJavaObject(Android.IntentClass, Android.IntentActionView))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodAddCategory, Android.IntentCategoryDefault))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetPackage, Android.GooglePlayStorePackageName))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetData, uri))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, "callerId", Application.identifier))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, "overlay", true))
-            {
-                activity.Call(Android.ActivityMethodStartActivityForResult, intent, requestCode);
+            using (var intent = new AndroidJavaObject (Android.IntentClass, Android.IntentActionView))
+            using (intent.Call<AndroidJavaObject> (Android.IntentMethodAddCategory, Android.IntentCategoryDefault))
+            using (intent.Call<AndroidJavaObject> (Android.IntentMethodSetPackage, Android.GooglePlayStorePackageName))
+            using (intent.Call<AndroidJavaObject> (Android.IntentMethodSetData, uri))
+            using (intent.Call<AndroidJavaObject> (Android.IntentMethodPutExtra, "callerId", Application.identifier))
+            using (intent.Call<AndroidJavaObject> (Android.IntentMethodPutExtra, "overlay", true)) {
+                activity.Call (Android.ActivityMethodStartActivityForResult, intent, requestCode);
             }
         }
     }
