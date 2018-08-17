@@ -33,21 +33,16 @@ namespace GooglePlayInstant
             }
         }
 
-        public static bool IsInstantApp () {
-		try {
-			using (var currentActivity = GetCurrentActivity ()) {
-				var pm = currentActivity.Call<AndroidJavaObject>
-					("getPackageManager");
-				bool isIA = pm.Call<bool>
-					("isInstantApp");
-				return isIA;
-			}
-		} catch (System.Exception e) {
-			Debug.Log ("Exception in isInstantApp:\n" +
-				e.Message + "\n" + e.StackTrace);
-			return false;
-		}
-	}
-
+        /// <summary>
+        /// Return true if this is an instant app build, false if an installed app build.
+        /// </summary>
+        public static bool IsInstantApp()
+        {
+#if PLAY_INSTANT
+            return true;
+#else
+            return false;
+#endif
+        }
     }
 }
