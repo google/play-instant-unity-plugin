@@ -19,9 +19,9 @@ using UnityEngine.UI;
 
 public class BallMovement : MonoBehaviour
 {
-    private float _speed = 20F;
-    private float _boostMultiplier = 100F;
-    private float _keyDownMultiplier = 10F;
+    private const float SPEED = 20F;
+    private const float BOOST_MULTIPLIER = 100F;
+    private const float KEY_DOWN_MULTIPLIER = 10F;
     private Rigidbody _rigidBody;
     private BaseGame _baseGame;
 
@@ -44,29 +44,29 @@ public class BallMovement : MonoBehaviour
     public void FixedUpdate()
     {
         var acc = Input.acceleration;
-        _rigidBody.AddForce(acc.x * _speed * acc.magnitude, 0, acc.y * _speed * acc.magnitude);
+        _rigidBody.AddForce(acc.x * SPEED * acc.magnitude, 0, acc.y * SPEED * acc.magnitude);
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             //Debug.Log ("DownArrow down " + Vector3.back);
-            _rigidBody.AddForce(Vector3.back * _speed * _keyDownMultiplier);
+            _rigidBody.AddForce(Vector3.back * SPEED * KEY_DOWN_MULTIPLIER);
         }
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             //Debug.Log ("UpArrow down " + Vector3.forward);
-            _rigidBody.AddForce(Vector3.forward * _speed * _keyDownMultiplier);
+            _rigidBody.AddForce(Vector3.forward * SPEED * KEY_DOWN_MULTIPLIER);
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             //Debug.Log ("DownArrow down " + Vector3.back);
-            _rigidBody.AddForce(Vector3.left * _speed * _keyDownMultiplier);
+            _rigidBody.AddForce(Vector3.left * SPEED * KEY_DOWN_MULTIPLIER);
         }
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             //Debug.Log ("DownArrow down " + Vector3.back);
-            _rigidBody.AddForce(Vector3.right * _speed * _keyDownMultiplier);
+            _rigidBody.AddForce(Vector3.right * SPEED * KEY_DOWN_MULTIPLIER);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -89,8 +89,8 @@ public class BallMovement : MonoBehaviour
         var rigidBody = GameObject.Find("Sphere").GetComponent<Rigidbody>();
         var localVelocity = rigidBody.velocity;
         //Debug.Log ("localVelocity" + localVelocity.x + " " + localVelocity.y);
-        rigidBody.AddForce(localVelocity.x * _boostMultiplier, localVelocity.y * _boostMultiplier,
-            localVelocity.z * _boostMultiplier);
+        rigidBody.AddForce(localVelocity.x * BOOST_MULTIPLIER, localVelocity.y * BOOST_MULTIPLIER,
+            localVelocity.z * BOOST_MULTIPLIER);
     }
 
     void OnCollisionEnter(Collision collision)
