@@ -32,5 +32,17 @@ namespace GooglePlayInstant
                 return unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             }
         }
+
+        /// <summary>
+        /// Return true if this is an instant app build, false if an installed app build.
+        /// </summary>
+        public static bool IsInstantApp()
+        {
+#if PLAY_INSTANT
+            return true;
+#else
+            return false;
+#endif
+        }
     }
 }

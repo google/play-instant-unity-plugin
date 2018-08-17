@@ -48,13 +48,14 @@ namespace GooglePlayInstant
 
         /// <summary>
         /// Shows a dialog that allows the user to install the current instant app.
+        /// <param name="referrer">Optional install referrer string.</param>
         /// </summary>
-        public static void ShowInstallPrompt()
+        public static void ShowInstallPrompt(string referrer = null)
         {
-            using (var activity = UnityPlayerHelper.GetCurrentActivity())
+            using (var activity = GetCurrentActivity())
             using (var postInstallIntent = CreatePostInstallIntent(activity))
             {
-                ShowInstallPrompt(activity, IgnoredRequestCode, postInstallIntent, null);
+                ShowInstallPrompt(activity, IgnoredRequestCode, postInstallIntent, referrer);
             }
         }
 
@@ -105,7 +106,8 @@ namespace GooglePlayInstant
                 }
                 else
                 {
-                    activity.Call(Android.ActivityMethodStartActivityForResult, installIntent, requestCode);
+                    activity.Call(Android.ActivityMethodStartActivityForResult, installIntent,
+                        requestCode);
                 }
             }
         }
@@ -190,7 +192,8 @@ namespace GooglePlayInstant
             // Java: context.getPackageManager().resolveActivity(installIntent, 0)
             using (var packageManager = context.Call<AndroidJavaObject>(Android.ContextMethodGetPackageManager))
             using (var resolveInfo =
-                packageManager.Call<AndroidJavaObject>(Android.PackageManagerMethodResolveActivity, installIntent, 0))
+                packageManager.Call<AndroidJavaObject>(Android.PackageManagerMethodResolveActivity, installIntent,
+                    0))
             {
                 return resolveInfo == null;
             }
@@ -203,9 +206,11 @@ namespace GooglePlayInstant
             //               .putExtra("callerId", packageName).putExtra("overlay", true)
             using (var intent = new AndroidJavaObject(Android.IntentClass, Android.IntentActionView))
             using (intent.Call<AndroidJavaObject>(Android.IntentMethodAddCategory, Android.IntentCategoryDefault))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetPackage, Android.GooglePlayStorePackageName))
+            using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetPackage,
+                Android.GooglePlayStorePackageName))
             using (intent.Call<AndroidJavaObject>(Android.IntentMethodSetData, uri))
-            using (intent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, "callerId", Application.identifier))
+            using (intent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, "callerId",
+                Application.identifier))
             using (intent.Call<AndroidJavaObject>(Android.IntentMethodPutExtra, "overlay", true))
             {
                 activity.Call(Android.ActivityMethodStartActivityForResult, intent, requestCode);
