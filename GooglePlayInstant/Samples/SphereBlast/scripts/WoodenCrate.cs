@@ -16,21 +16,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WoodenCrate : MonoBehaviour {
-    public GameObject explodingVersion;
+public class WoodenCrate : MonoBehaviour
+{
+    public GameObject ExplodingVersion;
 
-    public void SwapExplode () {
-        Debug.Log ("SwapExplode triggered");
-        Instantiate (explodingVersion, transform.position, transform.rotation);
-        Destroy (gameObject);
+    private void SwapExplode()
+    {
+        Debug.Log("SwapExplode triggered");
+        Instantiate(ExplodingVersion, transform.position, transform.rotation);
+        Destroy(gameObject);
     }
 
-    void OnCollisionEnter (Collision collision) {
-        Debug.Log ("collision with crate detected");
-        BaseGame bg = GameObject.Find ("BaseGame").GetComponent<BaseGame> ();
-        bg.IncrementScore ();
-        bg.ResetTimer ();
-        bg.UpdateScoreDisplay ();
-        SwapExplode ();
+    public void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("collision with crate detected");
+        var baseGame = GameObject.Find("BaseGame").GetComponent<BaseGame>();
+        baseGame.IncrementScore();
+        baseGame.ResetTimer();
+        baseGame.UpdateScoreDisplay();
+        SwapExplode();
     }
 }

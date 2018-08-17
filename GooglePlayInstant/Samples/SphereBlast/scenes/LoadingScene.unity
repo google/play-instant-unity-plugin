@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e95bb087228394c788169e36ad42368c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  assetBundleURL: https://storage.googleapis.com/com_concussionjs_sphereblast/spherescene
+  AssetBundleUrl: https://storage.googleapis.com/com_concussionjs_sphereblast/spherescene
 --- !u!4 &203794488
 Transform:
   m_ObjectHideFlags: 0

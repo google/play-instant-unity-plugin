@@ -17,41 +17,50 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-public class AnimateLoadingText : MonoBehaviour {
-	private UnityEngine.UI.Text _loadingText;
-	private int _timeElapsed = 0;
-	private float _deltaTimeSum = 0;
-	private string[] _loading = new string[] {
-		"L",
-		"O",
-		"A",
-		"D",
-		"I",
-		"N",
-		"G"
-	};
+public class AnimateLoadingText : MonoBehaviour
+{
+    private UnityEngine.UI.Text _loadingText;
+    private int _timeElapsed = 0;
+    private float _deltaTimeSum = 0;
 
-	// Use this for initialization
-	void Start () {
-		_loadingText = GetComponent<UnityEngine.UI.Text> ();
-		_loadingText.text = _loading[0];
-	}
+    private readonly string[] _loading = new string[]
+    {
+        "L",
+        "O",
+        "A",
+        "D",
+        "I",
+        "N",
+        "G"
+    };
 
-	// Update is called once per frame
-	void FixedUpdate () {
-		_deltaTimeSum += Time.deltaTime;
-		if ((int) _deltaTimeSum == 1) {
-			_timeElapsed++;
-			_deltaTimeSum = 0;
-			_loadingText.text = GetLoadingText (_timeElapsed);
-		}
-	}
+    // Use this for initialization
+    public void Start()
+    {
+        _loadingText = GetComponent<UnityEngine.UI.Text>();
+        _loadingText.text = _loading[0];
+    }
 
-	private string GetLoadingText (int timeElapsed) {
-		StringBuilder loadingText = new StringBuilder ();
-		for (int i = 0; i <= timeElapsed % _loading.Length; i++) {
-			loadingText.Append (_loading[i]);
-		}
-		return loadingText.ToString ();
-	}
+    // Update is called once per frame
+    public void FixedUpdate()
+    {
+        _deltaTimeSum += Time.deltaTime;
+        if ((int) _deltaTimeSum == 1)
+        {
+            _timeElapsed++;
+            _deltaTimeSum = 0;
+            _loadingText.text = GetLoadingText(_timeElapsed);
+        }
+    }
+
+    private string GetLoadingText(int timeElapsed)
+    {
+        StringBuilder loadingText = new StringBuilder();
+        for (int i = 0; i <= timeElapsed % _loading.Length; i++)
+        {
+            loadingText.Append(_loading[i]);
+        }
+
+        return loadingText.ToString();
+    }
 }

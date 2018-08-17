@@ -16,31 +16,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WoodenCrateExplosion : MonoBehaviour {
+public class WoodenCrateExplosion : MonoBehaviour
+{
     private const float DESTROY_DELAY = 3f;
-    private float timer = 0;
-    public GameObject sphere;
-    public AudioSource explosionClip;
+    private float _timer = 0;
+    public GameObject Sphere;
+    public AudioSource ExplosionClip;
 
-    void Start () {
-        explosionClip = GetComponent<AudioSource> ();
-        sphere = GameObject.Find ("Sphere");
-        Collider[] currentColliders = GetComponentsInChildren<BoxCollider> ();
+    public void Start()
+    {
+        ExplosionClip = GetComponent<AudioSource>();
+        Sphere = GameObject.Find("Sphere");
+        Collider[] currentColliders = GetComponentsInChildren<BoxCollider>();
 
-        for (int j = 0; j < currentColliders.Length; j++) {
-            Physics.IgnoreCollision (currentColliders[j],
-                sphere.GetComponent<SphereCollider> ());
+        foreach (var t in currentColliders)
+        {
+            Physics.IgnoreCollision(t,
+                Sphere.GetComponent<SphereCollider>());
         }
-        explosionClip.Play ();
+
+        ExplosionClip.Play();
     }
 
-    void Update () {
-        timer += Time.deltaTime;
-        if (timer > DESTROY_DELAY) {
-            Destroy (gameObject);
-            Debug.Log ("Timer is done");
-            BaseGame bg = GameObject.Find ("BaseGame").GetComponent<BaseGame> ();
-            bg.CreateCrate ();
-        }
+    public void Update()
+    {
+        _timer += Time.deltaTime;
+        if (!(_timer > DESTROY_DELAY)) return;
+        Destroy(gameObject);
+        Debug.Log("Timer is done");
+        var baseGame = GameObject.Find("BaseGame").GetComponent<BaseGame>();
+        baseGame.CreateCrate();
     }
 }

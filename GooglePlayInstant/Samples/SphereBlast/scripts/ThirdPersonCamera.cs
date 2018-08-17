@@ -16,21 +16,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThirdPersonCamera : MonoBehaviour {
-
-    public Transform sphere;
+public class ThirdPersonCamera : MonoBehaviour
+{
+    public Transform Sphere;
     private Vector3 _offset;
 
-    void Start () {
-        _offset = transform.position - sphere.transform.position;
+    public void Start()
+    {
+        _offset = transform.position - Sphere.transform.position;
     }
 
-    void FixedUpdate () {
-        if (sphere == null)
+    public void FixedUpdate()
+    {
+        if (Sphere == null)
             return;
-        transform.LookAt (sphere);
-        Vector3 desiredPosition = sphere.transform.position + _offset;
+        transform.LookAt(Sphere);
+        var desiredPosition = Sphere.transform.position + _offset;
         transform.position = desiredPosition;
     }
-
 }

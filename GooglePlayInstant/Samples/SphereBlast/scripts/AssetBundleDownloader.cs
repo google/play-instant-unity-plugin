@@ -16,33 +16,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AssetBundleDownloader : MonoBehaviour {
+public class AssetBundleDownloader : MonoBehaviour
+{
+    // Use this for initialization
+    public string AssetBundleUrl;
 
-	// Use this for initialization
-	public string assetBundleURL;
+    private IEnumerator Start()
+    {
+        // Cleans local cache of asset bundles. 
+        // This here for download validation purposes
+        // and should be removed from published builds
+        Caching.ClearCache();
+        // Download and load required scenes
+        yield return StartCoroutine(
+            DownloadAsset(AssetBundleUrl, true));
+    }
 
-	IEnumerator Start () {
-		// Cleans local cache of asset bundles. 
-		// This here for download validation purposes
-		// and should be removed from published builds
-		Caching.ClearCache ();
-		// Download and load required scenes
-		yield return StartCoroutine (
-			DownloadAsset (assetBundleURL, true));
-	}
-
-	IEnumerator DownloadAsset (string sceneURL, bool loadScene) {
-		// Downloads and loads scenes
-		WWW bundleWWW = WWW.LoadFromCacheOrDownload (sceneURL, 0);
-		yield return bundleWWW;
-		var assetBundle = bundleWWW.assetBundle;
-		if (loadScene) {
-			if (assetBundle.isStreamedSceneAssetBundle) {
-				string[] scenePaths = assetBundle.GetAllScenePaths ();
-				string sceneName =
-					System.IO.Path.GetFileNameWithoutExtension (scenePaths[0]);
-				UnityEngine.SceneManagement.SceneManager.LoadScene (sceneName);
-			}
-		}
-	}
+    private static IEnumerator DownloadAsset(string sceneURL, bool loadScene)
+    {
+        // Downloads and loads scenes
+        var bundleWww = WWW.LoadFromCacheOrDownload(sceneURL, 0);
+        yield return bundleWww;
+        var assetBundle = bundleWww.assetBundle;
+        if (!loadScene) yield break;
+        if (!assetBundle.isStreamedSceneAssetBundle) yield break;
+        var scenePaths = assetBundle.GetAllScenePaths();
+        var sceneName =
+            System.IO.Path.GetFileNameWithoutExtension(scenePaths[0]);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+    }
 }

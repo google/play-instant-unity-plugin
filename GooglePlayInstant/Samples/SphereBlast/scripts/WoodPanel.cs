@@ -16,16 +16,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WoodPanel : MonoBehaviour {
+public class WoodPanel : MonoBehaviour
+{
     private AudioSource _woodPanelClip;
-    void Start () {
-        _woodPanelClip = GetComponent<AudioSource> ();
+
+    public void Start()
+    {
+        _woodPanelClip = GetComponent<AudioSource>();
     }
 
-    void OnCollisionEnter (Collision collision) {
-        Debug.Log ("WOOD PANEL COLLISION with " + collision.gameObject.name);
-        _woodPanelClip.pitch = Random.Range (0.75f, 1.5f);
-        _woodPanelClip.volume = Random.Range (0.5f, 2.0f);
-        _woodPanelClip.PlayDelayed (Random.Range (0.0f, 1.0f));
+    public void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("WOOD PANEL COLLISION with " + collision.gameObject.name);
+        _woodPanelClip.pitch = Random.Range(0.75f, 1.5f);
+        _woodPanelClip.volume = Random.Range(0.5f, 2.0f);
+        _woodPanelClip.PlayDelayed(Random.Range(0.0f, 1.0f));
     }
 }

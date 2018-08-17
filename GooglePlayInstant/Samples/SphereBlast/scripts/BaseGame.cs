@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using GooglePlayInstant;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
-public class BaseGame : MonoBehaviour {
-    public Transform crate;
-    public Camera thirdPersonCamera;
-    public Camera overheadCamera;
+public class BaseGame : MonoBehaviour
+{
+    public Transform Crate;
+    public Camera ThirdPersonCamera;
+    public Camera OverheadCamera;
     private const int MAX_SCORE_PER_LEVEL = 5;
     private int _maxTime = 10;
     private int _timer;
@@ -36,7 +40,8 @@ public class BaseGame : MonoBehaviour {
     private Text _levelText;
     private Text _scoreText;
 
-    private int[] levelTimeLimitMapping = new int[] {
+    private readonly int[] _levelTimeLimitMapping = new int[]
+    {
         10,
         9,
         8,
@@ -46,183 +51,219 @@ public class BaseGame : MonoBehaviour {
         4
     };
 
-    static Vector3[] positions = new Vector3[] {
-        new Vector3 (37, 3.87f, 11),
-        new Vector3 (37, 3.87f, -4),
-        new Vector3 (37, 3.87f, -16),
-        new Vector3 (0, 3.87f, -16),
-        new Vector3 (0, 3.87f, -4),
-        new Vector3 (0, 3.87f, 11),
-        new Vector3 (-23, 3.87f, 11),
-        new Vector3 (-23, 3.87f, -4),
-        new Vector3 (-23, 3.87f, -16)
+    private static readonly Vector3[] _positions = new Vector3[]
+    {
+        new Vector3(37, 3.87f, 11),
+        new Vector3(37, 3.87f, -4),
+        new Vector3(37, 3.87f, -16),
+        new Vector3(0, 3.87f, -16),
+        new Vector3(0, 3.87f, -4),
+        new Vector3(0, 3.87f, 11),
+        new Vector3(-23, 3.87f, 11),
+        new Vector3(-23, 3.87f, -4),
+        new Vector3(-23, 3.87f, -16)
     };
 
     // Use this for initialization
-    void Start () {
+    public void Start()
+    {
         _timer = _maxTime;
-        _gameOver = GameObject.Find ("GameOverPanel").gameObject;
-        _timeLeftText = GameObject.Find ("TimeLeftText").GetComponent<Text> ();
-        _levelText = GameObject.Find ("LevelText").GetComponent<Text> ();
-        _scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
-        _sphere = GameObject.Find ("Sphere");
-        _installButton = GameObject.Find ("InstallButton");
-        _installButtonPersistent = GameObject.Find ("InstallButtonPersistent");
-        _installButton.SetActive (false);
-        _installButtonPersistent.SetActive (false);
-        SetUpGameState ();
-        UpdateTimer ();
-        ReadGameStateFromCookie ();
-        SetLevel (_level);
-        SetScore (_score);
-        HideGameOver ();
-        CreateCrate ();
+        _gameOver = GameObject.Find("GameOverPanel").gameObject;
+        _timeLeftText = GameObject.Find("TimeLeftText").GetComponent<Text>();
+        _levelText = GameObject.Find("LevelText").GetComponent<Text>();
+        _scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
+        _sphere = GameObject.Find("Sphere");
+        _installButton = GameObject.Find("InstallButton");
+        _installButtonPersistent = GameObject.Find("InstallButtonPersistent");
+        _installButton.SetActive(false);
+        _installButtonPersistent.SetActive(false);
+        SetUpGameState();
+        UpdateTimer();
+        ReadGameStateFromCookie();
+        SetLevel(_level);
+        SetScore(_score);
+        HideGameOver();
+        CreateCrate();
     }
 
-    void SetUpGameState () {
+    private void SetUpGameState()
+    {
         _level = 1;
         _deltaTimeSum = 0;
         _score = 0;
 #if PLAY_INSTANT
-        _installButton.SetActive (true);
-        _installButtonPersistent.SetActive (true);
+        _installButton.SetActive(true);
+        _installButtonPersistent.SetActive(true);
 #endif
     }
 
-    void FixedUpdate () {
-        if (_timer == -1) {
+    private void FixedUpdate()
+    {
+        if (_timer == -1)
+        {
             return;
         }
 
         _deltaTimeSum += Time.deltaTime;
-        if ((int) _deltaTimeSum == 1) {
+        if ((int) _deltaTimeSum == 1)
+        {
             _timer--;
             _deltaTimeSum = 0;
         }
 
-        UpdateTimer ();
+        UpdateTimer();
 
-        if (_timer <= 0) {
-            Destroy (_sphere);
-            ShowGameOver ();
-        }
+        if (_timer > 0) return;
+        Destroy(_sphere);
+        ShowGameOver();
     }
 
     /* TIMER METHODS */
 
-    public void ResetTimer () {
-        if (_timer > 0) {
+    public void ResetTimer()
+    {
+        if (_timer > 0)
+        {
             _timer = _maxTime;
         }
     }
 
-    public void UpdateTimer () {
-        _timeLeftText.text = "" + System.Math.Max (_timer, 0);
+    private void UpdateTimer()
+    {
+        _timeLeftText.text = "" + System.Math.Max(_timer, 0);
     }
 
     /* SCENE SET UP METHODS */
 
-    public void CreateCrate () {
-        int randomPosition = Random.Range (0, 9);
-        Instantiate (crate, positions[randomPosition], Quaternion.identity);
+    public void CreateCrate()
+    {
+        var randomPosition = Random.Range(0, 9);
+        Debug.Log("Crate: " + Crate);
+        Instantiate(Crate, _positions[randomPosition], Quaternion.identity);
     }
 
-    public void WriteGameStateToCookie (int level, int score) {
-        string gameStateCSV = level + "," + score;
-        CookieApi.SetInstantAppCookie (gameStateCSV);
+    private static void WriteGameStateToCookie(int level, int score)
+    {
+#if UNITY_EDITOR
+        return;
+#endif
+        var gameStateCsv = level + "," + score;
+        CookieApi.SetInstantAppCookie(gameStateCsv);
     }
 
-    public void ReadGameStateFromCookie () {
-        string results = CookieApi.GetInstantAppCookie ();
-        Debug.Log ("readGameStateFromCookie: " + results);
-        if (results != null &&
-            results.Length > 0) {
-            string[] attributes = results.Split (',');
-            if (attributes.Length < 2) {
-                return;
-            }
-            string cookieLevel = attributes[0];
-            string cookieScore = attributes[1];
-            _level = int.Parse (cookieLevel);
-            _score = int.Parse (cookieScore);
-            Debug.Log ("CookieLevel: " + cookieLevel);
-            Debug.Log ("CookieScore: " + cookieScore);
+    private void ReadGameStateFromCookie()
+    {
+#if UNITY_EDITOR
+        return;
+#endif
+        var results = CookieApi.GetInstantAppCookie();
+
+
+        Debug.Log("readGameStateFromCookie: " + results);
+        if (string.IsNullOrEmpty(results)) return;
+        var attributes = results.Split(',');
+        if (attributes.Length < 2)
+        {
+            return;
         }
+
+        var cookieLevel = attributes[0];
+        var cookieScore = attributes[1];
+        _level = int.Parse(cookieLevel);
+        _score = int.Parse(cookieScore);
+        Debug.Log("CookieLevel: " + cookieLevel);
+        Debug.Log("CookieScore: " + cookieScore);
     }
 
     /* LEVEL METHODS */
 
-    public void IncrementLevel () {
-        SetLevel (_level + 1);
+    private void IncrementLevel()
+    {
+        SetLevel(_level + 1);
     }
 
-    public void SetLevel (int newLevel) {
+    private void SetLevel(int newLevel)
+    {
         _level = newLevel;
-        _maxTime = levelTimeLimitMapping[_level - 1];
+        _maxTime = _levelTimeLimitMapping[_level - 1];
         _timer = _maxTime;
         _levelText.text = "" + _level;
     }
 
-    public int GetLevel () {
+    public int GetLevel()
+    {
         return _level;
     }
 
     /* UI METHODS */
 
-    public void ShowGameOver () {
-        _gameOver.SetActive (true);
+    public void ShowGameOver()
+    {
+        _gameOver.SetActive(true);
     }
 
-    public void HideGameOver () {
-        _gameOver.SetActive (false);
+    private void HideGameOver()
+    {
+        _gameOver.SetActive(false);
     }
 
-    public void UpdateScoreDisplay () {
-        int displayScore = _score % MAX_SCORE_PER_LEVEL;
+    public void UpdateScoreDisplay()
+    {
+        var displayScore = _score % MAX_SCORE_PER_LEVEL;
         _scoreText.text = "" + displayScore;
     }
 
-    public void SetScore (int newScore) {
+    private void SetScore(int newScore)
+    {
         _score = newScore;
-        Debug.Log ("Is instant app: " + UnityPlayerHelper.IsInstantApp ());
-        Debug.Log ("before setting level " + (_score % MAX_SCORE_PER_LEVEL > 0));
+#if !UNITY_EDITOR
+       Debug.Log("Is instant app: " + UnityPlayerHelper.IsInstantApp());
+#endif
+        Debug.Log("before setting level " + (_score % MAX_SCORE_PER_LEVEL > 0));
         if (_score != 0 &&
-            _score % MAX_SCORE_PER_LEVEL == 0) {
-            IncrementLevel ();
+            _score % MAX_SCORE_PER_LEVEL == 0)
+        {
+            IncrementLevel();
         }
-        UpdateScoreDisplay ();
+
+        UpdateScoreDisplay();
     }
 
-    public void QuitGame () {
-        Application.Quit ();
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 
-    public void RestartGame () {
-        Application.LoadLevel ("SphereScene");
+    public void RestartGame()
+    {
+        Application.LoadLevel("SphereScene");
     }
 
-    public void IncrementScore () {
-        Debug.Log ("Increment score");
-        SetScore (_score + 1);
+    public void IncrementScore()
+    {
+        Debug.Log("Increment score");
+        SetScore(_score + 1);
     }
 
-    public void Install () {
-        Debug.Log ("Installing game");
-        WriteGameStateToCookie (_level, _score);
-        Debug.Log ("After writing GameState");
-        ReadGameStateFromCookie ();
-        Debug.Log ("After reading GameState");
-        InstallLauncher.ShowInstallPrompt ();
+    public void Install()
+    {
+        Debug.Log("Installing game");
+        WriteGameStateToCookie(_level, _score);
+        Debug.Log("After writing GameState");
+        ReadGameStateFromCookie();
+        Debug.Log("After reading GameState");
+        InstallLauncher.ShowInstallPrompt();
     }
 
-    public void ShowOverheadView () {
-        thirdPersonCamera.enabled = false;
-        overheadCamera.enabled = true;
+    public void ShowOverheadView()
+    {
+        ThirdPersonCamera.enabled = false;
+        OverheadCamera.enabled = true;
     }
 
-    public void ShowFirstPersonView () {
-        thirdPersonCamera.enabled = true;
-        overheadCamera.enabled = false;
+    public void ShowFirstPersonView()
+    {
+        ThirdPersonCamera.enabled = true;
+        OverheadCamera.enabled = false;
     }
-
 }
