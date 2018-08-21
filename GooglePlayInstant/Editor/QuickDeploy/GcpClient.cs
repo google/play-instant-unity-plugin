@@ -215,10 +215,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private static void InvokeAccessRestrictedAction(
             Action<Action<WWW>> initialAction, Action<WWW> postResponseAction)
         {
-            var token = AccessTokenGetter.AccessToken;
-            if (token == null)
+            if (!AccessTokenGetter.AccessToken.IsValid())
             {
-                AccessTokenGetter.UpdateAccessToken(() => initialAction(postResponseAction));
+                AccessTokenGetter.ValidateAccessToken(() => initialAction(postResponseAction));
             }
             else
             {
@@ -248,7 +247,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var dictionaryWithAuthorizationHeader = new Dictionary<string, string>
             {
-                {"Authorization", string.Format("Bearer {0}", AccessTokenGetter.AccessToken.access_token)}
+                {"Authorization", string.Format("Bearer {0}", AccessTokenGetter.AccessToken.Value)}
             };
             return dictionaryWithAuthorizationHeader.Union(headers ?? new Dictionary<string, string>())
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
