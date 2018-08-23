@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using GooglePlayInstant.LoadingScreen;
@@ -33,6 +34,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public const string LoadingSceneName = "play-instant-loading-screen-scene";
 
         private const string LoadingScreenCanvasName = "Loading Screen Canvas";
+        
+        private const string LoadingScreenSaveErrorTitle = "Loading Screen Save Error";
 
         private static readonly string LoadingScreenScenePath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
@@ -44,24 +47,24 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         // Visible for testing
         internal const string LoadingScreenJsonFileName = "LoadingScreenConfig.json";
-
-        /// <summary>
-        /// The path to a fullscreen image displayed in the background while the game loads.
-        /// </summary>
-        public static string LoadingScreenImagePath { get; set; }
-
+        
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are
         /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
         /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateLoadingScreenScene(string assetBundleUrl)
+        public static void GenerateLoadingScreenScene(string assetBundleUrl, string loadingScreenImagePath)
         {
-            if (!File.Exists(LoadingScreenImagePath))
+            if (string.IsNullOrEmpty(assetBundleUrl))
             {
-                Debug.LogErrorFormat("Loading screen image file cannot be found: {0}", LoadingScreenImagePath);
-                return;
+                throw new ArgumentException("AssetBundle URL text field cannot be null or empty.");
+            }
+
+            if (!File.Exists(loadingScreenImagePath))
+            {
+                throw new FileNotFoundException(string.Format("Loading screen image file cannot be found: {0}",
+                    loadingScreenImagePath));
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
@@ -75,17 +78,24 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingScreenGameObject = new GameObject(LoadingScreenCanvasName);
 
-            AddLoadingScreenImageToScene(loadingScreenGameObject, LoadingScreenImagePath);
+            AddLoadingScreenImageToScene(loadingScreenGameObject, loadingScreenImagePath);
+
             AddLoadingScreenScript(loadingScreenGameObject);
 
             LoadingBar.AddLoadingScreenBarComponent(loadingScreenGameObject);
 
-            bool saveOK = EditorSceneManager.SaveScene(loadingScreenScene,
+            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene,
                 Path.Combine(LoadingScreenScenePath, LoadingSceneName + ".unity"));
 
-            if (!saveOK)
+            if (!saveOk)
             {
-                Debug.LogErrorFormat("Loading screen generator error: Issue while saving scene {0}.", LoadingSceneName);
+                // Not a fatal issue. User can attempt to resave this scene.
+                var warningMessage = string.Format("Issue while saving scene {0}.",
+                    LoadingSceneName);
+                
+                Debug.LogWarning(warningMessage);
+                
+                DialogHelper.DisplayMessage(LoadingScreenSaveErrorTitle, warningMessage);
             }
         }
 
@@ -105,8 +115,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingScreenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
             var loadingScreenImageData = File.ReadAllBytes(pathToLoadingScreenImage);
+
             var tex = new Texture2D(1, 1);
-            tex.LoadImage(loadingScreenImageData);
+
+            var texLoaded = tex.LoadImage(loadingScreenImageData);
+
+            if (!texLoaded)
+            {
+                throw new Exception("Failed to load image as a Texture2D.");
+            }
 
             var loadingImageSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
 

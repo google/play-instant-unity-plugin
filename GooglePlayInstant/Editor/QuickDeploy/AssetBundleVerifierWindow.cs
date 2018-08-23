@@ -35,17 +35,17 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             BundleError,
             DownloadSuccess
         }
-        
+
         private const int FieldMinWidth = 170;
         internal const string WebRequestErrorFormatMessage = "Problem retrieving AssetBundle from {0}: {1}";
-        
+
         private long _responseCode;
-        
+
         private string _mainScene;
         private double _numOfMegabytes;
         private UnityWebRequest _webRequest;
         private AssetBundle _bundle;
-        
+
         // Visible for testing
         internal bool AssetBundleDownloadIsSuccessful;
         internal string AssetBundleUrl;
@@ -58,11 +58,17 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         public static AssetBundleVerifierWindow ShowWindow()
         {
-            return (AssetBundleVerifierWindow) GetWindow(typeof(AssetBundleVerifierWindow), true, "Play Instant AssetBundle Verify");
+            return (AssetBundleVerifierWindow) GetWindow(typeof(AssetBundleVerifierWindow), true,
+                "Play Instant AssetBundle Verify");
         }
 
         public void StartAssetBundleVerificationDownload(string assetBundleUrl)
         {
+            if (string.IsNullOrEmpty(assetBundleUrl))
+            {
+                throw new ArgumentException("AssetBundle URL text field cannot be null or empty.");
+            }
+
             AssetBundleUrl = assetBundleUrl;
 #if UNITY_2018_1_OR_NEWER
             _webRequest = UnityWebRequestAssetBundle.GetAssetBundle(AssetBundleUrl);
@@ -108,7 +114,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     _bundle.Unload(true);
                     break;
                 default:
-                    throw new NotImplementedException(string.Format("Unexpected state {0}", state));
+                    var errorMessage =
+                        string.Format(
+                            "Unexpected state while checking the AssetBundle: {0}",
+                            state);
+                    throw new InvalidOperationException(errorMessage);
             }
         }
 
@@ -123,9 +133,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 _bundle = DownloadHandlerAssetBundle.GetContent(_webRequest);
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException ex)
             {
-                Debug.LogErrorFormat("Failed to obtain AssetBundle content: {0}", e);
+                Debug.LogErrorFormat("Failed to obtain AssetBundle content: {0}", ex);
                 return AssetBundleVerifyState.DestinationError;
             }
 
@@ -179,7 +189,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             // Performs download operation only once when webrequest is completed.
             EditorUtility.ClearProgressBar();
+
             HandleAssetBundleVerifyState(State, _webRequest);
+
             Repaint();
 
             // Turn request to null to signal ready for next call
