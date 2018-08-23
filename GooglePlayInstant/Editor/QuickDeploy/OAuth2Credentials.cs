@@ -32,7 +32,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </exception>
         public static Credentials GetCredentials()
         {
-            var credentialsFilePath = QuickDeployConfig.Config.cloudCredentialsFileName;
+            var credentialsFilePath = QuickDeployConfig.CloudCredentialsFileName;
             var credentialsFile = JsonUtility.FromJson<CredentialsFile>(File.ReadAllText(credentialsFilePath));
             if (credentialsFile == null || credentialsFile.installed == null)
             {

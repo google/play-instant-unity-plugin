@@ -42,7 +42,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = new[] {LoadingScreenGenerator.LoadingSceneName + ".unity"},
-                locationPathName = QuickDeployConfig.Config.apkFileName,
+                locationPathName = QuickDeployConfig.ApkFileName,
                 target = BuildTarget.Android,
                 options = BuildOptions.None
                 // TODO: include asset bundle manifest path in options.

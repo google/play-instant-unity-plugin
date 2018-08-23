@@ -19,7 +19,7 @@ using UnityEngine;
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
-    /// Contains set of operations for storing and retrieving quick deploy configurations.
+    /// Contains a set of operations for storing and retrieving quick deploy configurations.
     /// </summary>
     public static class QuickDeployConfig
     {
@@ -30,25 +30,49 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// The Configuration singleton that should be used to read and modify Quick Deploy configuration.
         /// Modified values are persisted by calling SaveConfiguration.
         /// </summary>
-        public static readonly Configuration Config = LoadConfiguration();
+        private static readonly Configuration _config = LoadConfiguration();
 
-        // TODO: call this method
+        public static string CloudCredentialsFileName = _config.cloudCredentialsFileName;
+        public static string AssetBundleFileName = _config.assetBundleFileName;
+        public static string CloudStorageBucketName = _config.cloudStorageBucketName;
+        public static string CloudStorageObjectName = _config.cloudStorageObjectName;
+        public static string AssetBundleUrl = _config.assetBundleUrl;
+        public static string ApkFileName = _config.apkFileName;
+
+
         /// <summary>
-        /// Commit the current state of quick deploy configurations to persistent storage.
+        /// Store configuration from the current quick deploy tab to persistent storage.
         /// </summary>
-        public static void SaveConfiguration(string assetBundleFileName, string cloudStorageBucketName,
-            string cloudStorageFileName, string cloudCredentialsFileName, string assetBundleUrl, string apkFileName)
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if tab shouldn't have input fields.</exception>
+        public static void SaveConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab)
         {
-            Config.assetBundleFileName = assetBundleFileName;
-            Config.cloudStorageBucketName = cloudStorageBucketName;
-            Config.cloudStorageFileName = cloudStorageFileName;
-            Config.cloudCredentialsFileName = cloudCredentialsFileName;
-            Config.assetBundleUrl = assetBundleUrl;
-            Config.apkFileName = apkFileName;
+            switch (currentTab)
+            {
+                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
+                    _config.cloudCredentialsFileName = CloudCredentialsFileName;
+                    _config.assetBundleFileName = AssetBundleFileName;
+                    _config.cloudStorageBucketName = CloudStorageBucketName;
+                    _config.cloudStorageObjectName = CloudStorageObjectName;
+                    break;
+                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
+                    _config.assetBundleUrl = AssetBundleUrl;
+                    break;
+                case QuickDeployWindow.ToolBarSelectedButton.Build:
+                    _config.apkFileName = ApkFileName;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
+            }
 
-            File.WriteAllText(ConfigurationFilePath, JsonUtility.ToJson(Config));
+            // Shouldn't hurt to write to persistent storage as long as SaveConfiguration(currentTab) is only called
+            // when a major action happens.
+            File.WriteAllText(ConfigurationFilePath, JsonUtility.ToJson(_config));
         }
 
+        /// <summary>
+        /// De-serialize configuration file contents into Configuration instance if the file exists exists, otherwise
+        /// return Configuration instance with empty fields.
+        /// </summary>
         private static Configuration LoadConfiguration()
         {
             if (!File.Exists(ConfigurationFilePath))
@@ -61,15 +85,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         /// <summary>
-        /// Represents the contents of the quick deploy configuration file.
+        /// Represents JSON contents of the quick deploy configuration file.
         /// </summary>
         [Serializable]
-        public class Configuration
+        private class Configuration
         {
+            public string cloudCredentialsFileName;
             public string assetBundleFileName;
             public string cloudStorageBucketName;
-            public string cloudStorageFileName;
-            public string cloudCredentialsFileName;
+            public string cloudStorageObjectName;
             public string assetBundleUrl;
             public string apkFileName;
         }
