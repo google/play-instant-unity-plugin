@@ -33,17 +33,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static Credentials GetCredentials()
         {
             var credentialsFilePath = QuickDeployConfig.CloudCredentialsFileName;
+            // This will throw ArgumentException if the File is not a well-formed JSON file.
             var credentialsFile = JsonUtility.FromJson<CredentialsFile>(File.ReadAllText(credentialsFilePath));
-            if (credentialsFile == null || credentialsFile.installed == null)
+            var credentials = credentialsFile.installed;
+            // Objects returned by JsonUtility.FromJson() are never null. Therefore, to detect whether the file was of
+            // the expected type check that one field is not null or empty.
+            if (string.IsNullOrEmpty(credentials.auth_uri))
             {
-                throw new Exception(string.Format(
-                    "File at {0} is not a valid OAuth 2.0 credentials file for installed application. Please visit " +
-                    "https://console.cloud.google.com/apis/credentials to create a valid OAuth 2.0 credentials file " +
-                    "for your project.",
-                    credentialsFilePath));
+                throw new ArgumentException(string.Format(
+                    "File at \"{0}\" is not a valid OAuth 2.0 credentials file for installed application. Please" +
+                    " visit \"https://console.cloud.google.com/apis/credentials\" to create a valid OAuth 2.0 " +
+                    "credentials file for your project.", credentialsFilePath));
             }
 
-            return credentialsFile.installed;
+            return credentials;
         }
 
         /// <summary>
