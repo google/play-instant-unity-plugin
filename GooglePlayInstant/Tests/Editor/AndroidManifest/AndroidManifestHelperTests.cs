@@ -35,8 +35,12 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
+        private const string DistributionNamespaceAlias = "dist";
+        private const string DistributionNamespaceUrl = "http://schemas.android.com/apk/distribution";
+
         private static readonly XName AndroidXmlns = XNamespace.Xmlns + AndroidNamespaceAlias;
         private static readonly XName AndroidAutoVerifyXName = XName.Get("autoVerify", AndroidNamespaceUrl);
         private static readonly XName AndroidHostXName = XName.Get("host", AndroidNamespaceUrl);
@@ -44,13 +48,22 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private static readonly XName AndroidPathXName = XName.Get("path", AndroidNamespaceUrl);
         private static readonly XName AndroidSchemeXName = XName.Get("scheme", AndroidNamespaceUrl);
         private static readonly XName AndroidValueXName = XName.Get("value", AndroidNamespaceUrl);
+        private static readonly XName DistributionXmlns = XNamespace.Xmlns + DistributionNamespaceAlias;
+        private static readonly XName DistributionModuleXName = XName.Get("module", DistributionNamespaceUrl);
+        private static readonly XName DistributionInstantXName = XName.Get("instant", DistributionNamespaceUrl);
 
         private static readonly XAttribute AndroidNamespaceAttribute =
             new XAttribute(AndroidXmlns, XNamespace.Get(AndroidNamespaceUrl));
 
+        private static readonly XAttribute DistributionNamespaceAttribute =
+            new XAttribute(DistributionXmlns, XNamespace.Get(DistributionNamespaceUrl));
+
         private const string MainActivityName = "MainActivity";
         private const string TestUrl = "https://example.com";
         private static readonly Uri TestUri = new Uri(TestUrl);
+
+        private static readonly XElement DistributionModuleInstantTrueAttribute =
+            new XElement(DistributionModuleXName, new XAttribute(DistributionInstantXName, ValueTrue));
 
         private static readonly XAttribute TargetSandboxVersion2Attribute =
             new XAttribute(XName.Get("targetSandboxVersion", AndroidNamespaceUrl), "2");
@@ -82,8 +95,10 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             new XDocument(
                 new XElement(Manifest,
                     AndroidNamespaceAttribute,
+                    DistributionNamespaceAttribute,
                     TargetSandboxVersion2Attribute,
-                    new XElement(Application, OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent)));
+                    new XElement(Application, OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent),
+                    DistributionModuleInstantTrueAttribute));
 
         private static readonly XDocument InstalledManifestWithUrl =
             new XDocument(
@@ -101,6 +116,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             new XDocument(
                 new XElement(Manifest,
                     AndroidNamespaceAttribute,
+                    DistributionNamespaceAttribute,
                     TargetSandboxVersion2Attribute,
                     new XElement(Application,
                         OtherBasicActivity,
@@ -109,7 +125,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                             MainLauncherIntentFilter,
                             CreateViewIntentFilter("example.com", null),
                             CreateDefaultUrl("https://example.com/")),
-                        OtherActivityWithViewIntent)));
+                        OtherActivityWithViewIntent),
+                    DistributionModuleInstantTrueAttribute));
 
         [Test]
         public void TestCreateManifestXDocument()
@@ -193,9 +210,20 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         public void TestConvertManifestToInstant_InvalidAndroidNamespace()
         {
             var doc = new XDocument(new XElement(Manifest,
-                new XAttribute(AndroidXmlns, XNamespace.Get("http://wrong.schema.com"))));
+                new XAttribute(AndroidXmlns, XNamespace.Get("http://wrong.schema.com")),
+                DistributionNamespaceAttribute));
             var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
             Assert.AreEqual(AndroidManifestHelper.PreconditionInvalidXmlnsAndroid, result);
+        }
+
+        [Test]
+        public void TestConvertManifestToInstant_InvalidDistributionNamespace()
+        {
+            var doc = new XDocument(new XElement(Manifest,
+                AndroidNamespaceAttribute,
+                new XAttribute(DistributionXmlns, XNamespace.Get("http://wrong.schema.com"))));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionInvalidXmlnsDistribution, result);
         }
 
         [Test]

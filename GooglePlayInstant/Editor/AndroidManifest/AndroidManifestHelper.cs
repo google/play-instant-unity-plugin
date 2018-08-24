@@ -33,8 +33,11 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
+        private const string DistributionNamespaceAlias = "dist";
+        private const string DistributionNamespaceUrl = "http://schemas.android.com/apk/distribution";
 
         private static readonly XName AndroidXmlns = XNamespace.Xmlns + AndroidNamespaceAlias;
         private static readonly XName AndroidAutoVerifyXName = XName.Get("autoVerify", AndroidNamespaceUrl);
@@ -43,6 +46,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private static readonly XName AndroidPathXName = XName.Get("path", AndroidNamespaceUrl);
         private static readonly XName AndroidSchemeXName = XName.Get("scheme", AndroidNamespaceUrl);
         private static readonly XName AndroidValueXName = XName.Get("value", AndroidNamespaceUrl);
+        private static readonly XName DistributionXmlns = XNamespace.Xmlns + DistributionNamespaceAlias;
+        private static readonly XName DistributionModuleXName = XName.Get("module", DistributionNamespaceUrl);
+        private static readonly XName DistributionInstantXName = XName.Get("instant", DistributionNamespaceUrl);
 
         private static readonly XName AndroidTargetSandboxVersionXName =
             XName.Get("targetSandboxVersion", AndroidNamespaceUrl);
@@ -51,6 +57,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         internal const string PreconditionOneManifestElement = "expect 1 manifest element";
         internal const string PreconditionMissingXmlnsAndroid = "missing manifest attribute xmlns:android";
         internal const string PreconditionInvalidXmlnsAndroid = "invalid value for xmlns:android";
+        internal const string PreconditionInvalidXmlnsDistribution = "invalid value for xmlns:dist";
         internal const string PreconditionOneApplicationElement = "expect 1 application element";
         internal const string PreconditionOneMainActivity = "expect 1 activity with action MAIN and category LAUNCHER";
 
@@ -79,6 +86,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             foreach (var manifestElement in doc.Elements(Manifest))
             {
                 manifestElement.Attributes(AndroidTargetSandboxVersionXName).Remove();
+                GetDistributionModuleInstantElements(manifestElement).Remove();
+                // TODO: it may not always be safe to remove the "dist" namespace.
+                manifestElement.Attributes(DistributionXmlns).Remove();
                 foreach (var applicationElement in manifestElement.Elements(Application))
                 {
                     foreach (var mainActivity in GetMainActivities(applicationElement))
@@ -104,6 +114,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return PreconditionOneManifestElement;
             }
 
+            // Verify that "xmlns:android" is already present and correct.
             var androidAttribute = manifestElement.Attribute(AndroidXmlns);
             if (androidAttribute == null)
             {
@@ -113,6 +124,24 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             if (androidAttribute.Value != AndroidNamespaceUrl)
             {
                 return PreconditionInvalidXmlnsAndroid;
+            }
+
+            // Don't assume that "xmlns:dist" is already present. If it is present, verify that it's correct.
+            var distributionAttribute = manifestElement.Attribute(DistributionXmlns);
+            if (distributionAttribute == null)
+            {
+                manifestElement.SetAttributeValue(DistributionXmlns, DistributionNamespaceUrl);
+            }
+            else if (distributionAttribute.Value != DistributionNamespaceUrl)
+            {
+                return PreconditionInvalidXmlnsDistribution;
+            }
+
+            // The manifest element <dist:module dist:instant="true" /> is required for AppBundles.
+            var moduleInstantResult = UpdateDistributionModuleInstantElement(manifestElement);
+            if (moduleInstantResult != null)
+            {
+                return moduleInstantResult;
             }
 
             // TSV2 is required for instant apps starting with Android Oreo.
@@ -167,7 +196,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
 
             // See https://developer.android.com/topic/google-play-instant/getting-started/game-instant-app#app-links
             // and https://developer.android.com/training/app-links/verify-site-associations for info on "autoVerify".
-            viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, "true");
+            viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, ValueTrue);
             viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, Android.IntentActionView));
             viewIntentFilter.Add(
                 CreateElementWithAttribute(Category, AndroidNameXName, Android.IntentCategoryBrowsable));
@@ -210,6 +239,28 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             return null;
         }
 
+        private static string UpdateDistributionModuleInstantElement(XElement manifestElement)
+        {
+            var moduleInstantElements = GetDistributionModuleInstantElements(manifestElement);
+            XElement moduleElement;
+            switch (moduleInstantElements.Count())
+            {
+                case 0:
+                    moduleElement = new XElement(DistributionModuleXName);
+                    manifestElement.Add(moduleElement);
+                    break;
+                case 1:
+                    moduleElement = moduleInstantElements.First();
+                    moduleElement.RemoveAttributes();
+                    break;
+                default:
+                    return "more than one dist:module element with attribute dist:instant";
+            }
+
+            moduleElement.SetAttributeValue(DistributionInstantXName, ValueTrue);
+            return null;
+        }
+
         private static IEnumerable<XElement> GetMainActivities(XContainer applicationElement)
         {
             // Find all activities with an <intent-filter> that contains
@@ -246,7 +297,15 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 select metaData;
         }
 
-        private static XElement CreateElementWithAttribute(string elementName, XName attributeName,
+        private static IEnumerable<XElement> GetDistributionModuleInstantElements(XContainer manifestElement)
+        {
+            // Find all elements of the form <dist:module dist:instant="..." />
+            return from moduleElement in manifestElement.Elements(DistributionModuleXName)
+                where moduleElement.Attribute(DistributionInstantXName) != null
+                select moduleElement;
+        }
+
+        private static XElement CreateElementWithAttribute(XName elementName, XName attributeName,
             string attributeValue)
         {
             var element = new XElement(elementName);
