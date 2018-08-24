@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Runtime.Remoting.Messaging;
 using UnityEditor;
+using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
-    /// Utility class for displaying popup window errors.
+    /// Utility class for displaying popup window messages.
     /// </summary>
     public static class DialogHelper
     {
@@ -25,7 +27,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string OkButtonText = "OK";
 
         /// <summary>
-        /// Displays a popup window that details an error message with a specified title.
+        /// Displays a popup window that displays a message with a specified title.
         /// </summary>
         public static void DisplayMessage(string title, string message)
         {

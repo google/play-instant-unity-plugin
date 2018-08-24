@@ -48,10 +48,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var scenes = GetAllScenes();
 
-            var root = new TreeViewItem 
+            var root = new TreeViewItem
             {
-                id = 0, 
-                depth = -1, 
+                id = 0,
+                depth = -1,
                 displayName = "Root"
             };
 
@@ -60,9 +60,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 allItems.Add(new SceneItem
                 {
-                    id = i, 
-                    depth = 0, 
-                    displayName = scenes[i].path, 
+                    id = i,
+                    depth = 0,
+                    displayName = scenes[i].path,
                     Enabled = true
                 });
             }

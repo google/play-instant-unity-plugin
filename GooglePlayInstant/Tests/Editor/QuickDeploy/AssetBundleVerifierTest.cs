@@ -31,7 +31,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         {
             var window = AssetBundleVerifierWindow.ShowWindow();
 
-            window.HandleAssetBundleVerifyState(AssetBundleVerifierWindow.AssetBundleVerifyState.DestinationError,
+            window.HandleState(AssetBundleVerifierWindow.AssetBundleVerifyState.DestinationError,
                 new UnityWebRequest());
 
             Assert.IsFalse(window.AssetBundleDownloadIsSuccessful,
@@ -45,7 +45,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         {
             var window = AssetBundleVerifierWindow.ShowWindow();
 
-            window.HandleAssetBundleVerifyState(AssetBundleVerifierWindow.AssetBundleVerifyState.WebRequestError,
+            window.HandleState(AssetBundleVerifierWindow.AssetBundleVerifyState.WebRequestError,
                 new UnityWebRequest());
 
             Assert.IsFalse(window.AssetBundleDownloadIsSuccessful,
@@ -63,7 +63,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         {
             var window = AssetBundleVerifierWindow.ShowWindow();
 
-            window.HandleAssetBundleVerifyState(AssetBundleVerifierWindow.AssetBundleVerifyState.BundleError,
+            window.HandleState(AssetBundleVerifierWindow.AssetBundleVerifyState.BundleError,
                 new UnityWebRequest());
 
             Assert.IsFalse(window.AssetBundleDownloadIsSuccessful,

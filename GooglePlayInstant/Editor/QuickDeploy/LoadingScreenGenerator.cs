@@ -31,30 +31,33 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class LoadingScreenGenerator
     {
-        public const string LoadingSceneName = "play-instant-loading-screen-scene";
+        public const string SceneName = "play-instant-loading-screen-scene.unity";
 
-        private const string LoadingScreenCanvasName = "Loading Screen Canvas";
-        
-        private const string LoadingScreenSaveErrorTitle = "Loading Screen Save Error";
+        private const string CanvasName = "Loading Screen Canvas";
 
-        private static readonly string LoadingScreenScenePath =
+        private const string SaveErrorTitle = "Loading Screen Save Error";
+
+        private static readonly string SceneDirectoryPath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
 
-        private static readonly string LoadingScreenResourcesPath = Path.Combine(LoadingScreenScenePath, "Resources");
+        private static readonly string SceneFilePath =
+            Path.Combine(SceneDirectoryPath, SceneName);
 
-        private static readonly string LoadingScreenJsonPath =
-            Path.Combine(LoadingScreenResourcesPath, LoadingScreenJsonFileName);
+        private static readonly string ResourcesDirectoryPath = Path.Combine(SceneDirectoryPath, "Resources");
+
+        private static readonly string JsonFilePath =
+            Path.Combine(ResourcesDirectoryPath, JsonFileName);
 
         // Visible for testing
-        internal const string LoadingScreenJsonFileName = "LoadingScreenConfig.json";
-        
+        internal const string JsonFileName = "LoadingScreenConfig.json";
+
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are
         /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
         /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateLoadingScreenScene(string assetBundleUrl, string loadingScreenImagePath)
+        public static void GenerateScene(string assetBundleUrl, string loadingScreenImagePath)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
@@ -68,46 +71,64 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
-            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(LoadingSceneName), true);
+            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)), true);
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-            Directory.CreateDirectory(LoadingScreenResourcesPath);
+            Directory.CreateDirectory(ResourcesDirectoryPath);
 
-            GenerateLoadingScreenConfigFile(assetBundleUrl, LoadingScreenJsonPath);
+            GenerateConfigFile(assetBundleUrl, JsonFilePath);
 
-            var loadingScreenGameObject = new GameObject(LoadingScreenCanvasName);
+            var loadingScreenGameObject = new GameObject(CanvasName);
 
-            AddLoadingScreenImageToScene(loadingScreenGameObject, loadingScreenImagePath);
+            AddImageToScene(loadingScreenGameObject, loadingScreenImagePath);
 
-            AddLoadingScreenScript(loadingScreenGameObject);
+            AddScript(loadingScreenGameObject);
 
-            LoadingBar.AddLoadingScreenBarComponent(loadingScreenGameObject);
+            LoadingBar.AddComponent(loadingScreenGameObject);
 
-            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene,
-                Path.Combine(LoadingScreenScenePath, LoadingSceneName + ".unity"));
+            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
 
             if (!saveOk)
             {
                 // Not a fatal issue. User can attempt to resave this scene.
                 var warningMessage = string.Format("Issue while saving scene {0}.",
-                    LoadingSceneName);
-                
+                    SceneName);
+
                 Debug.LogWarning(warningMessage);
-                
-                DialogHelper.DisplayMessage(LoadingScreenSaveErrorTitle, warningMessage);
+
+                DialogHelper.DisplayMessage(SaveErrorTitle, warningMessage);
+            }
+            else
+            {
+                //TODO: investigate GUI Layout errors that occur when moving this to DialogHelper
+                if (EditorUtility.DisplayDialog("Change Scenes in Build",
+                    "Would you like to replace any existing Scenes in Build with the loading screen scene?", "Yes", "No"))
+                {
+                    SetMainSceneInBuild(SceneFilePath);
+                }
+
             }
         }
 
         // Visible for testing
-        internal static void AddLoadingScreenScript(GameObject loadingScreenGameObject)
+        internal static void SetMainSceneInBuild(string pathToScene)
+        {
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(pathToScene, true)
+            };
+        }
+
+        // Visible for testing
+        internal static void AddScript(GameObject loadingScreenGameObject)
         {
             loadingScreenGameObject.AddComponent<LoadingScreenScript>();
         }
 
 
         // Visible for testing
-        internal static void AddLoadingScreenImageToScene(GameObject loadingScreenGameObject,
+        internal static void AddImageToScene(GameObject loadingScreenGameObject,
             string pathToLoadingScreenImage)
         {
             loadingScreenGameObject.AddComponent<Canvas>();
@@ -133,7 +154,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         // Visible for testing
-        internal static void GenerateLoadingScreenConfigFile(string assetBundleUrl, string targetLoadingScreenJsonPath)
+        internal static void GenerateConfigFile(string assetBundleUrl, string targetLoadingScreenJsonPath)
         {
             var loadingScreenConfig =
                 new LoadingScreenConfig {assetBundleUrl = assetBundleUrl};

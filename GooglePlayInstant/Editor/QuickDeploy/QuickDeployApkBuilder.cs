@@ -41,7 +41,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] {LoadingScreenGenerator.LoadingSceneName + ".unity"},
+                scenes = new[] {LoadingScreenGenerator.SceneName},
                 locationPathName = QuickDeployConfig.ApkFileName,
                 target = BuildTarget.Android,
                 options = BuildOptions.None

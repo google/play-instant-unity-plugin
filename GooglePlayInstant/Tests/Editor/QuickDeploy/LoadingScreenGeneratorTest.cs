@@ -17,6 +17,7 @@ using GooglePlayInstant.Editor.QuickDeploy;
 using GooglePlayInstant.LoadingScreen;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +32,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         private const string TestGameObjectName = "Testing Object";
 
         private static readonly string TestLoadingScreenJsonPath =
-            Path.Combine("Assets", LoadingScreenGenerator.LoadingScreenJsonFileName);
+            Path.Combine("Assets", LoadingScreenGenerator.JsonFileName);
 
         // Dispose of temporarily created file.  
         [TearDown]
@@ -41,10 +42,23 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         }
 
         [Test]
+        public void TestSetMainSceneInBuild()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            LoadingScreenGenerator.SetMainSceneInBuild(scene.path);
+
+            Assert.AreEqual(EditorBuildSettings.scenes.Length, 1,
+                "There should be only one scene in Build Settings.");
+
+            Assert.AreEqual(EditorBuildSettings.scenes[0].path, scene.path,
+                "The new scene built should be identical to the one in Build Settings.");
+        }
+
+        [Test]
         public void TestAddLoadingScreenScript()
         {
             var loadingScreenGameObject = new GameObject(TestGameObjectName);
-            LoadingScreenGenerator.AddLoadingScreenScript(loadingScreenGameObject);
+            LoadingScreenGenerator.AddScript(loadingScreenGameObject);
             Assert.IsNotNull(loadingScreenGameObject.GetComponent<LoadingScreenScript>(),
                 "A script should be attached to the loading screen object.");
         }
@@ -59,7 +73,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 
             var loadingScreenGameObject = new GameObject(TestGameObjectName);
 
-            LoadingScreenGenerator.AddLoadingScreenImageToScene(loadingScreenGameObject, testImage);
+            LoadingScreenGenerator.AddImageToScene(loadingScreenGameObject, testImage);
 
             Assert.IsNotNull(loadingScreenGameObject.GetComponent<Canvas>(),
                 "A canvas component should have been added to the loading screen game object.");
@@ -72,7 +86,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         {
             const string testUrl = "test.co";
 
-            LoadingScreenGenerator.GenerateLoadingScreenConfigFile(testUrl, TestLoadingScreenJsonPath);
+            LoadingScreenGenerator.GenerateConfigFile(testUrl, TestLoadingScreenJsonPath);
 
             var loadingScreenConfigJson =
                 AssetDatabase.LoadAssetAtPath(TestLoadingScreenJsonPath, typeof(TextAsset)).ToString();
@@ -85,7 +99,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         [Test]
         public void TestGenerateLoadingScreenConfigFileWithEmptyString()
         {
-            LoadingScreenGenerator.GenerateLoadingScreenConfigFile("", TestLoadingScreenJsonPath);
+            LoadingScreenGenerator.GenerateConfigFile("", TestLoadingScreenJsonPath);
 
             var loadingScreenConfigJson =
                 AssetDatabase.LoadAssetAtPath(TestLoadingScreenJsonPath, typeof(TextAsset)).ToString();

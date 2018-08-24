@@ -62,7 +62,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 "Play Instant AssetBundle Verify");
         }
 
-        public void StartAssetBundleVerificationDownload(string assetBundleUrl)
+        public void StartAssetBundleDownload(string assetBundleUrl)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
@@ -83,7 +83,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         // Visible for testing
-        internal void HandleAssetBundleVerifyState(AssetBundleVerifyState state, UnityWebRequest webRequest)
+        internal void HandleState(AssetBundleVerifyState state, UnityWebRequest webRequest)
         {
             // InProgress state should not be handled.
             switch (state)
@@ -122,7 +122,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
         }
 
-        private AssetBundleVerifyState GetAssetBundleVerifyStateInfoFromDownload()
+        private AssetBundleVerifyState GetStateInfoFromDownload()
         {
             if (!_webRequest.isDone)
             {
@@ -170,7 +170,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 return;
             }
 
-            State = GetAssetBundleVerifyStateInfoFromDownload();
+            State = GetStateInfoFromDownload();
 
             if (State == AssetBundleVerifyState.InProgress)
             {
@@ -190,7 +190,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // Performs download operation only once when webrequest is completed.
             EditorUtility.ClearProgressBar();
 
-            HandleAssetBundleVerifyState(State, _webRequest);
+            HandleState(State, _webRequest);
 
             Repaint();
 
@@ -225,7 +225,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (GUILayout.Button("Refresh"))
             {
-                StartAssetBundleVerificationDownload(AssetBundleUrl);
+                StartAssetBundleDownload(AssetBundleUrl);
             }
         }
 

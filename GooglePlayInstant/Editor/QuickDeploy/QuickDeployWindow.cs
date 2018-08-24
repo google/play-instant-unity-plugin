@@ -318,7 +318,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 try
                 {
                     QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                    window.StartAssetBundleVerificationDownload(QuickDeployConfig.AssetBundleUrl);
+                    window.StartAssetBundleDownload(QuickDeployConfig.AssetBundleUrl);
                 }
                 catch (Exception ex)
                 {
@@ -366,7 +366,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 try
                 {
                     QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                    LoadingScreenGenerator.GenerateLoadingScreenScene(QuickDeployConfig.AssetBundleUrl,
+                    LoadingScreenGenerator.GenerateScene(QuickDeployConfig.AssetBundleUrl,
                         _loadingScreenImagePath);
                 }
                 catch (Exception ex)

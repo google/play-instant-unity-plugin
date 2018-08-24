@@ -57,18 +57,18 @@ namespace GooglePlayInstant.LoadingScreen
         /// Creates a loading bar component on the specified loading screen game object's bottom half. Consists of
         /// a white rounded border, with a colored loading bar fill in the middle.
         /// </summary>
-        public static void AddLoadingScreenBarComponent(GameObject loadingScreenGameObject)
+        public static void AddComponent(GameObject loadingScreenGameObject)
         {
             var loadingBarGameObject = new GameObject(LoadingBarGameObjectName);
             loadingBarGameObject.AddComponent<RectTransform>();
             loadingBarGameObject.transform.SetParent(loadingScreenGameObject.transform);
 
-            SetLoadingBarOutline(loadingBarGameObject);
-            SetLoadingBarFill(loadingBarGameObject);
+            SetOutline(loadingBarGameObject);
+            SetFill(loadingBarGameObject);
         }
 
         // TODO: check for compatibilty with unity 5.6+
-        private static void SetLoadingBarOutline(GameObject loadingBarGameObject)
+        private static void SetOutline(GameObject loadingBarGameObject)
         {
             var loadingBarOutlineGameObject = new GameObject(LoadingBarOutlineGameObjectName);
             loadingBarOutlineGameObject.transform.SetParent(loadingBarGameObject.transform);
@@ -86,7 +86,7 @@ namespace GooglePlayInstant.LoadingScreen
             loadingBarOutlineGameObject.transform.position = loadingBarGameObject.transform.position;
         }
 
-        private static void SetLoadingBarFill(GameObject loadingBarGameObject)
+        private static void SetFill(GameObject loadingBarGameObject)
         {
             var loadingBarFillGameObject = new GameObject(LoadingBarFillGameObjectName);
             loadingBarFillGameObject.transform.SetParent(loadingBarGameObject.transform);
