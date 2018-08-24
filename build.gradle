@@ -70,7 +70,7 @@ def exportUnityPackage(projectPath, packageFilePrefix) {
             '-logFile',
             logFile,
             '-exportPackage',
-            'Assets/GooglePlayInstant',
+            'Assets',
             exportFileName,
             '-quit'
     ]
