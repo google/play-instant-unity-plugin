@@ -58,29 +58,83 @@ This option runs the instant app on an adb connected device by performing the fo
  * Runs the APK as an instant app on the adb connected device.
 
 ## Unity Engine Features
+The goal of many instant apps is to give users a chance to experience the app before installing the full version. The plugin provides methods for transferring state from instant to installed app and for displaying a Play Store install dialog. These methods are also available via [Google Play Services Java APIs](https://developers.google.com/android/reference/com/google/android/gms/instantapps/package-summary), but the plugin's C# implementations are easier to use in Unity.
 
 ### Show Install Prompt
-The goal of many instant apps is to give users a chance to experience the app before installing the full version. An instant app with an "Install" button can call the `InstallLauncher.ShowInstallPrompt()` method to display a Play Store install dialog. For example, the following code can be called from an install button click handler:
+An instant app with an "Install" button can display a Play Store install dialog by calling the following from an install button click handler:
+
+```cs
+GooglePlayInstant.InstallLauncher.ShowInstallPrompt();
+```
+
+The `ShowInstallPrompt()` method has an overload that allows for one or more of the following:
+
+ * Determining if the user cancels out of the installation process. Override `onActivityResult()` in the instant app's main activity and check for `RESULT_CANCELED` on the specified `requestCode`.
+ * Passing an install referrer string via the `referrer` parameter.
+ * Passing state about the current game session via `PutPostInstallIntentStringExtra()`.
+
+These are demonstrated in the following example:
 
 ```cs
 const int requestCode = 123;
-using (var activity = InstallLauncher.GetCurrentActivity())
-using (var postInstallIntent = InstallLauncher.CreatePostInstallIntent(activity))
+var sessionInfo = /* Object serialized as a string representing player's current location, etc. */;
+using (var activity = GooglePlayInstant.UnityPlayerHelper.GetCurrentActivity())
+using (var postInstallIntent = GooglePlayInstant.InstallLauncher.CreatePostInstallIntent(activity))
 {
-    InstallLauncher.PutPostInstallIntentStringExtra(postInstallIntent, "payload", "test");
-    InstallLauncher.ShowInstallPrompt(activity, requestCode, postInstallIntent, "test-referrer");
+    GooglePlayInstant.InstallLauncher.PutPostInstallIntentStringExtra(postInstallIntent, "sessionInfo", sessionInfo);
+    GooglePlayInstant.InstallLauncher.ShowInstallPrompt(activity, requestCode, postInstallIntent, "test-referrer");
 }
 ```
 
-To determine if the user cancels out of the installation process, override `onActivityResult()` in the instant app's main activity and check for `RESULT_CANCELED`.
-
-If the user completes app installation, the Play Store will re-launch the app using the provided `postInstallIntent`. This intent can include context about the user's state in the instant app, e.g. as with the key "payload" and value "test" in the example above. The installed app can retrieve this value using the following code:
+If the user completes app installation, the Play Store will re-launch the app using the provided `postInstallIntent`. The installed app can retrieve a value set in the `postInstallIntent` using the following:
 
 ```cs
-string payload = InstallLauncher.GetPostInstallIntentStringExtra("payload");
+var sessionInfo = GooglePlayInstant.InstallLauncher.GetPostInstallIntentStringExtra("sessionInfo");
 ```
 
-**Note:** anyone can construct an intent with extra fields to launch the app, so if the payload grants something of value, design the payload so that it can only be used once, cryptographically sign it, and verify the signature on a server.
+**Notes:**
+ * The extras included in the `postInstallIntent` may not reach the installed app if the user installs the app but cancels the post-install launch. Passing intent extras is better suited for retaining active session state than it is for retaining persistent state; for the latter refer to the Cookie API.
+ * Anyone can construct an intent with extra fields to launch the installed app, so if the payload grants something of value, design the payload so that it can only be used once, cryptographically sign it, and verify the signature on a server.
+
+### Cookie API
+The Cookie API provides methods for passing a "cookie" (e.g. player ID or level completion data) from an instant app to its corresponding installed app. Unlike `postInstallIntent` extras, the "cookie" state is available even if the user doesn't immediately launch the installed app. For example, an instant app could call the following code from an install button click handler:
+
+```cs
+var playerInfo = /* Object serialized as a string representing game levels completed, etc. */;
+var cookieBytes = System.Text.Encoding.UTF8.GetBytes(playerInfo);
+try
+{
+    var maxCookieSize = GooglePlayInstant.CookieApi.GetInstantAppCookieMaxSize();
+    if (cookieBytes.Length > maxCookieSize)
+    {
+        UnityEngine.Debug.LogErrorFormat("Cookie length {0} exceeds limit {1}.", cookieBytes.Length, maxCookieSize);
+    }
+    else if (GooglePlayInstant.CookieApi.SetInstantAppCookie(cookieBytes))
+    {
+        UnityEngine.Debug.Log("Successfully set cookie. Now display the app install dialog...");
+        GooglePlayInstant.InstallLauncher.ShowInstallPrompt();
+    }
+    else
+    {
+        UnityEngine.Debug.LogError("Failed to set cookie.");
+    }
+}
+catch (GooglePlayInstant.CookieApi.InstantAppCookieException ex)
+{
+    UnityEngine.Debug.LogErrorFormat("Failed to set cookie: {0}", ex);
+}
+```
+
+If the user completes app installation, the installed app can retrieve the cookie data using the following code:
+
+```cs
+var cookieBytes = GooglePlayInstant.CookieApi.GetInstantAppCookie();
+var playerInfoString = System.Text.Encoding.UTF8.GetString(cookieBytes);
+if (!string.IsNullOrEmpty(playerInfoString))
+{
+    // Initialize game state based on the cookie, e.g. skip tutorial level completed in instant app.
+}
+```
 
 ## Known Issues
  * If the Unity project has an existing AndroidManifest.xml with multiple VIEW Intents on the main Activity and if an Instant Apps URL is provided, the plugin doesn't know which Intent to modify. This can be worked around by not providing an Instant Apps URL or by manually updating the manifest file.

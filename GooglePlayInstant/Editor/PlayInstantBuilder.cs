@@ -67,7 +67,7 @@ namespace GooglePlayInstant.Editor
 
         /// <summary>
         /// Builds a Play Instant APK based on the specified options and signs it (if necessary) via
-        /// <see href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</see>.
+        /// <a href="https://source.android.com/security/apksigning/v2">APK Signature Scheme V2</a>.
         /// Displays warning/error dialogs if there are issues during the build.
         /// </summary>
         /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
