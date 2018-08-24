@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -53,10 +55,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private string _loadingScreenImagePath;
 
         // Titles for errors that occur
-        private const string AssetBundleBrowserErrorTitle = "AssetBundle Browser Error";
+        private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
         private const string AssetBundleDeploymentErrorTitle = "AssetBundle Deployment Error";
         private const string AssetBundleCheckerErrorTitle = "AssetBundle Checker Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
+
+        private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
+
+        private TreeViewState _treeViewState;
 
 
         public static void ShowWindow(ToolBarSelectedButton select)
@@ -66,6 +72,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
             _toolbarSelectedButtonIndex = (int) select;
         }
+
+        void OnEnable()
+        {
+            _treeViewState = new TreeViewState();
+
+            _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(_treeViewState);
+        }
+
 
         void Update()
         {
@@ -122,54 +136,59 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Use the Unity Asset Bundle Browser to select your game's main scene " +
-                                       "and bundle it (and its dependencies) into an AssetBundle file.",
+            EditorGUILayout.LabelField("Select scenes to be put into an AssetBundle and then build it.",
                 descriptionTextStyle);
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(
-                string.Format("Asset Bundle Browser version: {0}",
-                    AssetBundleBrowserClient.GetAssetBundleBrowserVersion()),
-                EditorStyles.wordWrappedLabel);
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            // Allow the developer to open the AssetBundles Browser if it is present, otherwise ask them to download it
-            if (AssetBundleBrowserClient.AssetBundleBrowserIsPresent())
-            {
-                if (GUILayout.Button("Open Asset Bundle Browser"))
-                {
-                    try
-                    {
-                        AssetBundleBrowserClient.DisplayAssetBundleBrowser();
-                    }
-                    catch (Exception ex)
-                    {
-                        DialogHelper.DisplayMessage(AssetBundleBrowserErrorTitle,
-                            ex.Message);
-
-                        throw;
-                    }
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Download Asset Bundle Browser from GitHub"))
-                {
-                    Application.OpenURL("https://github.com/Unity-Technologies/AssetBundles-Browser/releases");
-                }
-
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-
-                EditorGUILayout.Space();
-                if (GUILayout.Button("Open Asset Bundle Browser Documentation"))
-                {
-                    Application.OpenURL("https://docs.unity3d.com/Manual/AssetBundles-Browser.html");
-                }
-            }
 
             EditorGUILayout.Space();
+
             EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.BeginVertical(UserInputGuiStyle);
+            EditorGUILayout.Space();
+
+            _playInstantSceneTreeTreeView.OnGUI(GUILayoutUtility.GetRect(position.width - 10, position.height - 200));
+            EditorGUILayout.Space();
+
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Build AssetBundle"))
+            {
+                try
+                {
+                    QuickDeployConfig.AssetBundleFileName = EditorUtility.SaveFilePanel("Save AssetBundle", "", "", "");
+                    // TODO(audace): build the assetbundles
+                }
+                catch (Exception ex)
+                {
+                    DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle,
+                        ex.Message);
+                    throw;
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+
+            EditorGUILayout.EndVertical();
+        }
+
+        // TODO(audace): use this for building the scenes
+        private string[] GetEnabledSceneItemPaths()
+        {
+            var scenes = _playInstantSceneTreeTreeView.GetRows();
+            var scenePaths = new List<string>();
+
+            foreach (var scene in scenes)
+            {
+                if (((PlayInstantSceneTreeView.SceneItem) scene).Enabled)
+                {
+                    scenePaths.Add(scene.displayName);
+                }
+            }
+
+            return scenePaths.ToArray();
         }
 
         private void OnGuiDeployBundleSelect()
@@ -362,6 +381,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.EndVertical();
         }
 
+        //TODO: redo this page
         private void OnGuiCreateBuildSelect()
         {
             EditorGUILayout.LabelField("Deployment", EditorStyles.boldLabel);
