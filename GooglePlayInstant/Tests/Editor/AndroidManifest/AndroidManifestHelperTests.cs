@@ -278,7 +278,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         {
             return new XElement(
                 IntentFilter,
-                new XAttribute(AndroidAutoVerifyXName, "true"),
+                new XAttribute(AndroidAutoVerifyXName, ValueTrue),
                 new XElement(Action, new XAttribute(AndroidNameXName, Android.IntentActionView)),
                 new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryBrowsable)),
                 new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryDefault)),
