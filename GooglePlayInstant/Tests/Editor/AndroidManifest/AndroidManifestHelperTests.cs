@@ -62,9 +62,6 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private const string TestUrl = "https://example.com";
         private static readonly Uri TestUri = new Uri(TestUrl);
 
-        private static readonly XElement DistributionModuleInstantTrueAttribute =
-            new XElement(DistributionModuleXName, new XAttribute(DistributionInstantXName, ValueTrue));
-
         private static readonly XAttribute TargetSandboxVersion2Attribute =
             new XAttribute(XName.Get("targetSandboxVersion", AndroidNamespaceUrl), "2");
 
@@ -98,7 +95,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                     DistributionNamespaceAttribute,
                     TargetSandboxVersion2Attribute,
                     new XElement(Application, OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent),
-                    DistributionModuleInstantTrueAttribute));
+                    CreateDistributionModuleInstant(ValueTrue)));
 
         private static readonly XDocument InstalledManifestWithUrl =
             new XDocument(
@@ -126,7 +123,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                             CreateViewIntentFilter("example.com", null),
                             CreateDefaultUrl("https://example.com/")),
                         OtherActivityWithViewIntent),
-                    DistributionModuleInstantTrueAttribute));
+                    CreateDistributionModuleInstant(ValueTrue)));
 
         [Test]
         public void TestCreateManifestXDocument()
@@ -263,9 +260,52 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             Assert.AreEqual(AndroidManifestHelper.PreconditionOneMainActivity, result);
         }
 
+        [Test]
+        public void TestConvertManifestToInstant_TwoViewIntentFilters()
+        {
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application,
+                    new XElement(Activity,
+                        new XAttribute(AndroidNameXName, MainActivityName),
+                        MainLauncherIntentFilter,
+                        CreateViewIntentFilter("example.com", null),
+                        CreateViewIntentFilter("example2.com", null)))));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneViewIntentFilter, result);
+        }
+
+        [Test]
+        public void TestConvertManifestToInstant_TwoDefaultUrls()
+        {
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application,
+                    new XElement(Activity,
+                        new XAttribute(AndroidNameXName, MainActivityName),
+                        MainLauncherIntentFilter,
+                        CreateViewIntentFilter("example.com", null),
+                        CreateDefaultUrl("https://example.com/"),
+                        CreateDefaultUrl("https://example2.com/")))));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneMetaDataDefaultUrl, result);
+        }
+
+        [Test]
+        public void TestConvertManifestToInstant_TwoInstantModules()
+        {
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute, DistributionNamespaceAttribute,
+                new XElement(Application,
+                    new XElement(Activity,
+                        new XAttribute(AndroidNameXName, MainActivityName),
+                        MainLauncherIntentFilter)),
+                CreateDistributionModuleInstant(ValueTrue),
+                CreateDistributionModuleInstant("false")));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneModuleInstant, result);
+        }
+
         private static void AssertEquals(XNode expected, XNode actual)
         {
-            // Since even Assert.AreEqual(new XDocument(), new XDocument()) fails, check DeepEquals and compare strings.
+            // Since Assert.AreEqual(new XDocument(), new XDocument()) fails, check DeepEquals and compare strings.
             if (XNode.DeepEquals(expected, actual))
             {
                 return;
@@ -293,6 +333,11 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             return new XElement(MetaData,
                 new XAttribute(AndroidNameXName, DefaultUrl),
                 new XAttribute(AndroidValueXName, defaultUrl));
+        }
+
+        private static XElement CreateDistributionModuleInstant(string attributeValue)
+        {
+            return new XElement(DistributionModuleXName, new XAttribute(DistributionInstantXName, attributeValue));
         }
     }
 }
