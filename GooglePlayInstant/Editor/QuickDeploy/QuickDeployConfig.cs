@@ -37,7 +37,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static string CloudStorageBucketName = _config.cloudStorageBucketName;
         public static string CloudStorageObjectName = _config.cloudStorageObjectName;
         public static string AssetBundleUrl = _config.assetBundleUrl;
-        public static string ApkFileName = _config.apkFileName;
 
 
         /// <summary>
@@ -59,9 +58,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
                     _config.assetBundleUrl = AssetBundleUrl;
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.Build:
-                    _config.apkFileName = ApkFileName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
@@ -98,7 +94,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             public string cloudStorageBucketName;
             public string cloudStorageObjectName;
             public string assetBundleUrl;
-            public string apkFileName;
         }
     }
 }
