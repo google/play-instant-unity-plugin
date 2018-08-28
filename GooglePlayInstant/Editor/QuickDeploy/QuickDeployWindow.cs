@@ -403,18 +403,38 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Create Loading Scene"))
+            if (LoadingScreenGenerator.LoadingScreenExists())
             {
-                try
+                if (GUILayout.Button("Update Loading Scene"))
                 {
-                    QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                    LoadingScreenGenerator.GenerateScene(QuickDeployConfig.AssetBundleUrl,
-                        _loadingScreenImagePath);
+                    try
+                    {
+                        QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                        LoadingScreenGenerator.AddImageToScene(LoadingScreenGenerator.GetLoadingScreenCanvasObject(),
+                            _loadingScreenImagePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
+                        throw;
+                    }
                 }
-                catch (Exception ex)
+            }
+            else
+            {
+                if (GUILayout.Button("Create Loading Scene"))
                 {
-                    DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
-                    throw;
+                    try
+                    {
+                        QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                        LoadingScreenGenerator.GenerateScene(QuickDeployConfig.AssetBundleUrl,
+                            _loadingScreenImagePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
+                        throw;
+                    }
                 }
             }
 

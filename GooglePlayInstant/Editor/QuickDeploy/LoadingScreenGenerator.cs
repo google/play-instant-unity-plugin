@@ -111,6 +111,16 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
         }
 
+        public static bool LoadingScreenExists()
+        {
+            return SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)).IsValid();
+        }
+
+        public static GameObject GetLoadingScreenCanvasObject()
+        {
+            return GameObject.Find(CanvasName);
+        }
+
         // Visible for testing
         internal static void SetMainSceneInBuild(string pathToScene)
         {
@@ -131,9 +141,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         internal static void AddImageToScene(GameObject loadingScreenGameObject,
             string pathToLoadingScreenImage)
         {
-            loadingScreenGameObject.AddComponent<Canvas>();
-            var loadingScreenCanvas = loadingScreenGameObject.GetComponent<Canvas>();
-            loadingScreenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            if (loadingScreenGameObject.GetComponent<Canvas>() == null)
+            {
+                // First time creating a loading screen, configure nested game objects appropriately.
+                var loadingScreenCanvas = loadingScreenGameObject.AddComponent<Canvas>();
+                
+                loadingScreenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                
+                loadingScreenGameObject.AddComponent<Image>();
+            }
 
             var loadingScreenImageData = File.ReadAllBytes(pathToLoadingScreenImage);
 
@@ -148,7 +164,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingImageSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
 
-            loadingScreenGameObject.AddComponent<Image>();
             var loadingScreenImage = loadingScreenGameObject.GetComponent<Image>();
             loadingScreenImage.sprite = loadingImageSprite;
         }
