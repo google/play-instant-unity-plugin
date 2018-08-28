@@ -33,8 +33,11 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
+        private const string DistributionNamespaceAlias = "dist";
+        private const string DistributionNamespaceUrl = "http://schemas.android.com/apk/distribution";
 
         private static readonly XName AndroidXmlns = XNamespace.Xmlns + AndroidNamespaceAlias;
         private static readonly XName AndroidAutoVerifyXName = XName.Get("autoVerify", AndroidNamespaceUrl);
@@ -43,6 +46,9 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private static readonly XName AndroidPathXName = XName.Get("path", AndroidNamespaceUrl);
         private static readonly XName AndroidSchemeXName = XName.Get("scheme", AndroidNamespaceUrl);
         private static readonly XName AndroidValueXName = XName.Get("value", AndroidNamespaceUrl);
+        private static readonly XName DistributionXmlns = XNamespace.Xmlns + DistributionNamespaceAlias;
+        private static readonly XName DistributionModuleXName = XName.Get("module", DistributionNamespaceUrl);
+        private static readonly XName DistributionInstantXName = XName.Get("instant", DistributionNamespaceUrl);
 
         private static readonly XName AndroidTargetSandboxVersionXName =
             XName.Get("targetSandboxVersion", AndroidNamespaceUrl);
@@ -51,8 +57,14 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         internal const string PreconditionOneManifestElement = "expect 1 manifest element";
         internal const string PreconditionMissingXmlnsAndroid = "missing manifest attribute xmlns:android";
         internal const string PreconditionInvalidXmlnsAndroid = "invalid value for xmlns:android";
+        internal const string PreconditionInvalidXmlnsDistribution = "invalid value for xmlns:dist";
         internal const string PreconditionOneApplicationElement = "expect 1 application element";
         internal const string PreconditionOneMainActivity = "expect 1 activity with action MAIN and category LAUNCHER";
+        internal const string PreconditionOneViewIntentFilter = "more than one VIEW intent-filter";
+        internal const string PreconditionOneMetaDataDefaultUrl = "more than one meta-data element for default-url";
+        internal const string PreconditionOneModuleInstant = "more than one dist:module element with dist:instant";
+
+        private delegate IEnumerable<XElement> ElementFinder(XElement element);
 
         /// <summary>
         /// Creates a new XDocument representing a basic Unity AndroidManifest XML file.
@@ -79,12 +91,15 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             foreach (var manifestElement in doc.Elements(Manifest))
             {
                 manifestElement.Attributes(AndroidTargetSandboxVersionXName).Remove();
+                FindDistributionModuleInstantElements(manifestElement).Remove();
+                // TODO: it may not always be safe to remove the "dist" namespace.
+                manifestElement.Attributes(DistributionXmlns).Remove();
                 foreach (var applicationElement in manifestElement.Elements(Application))
                 {
-                    foreach (var mainActivity in GetMainActivities(applicationElement))
+                    foreach (var mainActivity in FindMainActivities(applicationElement))
                     {
                         // TODO: also remove view intent filters?
-                        GetDefaultUrlMetaDataElements(mainActivity).Remove();
+                        FindDefaultUrlMetaDataElements(mainActivity).Remove();
                     }
                 }
             }
@@ -104,6 +119,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return PreconditionOneManifestElement;
             }
 
+            // Verify that "xmlns:android" is already present and correct.
             var androidAttribute = manifestElement.Attribute(AndroidXmlns);
             if (androidAttribute == null)
             {
@@ -115,12 +131,34 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return PreconditionInvalidXmlnsAndroid;
             }
 
+            // Don't assume that "xmlns:dist" is already present. If it is present, verify that it's correct.
+            var distributionAttribute = manifestElement.Attribute(DistributionXmlns);
+            if (distributionAttribute == null)
+            {
+                manifestElement.SetAttributeValue(DistributionXmlns, DistributionNamespaceUrl);
+            }
+            else if (distributionAttribute.Value != DistributionNamespaceUrl)
+            {
+                return PreconditionInvalidXmlnsDistribution;
+            }
+
+            // The manifest element <dist:module dist:instant="true" /> is required for AppBundles.
+            var moduleInstantResult = UpdateDistributionModuleInstantElement(manifestElement);
+            if (moduleInstantResult != null)
+            {
+                return moduleInstantResult;
+            }
+
             // TSV2 is required for instant apps starting with Android Oreo.
             manifestElement.SetAttributeValue(AndroidTargetSandboxVersionXName, "2");
 
             return uri == null ? null : AddDefaultUrl(manifestElement, uri);
         }
 
+        /// <summary>
+        /// Adds the specified default URL to manifest's main activity.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
         private static string AddDefaultUrl(XElement manifestElement, Uri uri)
         {
             var applicationElement = GetExactlyOne(manifestElement.Elements(Application));
@@ -129,7 +167,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return PreconditionOneApplicationElement;
             }
 
-            var mainActivity = GetExactlyOne(GetMainActivities(applicationElement));
+            var mainActivity = GetExactlyOne(FindMainActivities(applicationElement));
             if (mainActivity == null)
             {
                 return PreconditionOneMainActivity;
@@ -144,30 +182,23 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             return UpdateDefaultUrlElement(mainActivity, uri);
         }
 
+        /// <summary>
+        /// Updates the specified main activity to have a view intent filter for the specified default URL.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
         private static string UpdateViewIntentFilter(XElement mainActivity, Uri uri)
         {
             // Find the Activity's Intent Filter with action type VIEW to update, or create a new Intent Filter.
-            var actionViewIntentFilters = GetActionViewIntentFilters(mainActivity);
-            XElement viewIntentFilter;
-            switch (actionViewIntentFilters.Count())
+            var viewIntentFilter = GetElement(FindActionViewIntentFilters, mainActivity, IntentFilter);
+            if (viewIntentFilter == null)
             {
-                case 0:
-                    viewIntentFilter = new XElement(IntentFilter);
-                    mainActivity.Add(viewIntentFilter);
-                    break;
-                case 1:
-                    viewIntentFilter = actionViewIntentFilters.First();
-                    // TODO: preserve existing elements and just update
-                    viewIntentFilter.RemoveAll();
-                    break;
-                default:
-                    // TODO: add support for activities with multiple VIEW intent filters
-                    return "more than one VIEW intent-filter";
+                // TODO: add support for activities with multiple VIEW intent filters
+                return PreconditionOneViewIntentFilter;
             }
 
             // See https://developer.android.com/topic/google-play-instant/getting-started/game-instant-app#app-links
             // and https://developer.android.com/training/app-links/verify-site-associations for info on "autoVerify".
-            viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, "true");
+            viewIntentFilter.SetAttributeValue(AndroidAutoVerifyXName, ValueTrue);
             viewIntentFilter.Add(CreateElementWithAttribute(Action, AndroidNameXName, Android.IntentActionView));
             viewIntentFilter.Add(
                 CreateElementWithAttribute(Category, AndroidNameXName, Android.IntentCategoryBrowsable));
@@ -185,23 +216,16 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             return null;
         }
 
+        /// <summary>
+        /// Updates the specified main activity to contain the specified default URL.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
         private static string UpdateDefaultUrlElement(XElement mainActivity, Uri uri)
         {
-            // Find the Activity's existing meta-data element for default-url to update, or create a new one.
-            var metaDataElements = GetDefaultUrlMetaDataElements(mainActivity);
-            XElement defaultUrlMetaData;
-            switch (metaDataElements.Count())
+            var defaultUrlMetaData = GetElement(FindDefaultUrlMetaDataElements, mainActivity, MetaData);
+            if (defaultUrlMetaData == null)
             {
-                case 0:
-                    defaultUrlMetaData = new XElement(MetaData);
-                    mainActivity.Add(defaultUrlMetaData);
-                    break;
-                case 1:
-                    defaultUrlMetaData = metaDataElements.First();
-                    defaultUrlMetaData.RemoveAttributes();
-                    break;
-                default:
-                    return "more than one meta-data element for default-url";
+                return PreconditionOneMetaDataDefaultUrl;
             }
 
             defaultUrlMetaData.SetAttributeValue(AndroidNameXName, DefaultUrl);
@@ -210,7 +234,25 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             return null;
         }
 
-        private static IEnumerable<XElement> GetMainActivities(XContainer applicationElement)
+        /// <summary>
+        /// Updates the specified manifest to indicate that it is an instant module, necessary for building app bundles.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
+        private static string UpdateDistributionModuleInstantElement(XElement manifestElement)
+        {
+            var moduleInstant =
+                GetElement(FindDistributionModuleInstantElements, manifestElement, DistributionModuleXName);
+            if (moduleInstant == null)
+            {
+                return PreconditionOneModuleInstant;
+            }
+
+            moduleInstant.SetAttributeValue(DistributionInstantXName, ValueTrue);
+
+            return null;
+        }
+
+        private static IEnumerable<XElement> FindMainActivities(XContainer applicationElement)
         {
             // Find all activities with an <intent-filter> that contains
             //  <action android:name="android.intent.action.MAIN" />
@@ -229,7 +271,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 select activityElement;
         }
 
-        private static IEnumerable<XElement> GetActionViewIntentFilters(XContainer mainActivity)
+        private static IEnumerable<XElement> FindActionViewIntentFilters(XContainer mainActivity)
         {
             // Find all intent filters that contain <action android:name="android.intent.action.VIEW" />
             return from intentFilter in mainActivity.Elements(IntentFilter)
@@ -238,7 +280,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 select intentFilter;
         }
 
-        private static IEnumerable<XElement> GetDefaultUrlMetaDataElements(XContainer mainActivity)
+        private static IEnumerable<XElement> FindDefaultUrlMetaDataElements(XContainer mainActivity)
         {
             // Find all elements of the form <meta-data android:name="default-url" />
             return from metaData in mainActivity.Elements(MetaData)
@@ -246,8 +288,16 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 select metaData;
         }
 
-        private static XElement CreateElementWithAttribute(string elementName, XName attributeName,
-            string attributeValue)
+        private static IEnumerable<XElement> FindDistributionModuleInstantElements(XContainer manifestElement)
+        {
+            // Find all elements of the form <dist:module dist:instant="..." />
+            return from moduleElement in manifestElement.Elements(DistributionModuleXName)
+                where moduleElement.Attribute(DistributionInstantXName) != null
+                select moduleElement;
+        }
+
+        private static XElement CreateElementWithAttribute(
+            XName elementName, XName attributeName, string attributeValue)
         {
             var element = new XElement(elementName);
             element.SetAttributeValue(attributeName, attributeValue);
@@ -259,6 +309,30 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             // If the IEnumerable has exactly 1 element, return it. If the IEnumerable has 0 or 2+ elements, return
             // null. Cannot use FirstOrDefault() here since that will return the first element if 2+ elements.
             return elements.Count() == 1 ? elements.First() : null;
+        }
+
+        /// <summary>
+        /// Uses the specified delegate to find all matching elements attached to the specified parent element. If
+        /// no matches are found, create a new element and return it. If one match is found, remove any existing
+        /// elements/attributes and return it. If more than one match is found, return null to indicate an error.
+        /// </summary>
+        private static XElement GetElement(ElementFinder finder, XElement parentElement, XName elementName)
+        {
+            var elements = finder(parentElement);
+            switch (elements.Count())
+            {
+                case 0:
+                    var createdElement = new XElement(elementName);
+                    parentElement.Add(createdElement);
+                    return createdElement;
+                case 1:
+                    var existingElement = elements.First();
+                    existingElement.RemoveAll();
+                    return existingElement;
+                default:
+                    // This is unexpected. The caller is responsible for logging an error.
+                    return null;
+            }
         }
     }
 }
