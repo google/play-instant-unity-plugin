@@ -51,7 +51,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int ShortButtonWidth = 100;
         private const int ToolbarHeight = 25;
 
-
         private string _loadingScreenImagePath;
 
         // Titles for errors that occur
@@ -61,9 +60,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
 
         private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
-
         private TreeViewState _treeViewState;
-
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
@@ -98,7 +95,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             switch (currentTab)
             {
                 case ToolBarSelectedButton.CreateBundle:
-                    AssetBundleBrowserClient.ReloadAndUpdateBrowserInfo();
                     OnGuiCreateBundleSelect();
                     break;
                 case ToolBarSelectedButton.DeployBundle:
@@ -155,10 +151,19 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (GUILayout.Button("Build AssetBundle"))
             {
+                // TODO: Change UI to have default path and a browse button, and avoid prompting user every time they want to build.
+                var assetBundleBuildPath = EditorUtility.SaveFilePanel("Save AssetBundle", "", "quickDeployAssetBundle", "");
+                // Do nothing if user cancelled.
+                if (string.IsNullOrEmpty(assetBundleBuildPath))
+                {
+                    return;
+                }
+
+                QuickDeployConfig.AssetBundleFileName = assetBundleBuildPath;
+                QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
                 try
                 {
-                    QuickDeployConfig.AssetBundleFileName = EditorUtility.SaveFilePanel("Save AssetBundle", "", "", "");
-                    // TODO(audace): build the assetbundles
+                    AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
                 }
                 catch (Exception ex)
                 {
@@ -166,15 +171,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                         ex.Message);
                     throw;
                 }
+                
+                EditorGUIUtility.ExitGUI();
+
             }
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
-
-            EditorGUILayout.EndVertical();
         }
 
-        // TODO(audace): use this for building the scenes
         private string[] GetEnabledSceneItemPaths()
         {
             var scenes = _playInstantSceneTreeTreeView.GetRows();

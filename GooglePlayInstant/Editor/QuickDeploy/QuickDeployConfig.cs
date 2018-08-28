@@ -48,6 +48,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             switch (currentTab)
             {
+                case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
+                    _config.assetBundleFileName = AssetBundleFileName;
+                    break;
                 case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
                     _config.cloudCredentialsFileName = CloudCredentialsFileName;
                     _config.assetBundleFileName = AssetBundleFileName;
