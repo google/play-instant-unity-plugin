@@ -104,6 +104,38 @@ task exportSampleSphereBlast {
     }
 }
 
+task buildAndRunInstantAppTest {
+    description 'Creates the instant app test project, then builds and runs in instant mode'
+    def buildAndRunFunction = 'GooglePlayInstant.Editor.AndroidInstantTest.BuildAndRunTestProject'
+    def buildPath = "${playInstantBuildPath}/testproject"
+    def logFile = file("testproject.log").getPath()
+    doFirst {
+        copyFiles(buildPath, [])
+        copy {
+            from 'GooglePlayInstant/Samples/TestProject'
+            into "${buildPath}/Assets/TestProject"
+        }
+    }
+    doLast {
+        def argv = [
+            '-batchmode',
+            '-projectPath',
+            buildPath,
+            '-logFile',
+            logFile,
+            '-buildTarget',
+            'Android',
+            '-executeMethod',
+            buildAndRunFunction,
+            'quit'
+        ]
+        exec {
+            executable unityExe
+            args argv
+        }
+    }
+}
+
 task tests {
     description 'Runs unit tests with Unity test runner'
     def buildPath = "${playInstantBuildPath}/tests"
