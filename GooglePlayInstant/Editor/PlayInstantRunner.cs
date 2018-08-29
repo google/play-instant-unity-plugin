@@ -31,9 +31,9 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void BuildAndRun()
         {
-            if(AndroidSdkManager.AndroidSdkRoot == null)
+            if (!Directory.Exists(AndroidSdkManager.AndroidSdkRoot))
             {
-                PlayInstantBuilder.LogError("Build and Run failed to locate the Android SDK. Check Preferences -> External Tools for the path.");
+                PlayInstantBuilder.LogError("Failed to locate the Android SDK. Check Preferences -> External Tools to set the path.");
                 return;
             }
 
