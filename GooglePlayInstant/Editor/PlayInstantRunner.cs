@@ -31,6 +31,12 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void BuildAndRun()
         {
+            if (!Directory.Exists(AndroidSdkManager.AndroidSdkRoot))
+            {
+                PlayInstantBuilder.LogError("Failed to locate the Android SDK. Check Preferences -> External Tools to set the path.");
+                return;
+            }
+
             var jarPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, InstantAppsJarPath);
             if (!File.Exists(jarPath))
             {
