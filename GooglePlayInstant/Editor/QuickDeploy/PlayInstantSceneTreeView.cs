@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -25,6 +26,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     public class PlayInstantSceneTreeView : TreeView
     {
         private const int ToggleWidth = 18;
+        private readonly List<TreeViewItem> _allItems = new List<TreeViewItem>();
+        private int rowID = 0;
 
         public PlayInstantSceneTreeView(TreeViewState treeViewState)
             : base(treeViewState)
@@ -42,12 +45,52 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public class SceneItem : TreeViewItem
         {
             public bool Enabled;
+            public bool OldEnabledValue;
+            public string SceneBuildIndexString;
+            
+            public override bool Equals(object obj)
+            {
+                var that = obj as SceneItem;
+                return that != null && this.displayName.Equals(that.displayName);
+            }
+        }
+
+        public void AddOpenScenes()
+        {
+            var scenes = GetAllScenes();
+
+            for (var i = 0; i < scenes.Length; i++)
+            {
+                var sceneItem = new SceneItem
+                {
+                    id = rowID++,
+                    depth = 0,
+                    displayName = scenes[i].path,
+                    Enabled = true
+                };
+
+                if (!_allItems.Contains(sceneItem))
+                {
+                    _allItems.Add(sceneItem);
+                }
+            }
+
+            EditSceneBuildIndexString();
+            Reload();
+        }
+
+        private void EditSceneBuildIndexString()
+        {
+            var buildIndex = 0;
+            foreach (var item in _allItems)
+            {
+                var sceneItem = (SceneItem) item;
+                sceneItem.SceneBuildIndexString = sceneItem.Enabled ? "" + buildIndex++ : "";
+            }
         }
 
         protected override TreeViewItem BuildRoot()
         {
-            var scenes = GetAllScenes();
-
             var root = new TreeViewItem
             {
                 id = 0,
@@ -55,19 +98,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 displayName = "Root"
             };
 
-            var allItems = new List<TreeViewItem>();
-            for (var i = 0; i < scenes.Length; i++)
-            {
-                allItems.Add(new SceneItem
-                {
-                    id = i,
-                    depth = 0,
-                    displayName = scenes[i].path,
-                    Enabled = true
-                });
-            }
-
-            SetupParentsAndChildrenFromDepths(root, allItems);
+            SetupParentsAndChildrenFromDepths(root, _allItems);
 
             return root;
         }
@@ -91,9 +122,36 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var item = (SceneItem) args.item;
 
+            item.OldEnabledValue = item.Enabled;
+
             item.Enabled = EditorGUI.Toggle(toggleRect, item.Enabled);
 
+            if (item.OldEnabledValue != item.Enabled)
+            {
+                EditSceneBuildIndexString();
+            }
+
+            DefaultGUI.LabelRightAligned(args.rowRect, item.SceneBuildIndexString, args.selected, args.focused);
+
             base.RowGUI(args);
+
+            var current = Event.current;
+
+            if (args.rowRect.Contains(current.mousePosition) && current.type == EventType.ContextClick)
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Remove Selection"), false, RemoveScene, item);
+                menu.ShowAsContext();
+            }
         }
+
+        private void RemoveScene(object item)
+        {
+            _allItems.Remove((SceneItem) item);
+            EditSceneBuildIndexString();
+            Reload();
+        }
+
+        //TODO: implement drag and drop
     }
 }

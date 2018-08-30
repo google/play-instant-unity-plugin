@@ -47,6 +47,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int WindowMinWidth = 475;
         private const int WindowMinHeight = 400;
 
+        private const int SceneViewDeltaFromTop = 230;
+
         private const int FieldMinWidth = 100;
         private const int ShortButtonWidth = 100;
         private const int ToolbarHeight = 25;
@@ -58,6 +60,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string AssetBundleDeploymentErrorTitle = "AssetBundle Deployment Error";
         private const string AssetBundleCheckerErrorTitle = "AssetBundle Checker Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
+        private const string LoadingScreenUpdateErrorTitle = "Loading Screen Update Error";
 
         private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
         private TreeViewState _treeViewState;
@@ -181,26 +184,45 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
             EditorGUILayout.Space();
 
-            _playInstantSceneTreeTreeView.OnGUI(GUILayoutUtility.GetRect(position.width - 10, position.height - 200));
+            _playInstantSceneTreeTreeView.OnGUI(GUILayoutUtility.GetRect(position.width,
+                position.height - SceneViewDeltaFromTop));
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Add Open Scenes"))
+            {
+                _playInstantSceneTreeTreeView.AddOpenScenes();
+            }
+
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
+
+            EditorGUILayout.Space();
+
+
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField("AssetBundle File Path", GUILayout.MinWidth(FieldMinWidth));
+            QuickDeployConfig.AssetBundleFileName = EditorGUILayout.TextField(QuickDeployConfig.AssetBundleFileName,
+                GUILayout.MinWidth(FieldMinWidth));
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
+            {
+                QuickDeployConfig.AssetBundleFileName = EditorUtility.SaveFilePanel("Save AssetBundle", "", "", "");
+                HandleDialogExit();
+            }
+
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
 
             if (GUILayout.Button("Build AssetBundle"))
             {
-                // TODO: Change UI to have default path and a browse button, and avoid prompting user every time they want to build.
-                var assetBundleBuildPath =
-                    EditorUtility.SaveFilePanel("Save AssetBundle", "", "quickDeployAssetBundle", "");
-                // Do nothing if user cancelled.
-                if (string.IsNullOrEmpty(assetBundleBuildPath))
-                {
-                    return;
-                }
-
-                QuickDeployConfig.AssetBundleFileName = assetBundleBuildPath;
-                QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
                 try
                 {
+                    QuickDeployConfig.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
                     AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
                 }
                 catch (Exception ex)
@@ -209,12 +231,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                         ex.Message);
                     throw;
                 }
-
-                EditorGUIUtility.ExitGUI();
+                HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
         }
 
         private string[] GetEnabledSceneItemPaths()
@@ -282,9 +302,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 QuickDeployConfig.CloudCredentialsFileName =
                     EditorUtility.OpenFilePanel("Select cloud credentials file", "", "");
+                HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.LabelField("AssetBundle File Path", GUILayout.MinWidth(FieldMinWidth));
@@ -297,9 +319,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
             {
                 QuickDeployConfig.AssetBundleFileName = EditorUtility.OpenFilePanel("Select AssetBundle file", "", "");
+                HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Cloud Storage Bucket Name", GUILayout.MinWidth(FieldMinWidth));
@@ -398,6 +422,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 _loadingScreenImagePath =
                     EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
+                HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
@@ -415,7 +440,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     }
                     catch (Exception ex)
                     {
-                        DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
+                        DialogHelper.DisplayMessage(LoadingScreenUpdateErrorTitle, ex.Message);
                         throw;
                     }
                 }
@@ -442,7 +467,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             EditorGUILayout.EndVertical();
         }
-
+        
+        // Call this method after any of the SaveFilePanels and OpenFilePanels placed inbetween BeginHorizontal()s or
+        // BeginVerticals()s. An error is thrown when a user switches contexts (into a different desktop), and the
+        // window reloads. After completing an action, this error is thrown. This method is called to avoid this.
+        //  Fix documentation: https://answers.unity.com/questions/1353442/editorutilitysavefilepane-and-beginhorizontal-caus.html
+        private void HandleDialogExit() 
+        {
+            GUIUtility.ExitGUI();
+        }
 
         private GUIStyle CreateDescriptionTextStyle()
         {

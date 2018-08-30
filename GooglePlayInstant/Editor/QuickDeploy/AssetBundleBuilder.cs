@@ -55,7 +55,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (builtAssetBundleManifest == null)
             {
                 throw new Exception(
-                    "Could not build AssetBundle. Please ensure that you have properly configured AssetBundle to be buit " +
+                    "Could not build AssetBundle. Please ensure that you have properly configured AssetBundle to be built " +
                     "by selecting scenes to include and choosing a valid path for AssetBundle to be stored.");
             }
         }
