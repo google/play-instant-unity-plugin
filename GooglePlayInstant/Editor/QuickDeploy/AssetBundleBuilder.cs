@@ -58,6 +58,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     "Could not build AssetBundle. Please ensure that you have properly configured AssetBundle to be built " +
                     "by selecting scenes to include and choosing a valid path for AssetBundle to be stored.");
             }
+
+            // Update AssetBundle manifest path in PlayInstantBuildConfiguration, and refresh the build settings window if it is open.
+            var builtAssetBundleManifestPath = string.Format("{0}.manifest", QuickDeployConfig.AssetBundleFileName);
+            PlayInstantBuildConfiguration.SaveConfiguration(PlayInstantBuildConfiguration.InstantUrl,
+                PlayInstantBuildConfiguration.ScenesInBuild, builtAssetBundleManifestPath);
+            BuildSettingsWindow.UpdateWindowIfOpen();
         }
     }
 }
