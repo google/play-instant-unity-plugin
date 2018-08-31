@@ -25,7 +25,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
     public static class TestAppBuilder
     {
         private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
-        private const string DefaultApkPath = "Assets/../testApp.apk";
+        private const string DefaultApkPath = "Assets/../testapp.apk";
         private const string ApkPathArg = "-outputFile";
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
 
@@ -56,13 +56,14 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
         private static string GetApkPath()
         {
             var args = System.Environment.GetCommandLineArgs();
-            for (var i=0; i<args.Length-1; i++)
+            for (var i = 0; i < args.Length - 1; i++)
             {
-                if (Equals(args[i], ApkPathArg))
+                if (args[i] == ApkPathArg)
                 {
                     return args[i + 1];
                 }
             }
+
             return DefaultApkPath;
         }
     }
