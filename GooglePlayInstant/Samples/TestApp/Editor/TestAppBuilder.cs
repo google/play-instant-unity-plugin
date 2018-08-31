@@ -25,13 +25,15 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
     public static class TestAppBuilder
     {
         private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
-        private const string ApkPath = "Assets/../TestApp.apk";
+        private const string DefaultApkPath = "Assets/../testApp.apk";
+        private const string ApkPathArg = "-outputFile";
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
 
         public static void Build()
         {
             ConfigureProject();
-            var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(ApkPath, BuildOptions.None);
+            var apkPath = GetApkPath();
+            var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
         }
 
@@ -46,6 +48,22 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             PlayInstantBuildConfiguration.SaveConfiguration("", TestScenePaths, "");
             PlayInstantBuildConfiguration.SetInstantBuildType();
             PlayerSettings.applicationIdentifier = BundleIdentifier;
+        }
+
+        /// <summary>
+        /// Gets the apk path passed in via command line.
+        /// </summary>
+        private static string GetApkPath()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (var i=0; i<args.Length-1; i++)
+            {
+                if (Equals(args[i], ApkPathArg))
+                {
+                    return args[i + 1];
+                }
+            }
+            return DefaultApkPath;
         }
     }
 }
