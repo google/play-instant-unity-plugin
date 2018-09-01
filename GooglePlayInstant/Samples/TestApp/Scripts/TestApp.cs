@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace GooglePlayInstant.Samples.TestApp
 {
@@ -23,6 +26,30 @@ namespace GooglePlayInstant.Samples.TestApp
     {
         private const string CookiePrefix = "test-cookie";
         private string _storedCookie;
+
+        private Dictionary<KeyCode, Action> _keyMappings;
+
+        private void Start()
+        {
+            //Provide an interface for the test infrastructure to call functions via key presses
+            _keyMappings = new Dictionary<KeyCode, Action>()
+            {
+                {KeyCode.W, ButtonEventWriteCookie},
+                {KeyCode.R, ButtonEventReadCookie},
+                {KeyCode.I, ButtonEventShowInstallPrompt},
+            };
+        }
+
+        private void Update()
+        {
+            foreach (var keyMapping in _keyMappings)
+            {
+                if (Input.GetKeyDown(keyMapping.Key))
+                {
+                    keyMapping.Value.Invoke();
+                }
+            }
+        }
 
         /// <summary>
         /// Sets the instant app cookie to a unique string
@@ -40,10 +67,10 @@ namespace GooglePlayInstant.Samples.TestApp
             }
             else
             {
-                Debug.LogError("Failed to write cookie");                
+                Debug.LogError("Failed to write cookie");
             }
         }
-        
+
         /// <summary>
         /// Reads the cookie and verifies if it matches the one we stored
         /// </summary>
@@ -61,7 +88,7 @@ namespace GooglePlayInstant.Samples.TestApp
                 Debug.LogError("Read cookie does not match the value we stored");
             }
         }
-        
+
         public void ButtonEventShowInstallPrompt()
         {
             // TODO: test all aspects of this API
