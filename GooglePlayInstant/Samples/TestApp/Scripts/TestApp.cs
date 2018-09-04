@@ -20,7 +20,7 @@ using Random = UnityEngine.Random;
 namespace GooglePlayInstant.Samples.TestApp
 {
     /// <summary>
-    /// Tests instant app plugin features through button clicks
+    /// Tests instant app plugin features via buttons for manual testing and key presses for automated testing.
     /// </summary>
     public class TestApp : MonoBehaviour
     {
@@ -31,7 +31,7 @@ namespace GooglePlayInstant.Samples.TestApp
 
         private void Start()
         {
-            //Provide an interface for the test infrastructure to call functions via key presses
+            // Provide an interface for the test infrastructure to call functions via key presses.
             _keyMappings = new Dictionary<KeyCode, Action>()
             {
                 {KeyCode.W, ButtonEventWriteCookie},
@@ -52,11 +52,11 @@ namespace GooglePlayInstant.Samples.TestApp
         }
 
         /// <summary>
-        /// Sets the instant app cookie to a unique string
+        /// Sets the instant app cookie to a unique string.
         /// </summary>
         public void ButtonEventWriteCookie()
         {
-            //Write a random value so WriteCookie will always change the cookie
+            // Write a random value so WriteCookie will always change the cookie.
             // Note: System.Guid is unavailable with micro mscorlib.
             var guid = Random.Range(int.MinValue, int.MaxValue);
             _storedCookie = string.Format("{0}:{1}", guid, CookiePrefix);
@@ -72,7 +72,7 @@ namespace GooglePlayInstant.Samples.TestApp
         }
 
         /// <summary>
-        /// Reads the cookie and verifies if it matches the one we stored
+        /// Reads the cookie and verifies if it matches the one we stored.
         /// </summary>
         public void ButtonEventReadCookie()
         {
@@ -91,7 +91,7 @@ namespace GooglePlayInstant.Samples.TestApp
 
         public void ButtonEventShowInstallPrompt()
         {
-            // TODO: test all aspects of this API
+            // TODO: test all aspects of this API.
             InstallLauncher.ShowInstallPrompt();
         }
     }
