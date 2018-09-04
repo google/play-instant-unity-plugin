@@ -34,16 +34,19 @@ namespace GooglePlayInstant.LoadingScreen
         private IEnumerator Start()
         {
             var loadingScreenConfigJsonTextAsset =
-                Resources.Load<TextAsset>("LoadingScreenConfig");
+                Resources.Load<TextAsset>(
+                    Path.GetFileNameWithoutExtension(LoadingScreenConfig.EngineConfigurationFileName));
 
             if (loadingScreenConfigJsonTextAsset == null)
             {
-                throw new FileNotFoundException("LoadingScreenConfig.json missing in Resources folder.");
+                throw new FileNotFoundException(string.Format("{0} missing in Resources folder.",
+                    LoadingScreenConfig.EngineConfigurationFileName));
             }
 
             var loadingScreenConfigJson = loadingScreenConfigJsonTextAsset.ToString();
 
-            var loadingScreenConfig = JsonUtility.FromJson<LoadingScreenConfig>(loadingScreenConfigJson);
+            var loadingScreenConfig =
+                JsonUtility.FromJson<LoadingScreenConfig.EngineConfiguration>(loadingScreenConfigJson);
 
             yield return GetAssetBundle(loadingScreenConfig.assetBundleUrl);
 

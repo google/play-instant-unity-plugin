@@ -31,16 +31,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
     {
         private const string TestGameObjectName = "Testing Object";
 
-        private static readonly string TestLoadingScreenJsonPath =
-            Path.Combine("Assets", LoadingScreenGenerator.JsonFileName);
-
-        // Dispose of temporarily created file.  
-        [TearDown]
-        public void Cleanup()
-        {
-            AssetDatabase.DeleteAsset(TestLoadingScreenJsonPath);
-        }
-
         [Test]
         public void TestSetMainSceneInBuild()
         {
@@ -79,34 +69,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
                 "A canvas component should have been added to the loading screen game object.");
             Assert.IsNotNull(loadingScreenGameObject.GetComponent<Image>(),
                 "An image component should have been added to the loading screen game object.");
-        }
-
-        [Test]
-        public void TestGenerateLoadingScreenConfigFileWithString()
-        {
-            const string testUrl = "test.co";
-
-            LoadingScreenGenerator.GenerateConfigFile(testUrl, TestLoadingScreenJsonPath);
-
-            var loadingScreenConfigJson =
-                AssetDatabase.LoadAssetAtPath(TestLoadingScreenJsonPath, typeof(TextAsset)).ToString();
-
-            var loadingScreenConfig = JsonUtility.FromJson<LoadingScreenConfig>(loadingScreenConfigJson);
-
-            Assert.AreEqual(testUrl, loadingScreenConfig.assetBundleUrl);
-        }
-
-        [Test]
-        public void TestGenerateLoadingScreenConfigFileWithEmptyString()
-        {
-            LoadingScreenGenerator.GenerateConfigFile("", TestLoadingScreenJsonPath);
-
-            var loadingScreenConfigJson =
-                AssetDatabase.LoadAssetAtPath(TestLoadingScreenJsonPath, typeof(TextAsset)).ToString();
-
-            var loadingScreenConfig = JsonUtility.FromJson<LoadingScreenConfig>(loadingScreenConfigJson);
-
-            Assert.IsEmpty(loadingScreenConfig.assetBundleUrl);
         }
     }
 }

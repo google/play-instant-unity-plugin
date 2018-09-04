@@ -41,11 +41,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     // No error indicates that the bucket exists. Confirm the bucket name is correct and upload the file.
                     var response = JsonUtility.FromJson<BucketInfoResponse>(bucketInfoResponse.text);
                     var bucketName = response.name;
-                    if (!string.Equals(bucketName, QuickDeployConfig.CloudStorageBucketName))
+                    if (!string.Equals(bucketName, QuickDeployWindow.Config.CloudStorageBucketName))
                     {
                         throw new Exception(string.Format(
                             "Response bucket name \"{0}\" doesn't match expected name \"{1}\"",
-                            bucketName, QuickDeployConfig.CloudStorageBucketName));
+                            bucketName, QuickDeployWindow.Config.CloudStorageBucketName));
                     }
 
                     UploadBundleAndMakePublic();
@@ -96,21 +96,21 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 var response = JsonUtility.FromJson<FileUploadResponse>(uploadBundleWww.text);
                 var bucketName = response.bucket;
                 var fileName = response.name;
-                if (bucketName != QuickDeployConfig.CloudStorageBucketName)
+                if (bucketName != QuickDeployWindow.Config.CloudStorageBucketName)
                 {
                     throw new Exception(string.Format(
                         "Response bucket name \"{0}\" doesn't match expected name \"{1}\"",
-                        bucketName, QuickDeployConfig.CloudStorageBucketName));
+                        bucketName, QuickDeployWindow.Config.CloudStorageBucketName));
                 }
 
-                if (fileName != QuickDeployConfig.CloudStorageObjectName)
+                if (fileName != QuickDeployWindow.Config.CloudStorageObjectName)
                 {
                     throw new Exception(string.Format(
                         "Response file name \"{0}\" doesn't match expected name \"{1}\"",
-                        fileName, QuickDeployConfig.CloudStorageObjectName));
+                        fileName, QuickDeployWindow.Config.CloudStorageObjectName));
                 }
 
-                QuickDeployConfig.AssetBundleUrl =
+                QuickDeployWindow.Config.AssetBundleUrl =
                     string.Format("https://storage.googleapis.com/{0}/{1}", bucketName, fileName);
 
                 InvokeAccessRestrictedAction(MakeBundlePublic, makeBundlePublicWww =>
@@ -138,8 +138,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // See https://cloud.google.com/storage/docs/uploading-objects
             var uploadEndpoint =
                 string.Format("https://www.googleapis.com/upload/storage/v1/b/{0}/o?uploadType=media&name={1}",
-                    QuickDeployConfig.CloudStorageBucketName, QuickDeployConfig.CloudStorageObjectName);
-            var assetBundleFileBytes = File.ReadAllBytes(QuickDeployConfig.AssetBundleFileName);
+                    QuickDeployWindow.Config.CloudStorageBucketName, QuickDeployWindow.Config.CloudStorageObjectName);
+            var assetBundleFileBytes = File.ReadAllBytes(QuickDeployWindow.Config.AssetBundleFileName);
             var request =
                 SendAuthenticatedPostRequest(uploadEndpoint, assetBundleFileBytes, "application/octet-stream");
             WwwRequestInProgress.TrackProgress(request, "Uploading file to Google Cloud Storage", postResponseAction);
@@ -159,7 +159,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 credentials.project_id);
             var createBucketRequest = new CreateBucketRequest
             {
-                name = QuickDeployConfig.CloudStorageBucketName
+                name = QuickDeployWindow.Config.CloudStorageBucketName
             };
 
             var jsonBytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(createBucketRequest));
@@ -180,7 +180,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             // see https://cloud.google.com/storage/docs/access-control/making-data-public on making data public.
             var makePublicEndpoint = string.Format("https://www.googleapis.com/storage/v1/b/{0}/o/{1}/acl",
-                QuickDeployConfig.CloudStorageBucketName, QuickDeployConfig.CloudStorageObjectName);
+                QuickDeployWindow.Config.CloudStorageBucketName, QuickDeployWindow.Config.CloudStorageObjectName);
             var requestJsonContents = JsonUtility.ToJson(new PublicAccessRequest());
             var makeBundlePublicWww = SendAuthenticatedPostRequest(makePublicEndpoint,
                 Encoding.UTF8.GetBytes(requestJsonContents), "application/json");
@@ -199,7 +199,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // see https://cloud.google.com/storage/docs/getting-bucket-information on getting bucket information.
             var bucketInfoUrl =
                 string.Format("https://www.googleapis.com/storage/v1/b/{0}",
-                    QuickDeployConfig.CloudStorageBucketName);
+                    QuickDeployWindow.Config.CloudStorageBucketName);
             var request =
                 HttpRequestHelper.SendHttpGetRequest(bucketInfoUrl, null, GetDictionaryWithAuthorizationHeader());
             WwwRequestInProgress.TrackProgress(request, "Checking whether bucket exists.", postResponseAction);

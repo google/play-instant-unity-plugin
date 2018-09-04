@@ -20,12 +20,21 @@ namespace GooglePlayInstant.LoadingScreen
     /// Class that represents the contents of the Loading Screen configuration json file, which notifies the loading scene
     /// what URL to download the quick deploy application's main scene AssetBundle from.
     /// </summary>
-    [Serializable]
     public class LoadingScreenConfig
     {
         /// <summary>
-        /// URL of where the game's main AssetBundle is downloaded, and where the first scene is loaded from.
+        /// Name of the json file that contains Engine configurations
         /// </summary>
-        public string assetBundleUrl;
+        public const string EngineConfigurationFileName = "PlayInstantQuickDeployEngineConfig.json";
+        
+        [Serializable]
+        public class EngineConfiguration
+        {
+            /// <summary>
+            /// URL of where the game's main AssetBundle is downloaded, and where the first scene is loaded from.
+            /// </summary>
+            public string assetBundleUrl;
+        }
+        
     }
 }

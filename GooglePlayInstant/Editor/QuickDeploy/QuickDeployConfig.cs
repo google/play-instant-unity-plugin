@@ -14,6 +14,7 @@
 
 using System;
 using System.IO;
+using GooglePlayInstant.LoadingScreen;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -21,79 +22,168 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// <summary>
     /// Contains a set of operations for storing and retrieving quick deploy configurations.
     /// </summary>
-    public static class QuickDeployConfig
+    public class QuickDeployConfig
     {
-        private static readonly string ConfigurationFilePath =
-            Path.Combine("Library", "PlayInstantQuickDeployConfig.json");
+        private static readonly string EditorConfigurationFilePath =
+            Path.Combine("Library", "PlayInstantQuickDeployEditorConfig.json");
+
+        private static readonly string ResourcesDirectoryPath =
+            Path.Combine(LoadingScreenGenerator.SceneDirectoryPath, "Resources");
+
+        private static readonly string EngineConfigurationFilePath =
+            Path.Combine(ResourcesDirectoryPath, LoadingScreenConfig.EngineConfigurationFileName);
 
         /// <summary>
-        /// The Configuration singleton that should be used to read and modify Quick Deploy configuration.
-        /// Modified values are persisted by calling SaveConfiguration.
+        /// The Editor Configuration singleton that should be used to read and modify Quick Deploy configuration.
+        /// Modified values are persisted by calling SaveEditorConfiguration.
         /// </summary>
-        private static readonly Configuration _config = LoadConfiguration();
+        private EditorConfiguration EditorConfig;
 
-        public static string CloudCredentialsFileName = _config.cloudCredentialsFileName;
-        public static string AssetBundleFileName = _config.assetBundleFileName;
-        public static string CloudStorageBucketName = _config.cloudStorageBucketName;
-        public static string CloudStorageObjectName = _config.cloudStorageObjectName;
-        public static string AssetBundleUrl = _config.assetBundleUrl;
+        /// <summary>
+        /// The Engine Configuration singleton that should be used to read and modify Loading Screen configuration.
+        /// Modified values are persisted by calling SaveEngineConfiguration.
+        /// </summary>
+        private LoadingScreenConfig.EngineConfiguration EngineConfig;
 
+        // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
+        public string CloudCredentialsFileName;
+        public string AssetBundleFileName;
+        public string CloudStorageBucketName;
+        public string CloudStorageObjectName;
+        public string AssetBundleUrl;
+
+        public void LoadConfiguration()
+        {
+            EditorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
+            EngineConfig = LoadEngineConfiguration(EngineConfigurationFilePath);
+            
+            // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
+            CloudCredentialsFileName = EditorConfig.cloudCredentialsFileName;
+            AssetBundleFileName = EditorConfig.assetBundleFileName;
+            CloudStorageBucketName = EditorConfig.cloudStorageBucketName;
+            CloudStorageObjectName = EditorConfig.cloudStorageObjectName;
+            AssetBundleUrl = EngineConfig.assetBundleUrl;
+        }
 
         /// <summary>
         /// Store configuration from the current quick deploy tab to persistent storage.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if tab shouldn't have input fields.</exception>
-        public static void SaveConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab)
+        public void SaveConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab)
         {
             switch (currentTab)
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
-                    _config.assetBundleFileName = AssetBundleFileName;
+                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, EditorConfig,
+                        EditorConfigurationFilePath);
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
-                    _config.cloudCredentialsFileName = CloudCredentialsFileName;
-                    _config.assetBundleFileName = AssetBundleFileName;
-                    _config.cloudStorageBucketName = CloudStorageBucketName;
-                    _config.cloudStorageObjectName = CloudStorageObjectName;
+                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.DeployBundle, EditorConfig,
+                        EditorConfigurationFilePath);
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    _config.assetBundleUrl = AssetBundleUrl;
+                    SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen, EngineConfig,
+                        EngineConfigurationFilePath);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
             }
+        }
 
-            // Shouldn't hurt to write to persistent storage as long as SaveConfiguration(currentTab) is only called
+        // Visible for testing
+        internal void SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab,
+            EditorConfiguration configuration, string editorConfigurationPath)
+        {
+            switch (currentTab)
+            {
+                case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
+                    configuration.assetBundleFileName = AssetBundleFileName;
+                    break;
+                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
+                    configuration.cloudCredentialsFileName = CloudCredentialsFileName;
+                    configuration.assetBundleFileName = AssetBundleFileName;
+                    configuration.cloudStorageBucketName = CloudStorageBucketName;
+                    configuration.cloudStorageObjectName = CloudStorageObjectName;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("currentTab", currentTab,
+                        "Can't save editor configurations from this tab.");
+            }
+
+            // Shouldn't hurt to write to persistent storage as long as SaveEditorConfiguration(currentTab) is only called
             // when a major action happens.
-            File.WriteAllText(ConfigurationFilePath, JsonUtility.ToJson(_config));
+            File.WriteAllText(editorConfigurationPath, JsonUtility.ToJson(configuration));
+        }
+
+        // Visible for testing
+        internal void SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab,
+            LoadingScreenConfig.EngineConfiguration configuration, string engineConfigurationPath)
+        {
+            switch (currentTab)
+            {
+                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
+                    configuration.assetBundleUrl = AssetBundleUrl;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("currentTab", currentTab,
+                        "Can't save engine configurations from this tab.");
+            }
+
+            Directory.CreateDirectory(ResourcesDirectoryPath);
+
+            // Shouldn't hurt to write to persistent storage as long as SaveEngineConfiguration(currentTab) is only called
+            // when a major action happens.
+            File.WriteAllText(engineConfigurationPath, JsonUtility.ToJson(configuration));
         }
 
         /// <summary>
-        /// De-serialize configuration file contents into Configuration instance if the file exists exists, otherwise
+        /// De-serialize editor configuration file contents into EditorConfiguration instance if the file exists exists, otherwise
         /// return Configuration instance with empty fields.
         /// </summary>
-        private static Configuration LoadConfiguration()
+        internal EditorConfiguration LoadEditorConfiguration(string editorConfigurationPath)
         {
-            if (!File.Exists(ConfigurationFilePath))
+            if (!File.Exists(editorConfigurationPath))
             {
-                return new Configuration();
+                return new EditorConfiguration();
             }
 
-            var configurationJson = File.ReadAllText(ConfigurationFilePath);
-            return JsonUtility.FromJson<Configuration>(configurationJson);
+            var configurationJson = File.ReadAllText(editorConfigurationPath);
+            return JsonUtility.FromJson<EditorConfiguration>(configurationJson);
+        }
+
+        /// <summary>
+        /// De-serialize engine configuration file contents into EngineConfiguration instance if the file exists exists, otherwise
+        /// return Configuration instance with empty fields.
+        /// </summary>
+        internal LoadingScreenConfig.EngineConfiguration LoadEngineConfiguration(string engineConfigurationPath)
+        {
+            if (!File.Exists(engineConfigurationPath))
+            {
+                return new LoadingScreenConfig.EngineConfiguration();
+            }
+
+            var configurationJson = File.ReadAllText(engineConfigurationPath);
+            return JsonUtility.FromJson<LoadingScreenConfig.EngineConfiguration>(configurationJson);
+        }
+
+        /// <summary>
+        /// Returns true if an instance of the engine configuration exists.
+        /// </summary>
+        public static bool EngineConfigExists()
+        {
+            return File.Exists(EngineConfigurationFilePath);
         }
 
         /// <summary>
         /// Represents JSON contents of the quick deploy configuration file.
         /// </summary>
         [Serializable]
-        private class Configuration
+        public class EditorConfiguration
         {
             public string cloudCredentialsFileName;
             public string assetBundleFileName;
             public string cloudStorageBucketName;
             public string cloudStorageObjectName;
-            public string assetBundleUrl;
         }
     }
 }
