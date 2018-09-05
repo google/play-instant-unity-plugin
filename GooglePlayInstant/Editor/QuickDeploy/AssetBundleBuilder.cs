@@ -60,7 +60,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             // Update AssetBundle manifest path in PlayInstantBuildConfiguration, and refresh the build settings window if it is open.
-            var builtAssetBundleManifestPath = string.Format("{0}.manifest", QuickDeployConfig.AssetBundleFileName);
+            var builtAssetBundleManifestPath = string.Format("{0}.manifest", QuickDeployWindow.Config.AssetBundleFileName);
             PlayInstantBuildConfiguration.SaveConfiguration(PlayInstantBuildConfiguration.InstantUrl,
                 PlayInstantBuildConfiguration.ScenesInBuild, builtAssetBundleManifestPath);
             BuildSettingsWindow.UpdateWindowIfOpen();
