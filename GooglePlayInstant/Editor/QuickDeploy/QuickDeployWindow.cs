@@ -26,7 +26,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Saved configurations from a previous session.
         /// </summary>
         public static readonly QuickDeployConfig Config = new QuickDeployConfig();
-        
+
         private static readonly string[] ToolbarButtonNames =
         {
             "Overview", "Bundle Creation", "Loading Screen"
@@ -74,7 +74,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
             _toolbarSelectedButtonIndex = (int) select;
-            
+
             Config.LoadConfiguration();
         }
 
@@ -136,10 +136,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(
                 "Use the \"Bundle Creation\" tab to build an AssetBundle containing the game's " +
-                "main scene. Then upload the AssetBundle to Google Cloud Storage via the " +
-                "\"Bundle Deployment\" tab. Finally, use the \"Loading Screen\" tab to select an " +
-                "image to display on the loading screen and the URL that points to the uploaded " +
-                "AssetBundle.", descriptionTextStyle);
+                "main scene. Then upload the created AssetBundle to a server or CDN  " +
+                "and make the url endpoint public. Finally, use the \"Loading Screen\" tab to select an image to " +
+                "display on the loading screen and the URL that points to the uploaded AssetBundle.",
+                descriptionTextStyle);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.Space();
