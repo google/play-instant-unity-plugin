@@ -46,10 +46,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private LoadingScreenConfig.EngineConfiguration EngineConfig;
 
         // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-        public string CloudCredentialsFileName;
         public string AssetBundleFileName;
-        public string CloudStorageBucketName;
-        public string CloudStorageObjectName;
         public string AssetBundleUrl;
 
         public void LoadConfiguration()
@@ -58,10 +55,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EngineConfig = LoadEngineConfiguration(EngineConfigurationFilePath);
             
             // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-            CloudCredentialsFileName = EditorConfig.cloudCredentialsFileName;
             AssetBundleFileName = EditorConfig.assetBundleFileName;
-            CloudStorageBucketName = EditorConfig.cloudStorageBucketName;
-            CloudStorageObjectName = EditorConfig.cloudStorageObjectName;
             AssetBundleUrl = EngineConfig.assetBundleUrl;
         }
 
@@ -75,10 +69,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
                     SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, EditorConfig,
-                        EditorConfigurationFilePath);
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
-                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.DeployBundle, EditorConfig,
                         EditorConfigurationFilePath);
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
@@ -98,12 +88,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
                     configuration.assetBundleFileName = AssetBundleFileName;
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
-                    configuration.cloudCredentialsFileName = CloudCredentialsFileName;
-                    configuration.assetBundleFileName = AssetBundleFileName;
-                    configuration.cloudStorageBucketName = CloudStorageBucketName;
-                    configuration.cloudStorageObjectName = CloudStorageObjectName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab,
@@ -180,10 +164,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         [Serializable]
         public class EditorConfiguration
         {
-            public string cloudCredentialsFileName;
             public string assetBundleFileName;
-            public string cloudStorageBucketName;
-            public string cloudStorageObjectName;
         }
     }
 }

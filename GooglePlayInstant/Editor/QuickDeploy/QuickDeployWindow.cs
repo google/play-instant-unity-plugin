@@ -26,10 +26,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Saved configurations from a previous session.
         /// </summary>
         public static readonly QuickDeployConfig Config = new QuickDeployConfig();
-        
+
         private static readonly string[] ToolbarButtonNames =
         {
-            "Overview", "Bundle Creation", "Bundle Deployment", "Loading Screen"
+            "Overview", "Bundle Creation", "Loading Screen"
         };
 
         private static int _toolbarSelectedButtonIndex;
@@ -41,7 +41,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             Overview,
             CreateBundle,
-            DeployBundle,
             LoadingScreen
         }
 
@@ -62,7 +61,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         // Titles for errors that occur
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
-        private const string AssetBundleDeploymentErrorTitle = "AssetBundle Deployment Error";
         private const string AssetBundleCheckerErrorTitle = "AssetBundle Checker Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
         private const string LoadingScreenUpdateErrorTitle = "Loading Screen Update Error";
@@ -76,7 +74,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
             _toolbarSelectedButtonIndex = (int) select;
-            
+
             Config.LoadConfiguration();
         }
 
@@ -85,15 +83,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _treeViewState = new TreeViewState();
 
             _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(_treeViewState);
-        }
-
-
-        void Update()
-        {
-            // Call Update() on AccessTokenGetter and on WwwRequestInProgress to trigger execution of pending tasks
-            // if there are any.
-            AccessTokenGetter.Update();
-            WwwRequestInProgress.Update();
         }
 
         void OnGUI()
@@ -109,9 +98,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     break;
                 case ToolBarSelectedButton.CreateBundle:
                     OnGuiCreateBundleSelect();
-                    break;
-                case ToolBarSelectedButton.DeployBundle:
-                    OnGuiDeployBundleSelect();
                     break;
                 case ToolBarSelectedButton.LoadingScreen:
                     OnGuiLoadingScreenSelect();
@@ -150,10 +136,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(
                 "Use the \"Bundle Creation\" tab to build an AssetBundle containing the game's " +
-                "main scene. Then upload the AssetBundle to Google Cloud Storage via the " +
-                "\"Bundle Deployment\" tab. Finally, use the \"Loading Screen\" tab to select an " +
-                "image to display on the loading screen and the URL that points to the uploaded " +
-                "AssetBundle.", descriptionTextStyle);
+                "main scene. Then upload the created AssetBundle to a server or CDN  " +
+                "and make the url endpoint public. Finally, use the \"Loading Screen\" tab to select an image to " +
+                "display on the loading screen and the URL that points to the uploaded AssetBundle.",
+                descriptionTextStyle);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.Space();
@@ -259,112 +245,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             return scenePaths.ToArray();
-        }
-
-        private void OnGuiDeployBundleSelect()
-        {
-            //TODO: investigate sharing this code
-            var descriptionTextStyle = CreateDescriptionTextStyle();
-
-            EditorGUILayout.LabelField("Create Google Cloud Credentials", EditorStyles.boldLabel);
-            EditorGUILayout.BeginVertical(UserInputGuiStyle);
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(
-                "Quick Deploy requires valid credentials to upload the AssetBundle file.",
-                descriptionTextStyle);
-            EditorGUILayout.LabelField(
-                "Open Google Cloud console to create an OAuth 2.0 client ID. Select Application Type \"Other\". " +
-                "Download the JSON file containing the credentials.",
-                descriptionTextStyle);
-            EditorGUILayout.Space();
-
-            if (GUILayout.Button("Open Google Cloud Console"))
-            {
-                Application.OpenURL("https://console.cloud.google.com/apis/credentials");
-            }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Configure AssetBundle Deployment", EditorStyles.boldLabel);
-            EditorGUILayout.BeginVertical(UserInputGuiStyle);
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(
-                "Specify path to credentials file created above and to AssetBundle file created with  " +
-                "AssetBundle Browser. Choose bucket and object names to use for uploaded AssetBundle file.",
-                descriptionTextStyle);
-            EditorGUILayout.Space();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Google Cloud Credentials File Path", GUILayout.MinWidth(FieldMinWidth));
-            Config.CloudCredentialsFileName =
-                EditorGUILayout.TextField(Config.CloudCredentialsFileName,
-                    GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
-            {
-                Config.CloudCredentialsFileName =
-                    EditorUtility.OpenFilePanel("Select cloud credentials file", "", "");
-                HandleDialogExit();
-            }
-
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.LabelField("AssetBundle File Path", GUILayout.MinWidth(FieldMinWidth));
-            Config.AssetBundleFileName = EditorGUILayout.TextField(Config.AssetBundleFileName,
-                GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
-            {
-                Config.AssetBundleFileName = EditorUtility.OpenFilePanel("Select AssetBundle file", "", "");
-                HandleDialogExit();
-            }
-
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Cloud Storage Bucket Name", GUILayout.MinWidth(FieldMinWidth));
-            Config.CloudStorageBucketName =
-                EditorGUILayout.TextField(Config.CloudStorageBucketName, GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Cloud Storage Object Name", GUILayout.MinWidth(FieldMinWidth));
-            Config.CloudStorageObjectName =
-                EditorGUILayout.TextField(Config.CloudStorageObjectName, GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
-
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Upload to Google Cloud Storage"))
-            {
-                try
-                {
-                    Config.SaveConfiguration(ToolBarSelectedButton.DeployBundle);
-                    GcpClient.DeployConfiguredFile();
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(AssetBundleDeploymentErrorTitle, ex.Message);
-
-                    throw;
-                }
-            }
-
-            EditorGUILayout.Space();
-
-            EditorGUILayout.EndVertical();
         }
 
         private void OnGuiLoadingScreenSelect()

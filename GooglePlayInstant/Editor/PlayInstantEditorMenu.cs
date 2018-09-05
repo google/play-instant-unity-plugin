@@ -81,13 +81,7 @@ namespace GooglePlayInstant.Editor
             QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.CreateBundle);
         }
 
-        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Deployment...", false, 302)]
-        private static void AssetBundleDeploymentSettings()
-        {
-            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.DeployBundle);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 303)]
+        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 302)]
         private static void LoadingScreenSettings()
         {
             QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen);

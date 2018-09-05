@@ -38,10 +38,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         {
             var quickDeployConfig = new QuickDeployConfig
             {
-                AssetBundleFileName = "testbundle",
-                CloudCredentialsFileName = "testcredentials",
-                CloudStorageBucketName = "testbucketname",
-                CloudStorageObjectName = "testobjectname"
+                AssetBundleFileName = "testbundle"
             };
             var inputConfig = new QuickDeployConfig.EditorConfiguration();
 
@@ -53,11 +50,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
                 JsonUtility.FromJson<QuickDeployConfig.EditorConfiguration>(outputConfigurationJson);
 
             Assert.AreEqual(outputConfig.assetBundleFileName, quickDeployConfig.AssetBundleFileName);
-            
-            Assert.IsEmpty(outputConfig.cloudCredentialsFileName, "Cloud credentials should not have been saved. Should be empty.");
-            Assert.IsEmpty(outputConfig.cloudStorageBucketName, "Cloud storage bucket should not have been saved. Should be empty.");
-            Assert.IsEmpty(outputConfig.cloudStorageObjectName, "Cloud storage object should not have been saved. Should be empty.");
-
         }
 
         [Test]
@@ -78,58 +70,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
                 JsonUtility.FromJson<QuickDeployConfig.EditorConfiguration>(outputConfigurationJson);
 
             Assert.IsEmpty(outputConfig.assetBundleFileName);
-        }
-
-        [Test]
-        public void TestSavingConfigOnDeployBundleWithString()
-        {
-            var quickDeployConfig = new QuickDeployConfig
-            {
-                CloudCredentialsFileName = "testcredentials",
-                AssetBundleFileName = "testbundle",
-                CloudStorageBucketName = "testbucket",
-                CloudStorageObjectName = "testobject"
-            };
-
-            var inputConfig = new QuickDeployConfig.EditorConfiguration();
-
-            quickDeployConfig.SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.DeployBundle, inputConfig,
-                TestConfigurationPath);
-
-            var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
-            var outputConfig =
-                JsonUtility.FromJson<QuickDeployConfig.EditorConfiguration>(outputConfigurationJson);
-
-            Assert.AreEqual(outputConfig.cloudCredentialsFileName, quickDeployConfig.CloudCredentialsFileName);
-            Assert.AreEqual(outputConfig.assetBundleFileName, quickDeployConfig.AssetBundleFileName);
-            Assert.AreEqual(outputConfig.cloudStorageBucketName, quickDeployConfig.CloudStorageBucketName);
-            Assert.AreEqual(outputConfig.cloudStorageObjectName, quickDeployConfig.CloudStorageObjectName);
-        }
-
-        [Test]
-        public void TestSavingConfigOnDeployBundleWithEmptyStrings()
-        {
-            var quickDeployConfig = new QuickDeployConfig
-            {
-                CloudCredentialsFileName = "",
-                AssetBundleFileName = "",
-                CloudStorageBucketName = "",
-                CloudStorageObjectName = ""
-            };
-
-            var inputConfig = new QuickDeployConfig.EditorConfiguration();
-
-            quickDeployConfig.SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.DeployBundle, inputConfig,
-                TestConfigurationPath);
-
-            var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
-            var outputConfig =
-                JsonUtility.FromJson<QuickDeployConfig.EditorConfiguration>(outputConfigurationJson);
-
-            Assert.IsEmpty(outputConfig.cloudCredentialsFileName);
-            Assert.IsEmpty(outputConfig.assetBundleFileName);
-            Assert.IsEmpty(outputConfig.cloudStorageBucketName);
-            Assert.IsEmpty(outputConfig.cloudStorageObjectName);
         }
 
         [Test]
@@ -181,20 +121,14 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 
             var inputConfig = new QuickDeployConfig.EditorConfiguration
             {
-                cloudCredentialsFileName = "testcredentials",
-                assetBundleFileName = "testbundle",
-                cloudStorageBucketName = "testbucket",
-                cloudStorageObjectName = "testobject"
+                assetBundleFileName = "testbundle"
             };
 
             File.WriteAllText(TestConfigurationPath, JsonUtility.ToJson(inputConfig));
 
             var outputConfig = quickDeployConfig.LoadEditorConfiguration(TestConfigurationPath);
 
-            Assert.AreEqual(inputConfig.cloudCredentialsFileName, outputConfig.cloudCredentialsFileName);
             Assert.AreEqual(inputConfig.assetBundleFileName, outputConfig.assetBundleFileName);
-            Assert.AreEqual(inputConfig.cloudStorageBucketName, outputConfig.cloudStorageBucketName);
-            Assert.AreEqual(inputConfig.cloudStorageObjectName, outputConfig.cloudStorageObjectName);
         }
 
         [Test]
