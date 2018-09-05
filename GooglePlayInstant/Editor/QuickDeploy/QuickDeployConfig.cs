@@ -77,10 +77,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, EditorConfig,
                         EditorConfigurationFilePath);
                     break;
-                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
-                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.DeployBundle, EditorConfig,
-                        EditorConfigurationFilePath);
-                    break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
                     SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen, EngineConfig,
                         EngineConfigurationFilePath);
@@ -98,12 +94,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
                     configuration.assetBundleFileName = AssetBundleFileName;
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.DeployBundle:
-                    configuration.cloudCredentialsFileName = CloudCredentialsFileName;
-                    configuration.assetBundleFileName = AssetBundleFileName;
-                    configuration.cloudStorageBucketName = CloudStorageBucketName;
-                    configuration.cloudStorageObjectName = CloudStorageObjectName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab,
