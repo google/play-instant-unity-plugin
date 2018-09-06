@@ -103,7 +103,7 @@ namespace GooglePlayInstant.LoadingScreen
 #endif
 
         /// <summary>
-        /// Sets the position and size of the loading bar as a function of the screen heighta and width. 
+        /// Sets the position and size of the loading bar as a function of the screen height and width. 
         /// </summary>
         public static void UpdateSizeAndPostition()
         {

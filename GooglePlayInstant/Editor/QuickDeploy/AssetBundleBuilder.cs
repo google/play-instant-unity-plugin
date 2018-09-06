@@ -48,7 +48,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 Directory.CreateDirectory(assetBundleDirectory);
             }
 
-            // TODO: Update AssetBundle manifest path in PlayInstantBuildConfiguration.(Requires some refactoring)
             var builtAssetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleDirectory,
                 new[] {assetBundleBuild}, BuildAssetBundleOptions.None, EditorUserBuildSettings.activeBuildTarget);
             // Returned AssetBundleManifest will be null if there was error in building assetbundle.

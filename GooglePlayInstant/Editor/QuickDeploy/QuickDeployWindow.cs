@@ -78,14 +78,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Config.LoadConfiguration();
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             _treeViewState = new TreeViewState();
 
             _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(_treeViewState);
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
             _toolbarSelectedButtonIndex = GUILayout.Toolbar(_toolbarSelectedButtonIndex, ToolbarButtonNames,
                 GUILayout.MinHeight(ToolbarHeight));
