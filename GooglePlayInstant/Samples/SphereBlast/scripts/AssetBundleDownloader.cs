@@ -23,10 +23,13 @@ public class AssetBundleDownloader : MonoBehaviour
     private IEnumerator Start()
     {
         // Cleans local cache of asset bundles. 
-        // Uncomment this line for download validation purposes.
-        // Remove this line from published builds.
-        //Caching.ClearCache();
-
+        // This here for download validation purposes
+        // and should be removed from published builds
+#if UNITY_2017_1_OR_NEWER
+        Caching.ClearCache();
+#else
+        Caching.CleanCache();
+#endif
         // Download and load required scenes
         yield return StartCoroutine(
             DownloadAsset(AssetBundleUrl, true));
