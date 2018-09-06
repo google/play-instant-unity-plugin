@@ -14,6 +14,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using GooglePlayInstant.Editor.QuickDeploy;
 
 namespace GooglePlayInstant.Editor
 {
@@ -68,13 +69,31 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Build for Play Console...", false, 300)]
+        [MenuItem("PlayInstant/Quick Deploy/Overview...", false, 300)]
+        private static void QuickDeployOverview()
+        {
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.Overview);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Creation...", false, 301)]
+        private static void AssetBundleCreationSettings()
+        {
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.CreateBundle);
+        }
+
+        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 302)]
+        private static void LoadingScreenSettings()
+        {
+            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
+        }
+
+        [MenuItem("PlayInstant/Build for Play Console...", false, 400)]
         private static void BuildForPlayConsole()
         {
             PlayInstantPublishser.Build();
         }
 
-        [MenuItem("PlayInstant/Build and Run #%r", false, 301)]
+        [MenuItem("PlayInstant/Build and Run #%r", false, 401)]
         private static void BuildAndRun()
         {
             PlayInstantRunner.BuildAndRun();
