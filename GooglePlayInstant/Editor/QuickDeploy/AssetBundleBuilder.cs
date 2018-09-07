@@ -63,6 +63,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             PlayInstantBuildConfiguration.SaveConfiguration(PlayInstantBuildConfiguration.InstantUrl,
                 PlayInstantBuildConfiguration.ScenesInBuild, builtAssetBundleManifestPath);
             BuildSettingsWindow.UpdateWindowIfOpen();
+            AssetDatabase.Refresh();
         }
     }
 }
