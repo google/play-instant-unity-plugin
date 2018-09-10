@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -89,13 +90,17 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
             else
             {
-                //TODO: investigate GUI Layout errors that occur when moving this to DialogHelper
-                if (EditorUtility.DisplayDialog("Change Scenes in Build",
-                    "Would you like to replace any existing Scenes in Build with the loading screen scene?", "Yes",
-                    "No"))
+                AssetDatabase.Refresh();
+                EditorApplication.delayCall += () =>
                 {
-                    SetMainSceneInBuild(SceneFilePath);
-                }
+                    //TODO: move this to DialogHelper
+                    if (EditorUtility.DisplayDialog("Change Scenes in Build",
+                        "Would you like to replace any existing Scenes in Build with the loading screen scene?", "Yes",
+                        "No"))
+                    {
+                        SetMainSceneInBuild(SceneFilePath);
+                    }
+                };
             }
         }
 
