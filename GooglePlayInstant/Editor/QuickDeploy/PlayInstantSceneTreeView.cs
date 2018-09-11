@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -26,17 +28,56 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     public class PlayInstantSceneTreeView : TreeView
     {
         private const int ToggleWidth = 18;
-        private readonly List<TreeViewItem> _allItems = new List<TreeViewItem>();
         private int rowID = 0;
+        private readonly List<SceneItem> _allItems = new List<SceneItem>();
 
-        public PlayInstantSceneTreeView(TreeViewState treeViewState)
-            : base(treeViewState)
+        public event Action<State> OnTreeStateChanged = delegate { };
+
+        public PlayInstantSceneTreeView(State scenesViewState)
+            : base(scenesViewState.ViewState)
         {
             showAlternatingRowBackgrounds = true;
             showBorder = true;
             extraSpaceBeforeIconAndLabel = ToggleWidth;
 
+            AddScenes(scenesViewState.ScenePaths, scenesViewState.IsSceneEnabled);
+
             Reload();
+        }
+
+        /// <summary>
+        /// Public inner class that contains all the state necessary to restore the PlayInstantSceneTreeView.
+        /// </summary>
+        [Serializable]
+        public class State
+        {
+            // We use two implicitly linked arrays here because Unity doesn't serialize structs.
+            public string[] ScenePaths;
+            public bool[] IsSceneEnabled;
+            public TreeViewState ViewState;
+
+            public State()
+            {
+                ScenePaths = new string[0];
+                IsSceneEnabled = new bool[0];
+                ViewState = new TreeViewState();
+            }
+
+            public override bool Equals(object obj)
+            {
+                var that = obj as State;
+                if (that == null) return false;
+                if (this.ViewState != that.ViewState) return false;
+                if (this.ScenePaths.Length != that.ScenePaths.Length) return false;
+
+                for (int i = 0; i < this.ScenePaths.Length; i++)
+                {
+                    if (this.ScenePaths[i] != that.ScenePaths[i]) return false;
+                    if (this.IsSceneEnabled[i] != that.IsSceneEnabled[i]) return false;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -47,7 +88,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             public bool Enabled;
             public bool OldEnabledValue;
             public string SceneBuildIndexString;
-            
+
             public override bool Equals(object obj)
             {
                 var that = obj as SceneItem;
@@ -57,16 +98,26 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         public void AddOpenScenes()
         {
-            var scenes = GetAllScenes();
+            var scenePaths = GetOpenScenePaths();
+            var isSceneEnabled = new bool[scenePaths.Length];
+            for (int i = 0; i < isSceneEnabled.Length; i++)
+            {
+                isSceneEnabled[i] = true;
+            }
 
-            for (var i = 0; i < scenes.Length; i++)
+            AddScenes(scenePaths, isSceneEnabled);
+        }
+
+        private void AddScenes(string[] scenePaths, bool[] isSceneEnabled)
+        {
+            for (var i = 0; i < scenePaths.Length; i++)
             {
                 var sceneItem = new SceneItem
                 {
                     id = rowID++,
                     depth = 0,
-                    displayName = scenes[i].path,
-                    Enabled = true
+                    displayName = scenePaths[i],
+                    Enabled = isSceneEnabled[i]
                 };
 
                 if (!_allItems.Contains(sceneItem))
@@ -75,8 +126,19 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 }
             }
 
-            EditSceneBuildIndexString();
+            OnRowsChanged();
             Reload();
+        }
+
+        private void OnRowsChanged()
+        {
+            var sceneViewState = new State();
+            sceneViewState.ViewState = new TreeViewState();
+            sceneViewState.ScenePaths = _allItems.Select(sceneItem => sceneItem.displayName).ToArray();
+            sceneViewState.IsSceneEnabled = _allItems.Select(sceneItem => sceneItem.Enabled).ToArray();
+
+            OnTreeStateChanged.Invoke(sceneViewState);
+            EditSceneBuildIndexString();
         }
 
         private void EditSceneBuildIndexString()
@@ -98,20 +160,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 displayName = "Root"
             };
 
-            SetupParentsAndChildrenFromDepths(root, _allItems);
-
+            var items = _allItems.Cast<TreeViewItem>().ToList();
+            SetupParentsAndChildrenFromDepths(root, items);
             return root;
         }
 
-        private static Scene[] GetAllScenes()
+        private static string[] GetOpenScenePaths()
         {
-            var scenes = new Scene[SceneManager.sceneCount];
-            for (var i = 0; i < scenes.Length; i++)
+            var scenePaths = new string[SceneManager.sceneCount];
+            for (var i = 0; i < scenePaths.Length; i++)
             {
-                scenes[i] = SceneManager.GetSceneAt(i);
+                scenePaths[i] = SceneManager.GetSceneAt(i).path;
             }
 
-            return scenes;
+            return scenePaths;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -128,7 +190,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (item.OldEnabledValue != item.Enabled)
             {
-                EditSceneBuildIndexString();
+                OnRowsChanged();
             }
 
             DefaultGUI.LabelRightAligned(args.rowRect, item.SceneBuildIndexString, args.selected, args.focused);
@@ -148,7 +210,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private void RemoveScene(object item)
         {
             _allItems.Remove((SceneItem) item);
-            EditSceneBuildIndexString();
+            OnRowsChanged();
             Reload();
         }
 

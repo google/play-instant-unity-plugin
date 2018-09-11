@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -66,23 +65,26 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string LoadingScreenUpdateErrorTitle = "Loading Screen Update Error";
 
         private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
-        private TreeViewState _treeViewState;
 
         public static void ShowWindow(ToolBarSelectedButton select)
         {
             var window = GetWindow<QuickDeployWindow>(true, "Quick Deploy");
-
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
             _toolbarSelectedButtonIndex = (int) select;
-
-            Config.LoadConfiguration();
         }
 
         private void OnEnable()
         {
-            _treeViewState = new TreeViewState();
+            Config.LoadConfiguration();
+            
+            var scenesViewState = Config.AssetBundleScenes;
+            if (scenesViewState == null) scenesViewState = new PlayInstantSceneTreeView.State();
 
-            _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(_treeViewState);
+            _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(scenesViewState);
+            _playInstantSceneTreeTreeView.OnTreeStateChanged += (treeState) =>
+            {
+                Config.AssetBundleScenes = treeState;
+            };
         }
 
         private void OnGUI()
