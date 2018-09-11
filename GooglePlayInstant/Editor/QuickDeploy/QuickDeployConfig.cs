@@ -15,6 +15,7 @@
 using System;
 using System.IO;
 using GooglePlayInstant.LoadingScreen;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -47,6 +48,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
         public string AssetBundleFileName;
+        public PlayInstantSceneTreeView.State AssetBundleScenes;
         public string AssetBundleUrl;
 
         public void LoadConfiguration()
@@ -56,6 +58,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             
             // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
             AssetBundleFileName = EditorConfig.assetBundleFileName;
+            AssetBundleScenes = EditorConfig.assetBundleScenes;
             AssetBundleUrl = EngineConfig.assetBundleUrl;
         }
 
@@ -88,6 +91,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
                     configuration.assetBundleFileName = AssetBundleFileName;
+                    configuration.assetBundleScenes = AssetBundleScenes;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab,
@@ -165,6 +169,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public class EditorConfiguration
         {
             public string assetBundleFileName;
+            public PlayInstantSceneTreeView.State assetBundleScenes;
         }
     }
 }
