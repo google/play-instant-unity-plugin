@@ -77,8 +77,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             Config.LoadConfiguration();
             
-            var scenesViewState = Config.AssetBundleScenes;
-            if (scenesViewState == null) scenesViewState = new PlayInstantSceneTreeView.State();
+            var scenesViewState = Config.AssetBundleScenes ?? new PlayInstantSceneTreeView.State();
 
             _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(scenesViewState);
             _playInstantSceneTreeTreeView.OnTreeStateChanged += (treeState) =>
