@@ -32,7 +32,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class LoadingScreenGenerator
     {
-        public const string SceneName = "play-instant-loading-screen-scene.unity";
+        public const string SceneName = "PlayInstantLoadingScreen.unity";
 
         public static readonly string SceneDirectoryPath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
