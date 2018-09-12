@@ -35,6 +35,7 @@ namespace GooglePlayInstant.Editor
 #else
             new LegacyAndroidManifestUpdater();
 #endif
+        private static BuildSettingsWindow _windowInstance;
 
         private bool _isInstant;
         private string _instantUrl;
@@ -46,10 +47,23 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void ShowWindow()
         {
-            GetWindow(typeof(BuildSettingsWindow), true, WindowTitle);
+            _windowInstance = GetWindow(typeof(BuildSettingsWindow), true, WindowTitle) as BuildSettingsWindow;
+        }
+
+        private void OnDestroy()
+        {
+            _windowInstance = null;
         }
 
         private void Awake()
+        {
+            ReadFromBuildConfiguration();
+        }
+
+        /// <summary>
+        /// Read and update the window with most recent build configuration values.
+        /// </summary>
+        void ReadFromBuildConfiguration()
         {
             _isInstant = PlayInstantBuildConfiguration.IsInstantBuildType();
             _instantUrl = PlayInstantBuildConfiguration.InstantUrl;
@@ -57,8 +71,26 @@ namespace GooglePlayInstant.Editor
             _assetBundleManifestPath = PlayInstantBuildConfiguration.AssetBundleManifestPath;
         }
 
+        /// <summary>
+        /// Update window with most recent build configuration values if the window is open.
+        /// </summary>
+        public static void UpdateWindowIfOpen()
+        {
+            if (_windowInstance != null)
+            {
+                _windowInstance.ReadFromBuildConfiguration();
+                _windowInstance.Repaint();
+            }
+        }
+
         private void OnGUI()
         {
+            // Edge case that takes place when the plugin code gets re-compiled while this window is open.
+            if (_windowInstance == null)
+            {
+                _windowInstance = this;
+            }
+
             var descriptionTextStyle = new GUIStyle(GUI.skin.label)
             {
                 fontStyle = FontStyle.Italic,
