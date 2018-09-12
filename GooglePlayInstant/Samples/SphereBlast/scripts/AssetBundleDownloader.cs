@@ -26,7 +26,11 @@ public class AssetBundleDownloader : MonoBehaviour
         // Cleans local cache of asset bundles. 
         // This here for download validation purposes
         // and should be removed from published builds
+#if UNITY_2017_1_OR_NEWER
         Caching.ClearCache();
+#else
+        Caching.CleanCache();
+#endif
         // Download and load required scenes
         yield return StartCoroutine(
             DownloadAsset(AssetBundleUrl, true));
