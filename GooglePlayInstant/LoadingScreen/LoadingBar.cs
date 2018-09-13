@@ -22,159 +22,92 @@ using UnityEngine.UI;
 namespace GooglePlayInstant.LoadingScreen
 {
     /// <summary>
-    /// Class that encapsulates the creation and update of a Loading Bar component in the editor and during the game's
-    /// runtime.
+    /// Presents download progress to the user
     /// </summary>
-    public static class LoadingBar
+    [ExecuteInEditMode]
+    public class LoadingBar : MonoBehaviour
     {
-        // TODO: revisit these arbitrarily chosen values
-        /// <summary>
-        /// Percentage of the loading bar allocated to the the asset bundle downloading process.
-        /// </summary>
-        public const float AssetBundleDownloadMaxWidthPercentage = .8f;
+        public float OutlineWidth = 10f;
+        public float InnerBorderWidth = 10f;
+
+        [Tooltip("If true, this object's RectTransform will update to adjust the outline and border width")]
+        public bool ResizeAutomatically = true;
+
+        [Range(0f, 1f)] public float Progress = 0.25f;
+
+        public RectTransform Background;
+        public RectTransform Outline;
+        public RectTransform ProgressHolder;
+        public RectTransform ProgressFill;
+
+        [Tooltip("Percentage of the loading bar allocated to the asset bundle downloading process.")]
+        public float AssetBundleDownloadMaxWidthPercentage = .8f;
+
+        private RectTransform _rectTransform;
 
         /// <summary>
         /// Percentage of the loading bar allocated to the the scene loading process.
         /// </summary>
-        public const float SceneLoadingMaxWidthPercentage = 1 - AssetBundleDownloadMaxWidthPercentage;
-
-        // Loading bar fill's padding against the loading bar outline.
-        private const int LoadingBarFillPadding = 17;
-
-        // Loading bar size as a proportion of the screen size. Adjust if needed.
-        private const float LoadingBarWidthProportion = 0.7f;
-        private const float LoadingBarHeightProportion = 0.02f;
-
-        // Loading bar placement as a proportion of the screen size relative to the bottom left corner. Adjust if needed.
-        private const float LoadingBarPositionX = 0.5f;
-        private const float LoadingBarPositionY = 0.3f;
-
-        // Names for the gameobject components
-        private const string LoadingBarGameObjectName = "Loading Bar";
-        private const string LoadingBarOutlineGameObjectName = "Loading Bar Outline";
-        private const string LoadingBarFillGameObjectName = "Loading Bar Fill";
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// Creates a loading bar component on the specified loading screen game object's bottom half. Consists of
-        /// a white rounded border, with a colored loading bar fill in the middle.
-        /// </summary>
-        public static void AddComponent(GameObject loadingScreenGameObject)
+        public float SceneLoadingMaxWidthPercentage
         {
-            var loadingBarGameObject = new GameObject(LoadingBarGameObjectName);
-            loadingBarGameObject.AddComponent<RectTransform>();
-            loadingBarGameObject.transform.SetParent(loadingScreenGameObject.transform);
-
-            SetOutline(loadingBarGameObject);
-            SetFill(loadingBarGameObject);
+            get { return 1f - AssetBundleDownloadMaxWidthPercentage; }
         }
 
-        // TODO: check for compatibilty with unity 5.6+
-        private static void SetOutline(GameObject loadingBarGameObject)
+        private void Start()
         {
-            var loadingBarOutlineGameObject = new GameObject(LoadingBarOutlineGameObjectName);
-            loadingBarOutlineGameObject.transform.SetParent(loadingBarGameObject.transform);
-
-            loadingBarOutlineGameObject.AddComponent<Image>();
-
-            var loadingBarOutlineImage = loadingBarOutlineGameObject.GetComponent<Image>();
-            loadingBarOutlineImage.sprite =
-                AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/InputFieldBackground.psd");
-
-            loadingBarOutlineImage.type = Image.Type.Sliced;
-            loadingBarOutlineImage.fillCenter = false;
-
-            // Position outline component
-            loadingBarOutlineGameObject.transform.position = loadingBarGameObject.transform.position;
+            _rectTransform = GetComponent<RectTransform>();
         }
 
-        private static void SetFill(GameObject loadingBarGameObject)
+        private void Update()
         {
-            var loadingBarFillGameObject = new GameObject(LoadingBarFillGameObjectName);
-            loadingBarFillGameObject.transform.SetParent(loadingBarGameObject.transform);
-
-            loadingBarFillGameObject.AddComponent<Image>();
-            var loadingBarFillImage = loadingBarFillGameObject.GetComponent<Image>();
-            loadingBarFillImage.color = Color.green;
-
-            // Position fill component
-            loadingBarFillGameObject.transform.position = loadingBarGameObject.transform.position;
+            if (ResizeAutomatically)
+            {
+                ApplyBorderWidth();
+            }
         }
-#endif
 
-        /// <summary>
-        /// Sets the position and size of the loading bar as a function of the screen height and width. 
-        /// </summary>
-        public static void UpdateSizeAndPostition()
+        // TODO: Make sure this scales correctly in landscape
+        public void ApplyBorderWidth()
         {
-            var loadingBarRectTransform = GameObject.Find(LoadingBarGameObjectName).GetComponent<RectTransform>();
-            var loadingBarFillRectTransform =
-                GameObject.Find(LoadingBarFillGameObjectName).GetComponent<RectTransform>();
-            var loadingBarOutlineRectTransform =
-                GameObject.Find(LoadingBarOutlineGameObjectName).GetComponent<RectTransform>();
+            if (_rectTransform == null) _rectTransform = GetComponent<RectTransform>();
 
-            loadingBarRectTransform.position =
-                new Vector2(Screen.width * LoadingBarPositionX, Screen.height * LoadingBarPositionY);
+            Outline.anchorMin = Vector3.zero;
+            Outline.anchorMax = Vector3.one;
+            Outline.sizeDelta = Vector2.one * (OutlineWidth + InnerBorderWidth);
+            
+            Background.anchorMin = Vector3.zero;
+            Background.anchorMax = Vector3.one;
+            Background.sizeDelta = Vector2.one * (InnerBorderWidth);
+        }
 
-            loadingBarRectTransform.sizeDelta = new Vector2(Screen.width * LoadingBarWidthProportion,
-                Screen.height * LoadingBarHeightProportion);
-
-            loadingBarOutlineRectTransform.sizeDelta = loadingBarRectTransform.sizeDelta;
-            loadingBarFillRectTransform.sizeDelta =
-                new Vector2(0.0f, loadingBarRectTransform.sizeDelta.y - LoadingBarFillPadding);
+        public void SetProgress(float proportionOfLoadingBar)
+        {
+            Progress = proportionOfLoadingBar;
+            ProgressFill.anchorMax = Vector2.right * proportionOfLoadingBar;
         }
 
         /// <summary>
         /// Resets the loading bar back to 0 percent.
         /// </summary>
-        public static void Reset()
+        public void Reset()
         {
-            var loadingBarFillRectTransform =
-                GameObject.Find(LoadingBarFillGameObjectName).GetComponent<RectTransform>();
-
-            loadingBarFillRectTransform.sizeDelta =
-                new Vector2(0.0f, loadingBarFillRectTransform.sizeDelta.y);
+            SetProgress(0f);
         }
-
 
         /// <summary>
         /// Updates a loading bar by the progress made by an asynchronous operation up to a specific percentage of
         /// the loading bar. 
         /// </summary>
-        public static IEnumerator Update(AsyncOperation operation, float percentageOfLoadingBar)
+        public IEnumerator FillUntilDone(AsyncOperation operation, float percentageOfLoadingBar)
         {
-            var loadingBarRectTransform = GameObject.Find(LoadingBarGameObjectName).GetComponent<RectTransform>();
-
-            var loadingBarFillRectTransform =
-                GameObject.Find(LoadingBarFillGameObjectName).GetComponent<RectTransform>();
-
-            // Total amount of space the loading bar can occupy
-            var loadingBarFillMaxWidth = loadingBarRectTransform.sizeDelta.x - LoadingBarFillPadding;
-
-            // Percentage of space that is allocated for this async operation
-            var loadingMaxWidth = loadingBarFillMaxWidth * percentageOfLoadingBar;
-
-            // Current width of the loading bar
-            var currentLoadingBarFill = loadingBarFillRectTransform.sizeDelta.x;
-
-            var loadingIsDone = false;
-
-            while (!loadingIsDone)
+            var isDone = false;
+            while (!isDone)
             {
-                loadingBarFillRectTransform.sizeDelta = new Vector2(
-                    currentLoadingBarFill + loadingMaxWidth * operation.progress,
-                    loadingBarFillRectTransform.sizeDelta.y);
-
-                // Changing the width of the rectangle makes it shorter (or larger) on both sides--thus requiring
-                // the rectangle's x position to be moved left by half the amount it's been shortened.
-                loadingBarFillRectTransform.position = new Vector2(
-                    loadingBarRectTransform.position.x -
-                    (loadingBarFillMaxWidth - loadingBarFillRectTransform.sizeDelta.x) / 2f,
-                    loadingBarFillRectTransform.position.y);
+                SetProgress(operation.progress);
 
                 if (operation.isDone)
                 {
-                    loadingIsDone = true;
+                    isDone = true;
                 }
 
                 yield return null;

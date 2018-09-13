@@ -345,8 +345,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     try
                     {
                         Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                        LoadingScreenGenerator.AddImageToScene(LoadingScreenGenerator.GetLoadingScreenCanvasObject(),
-                            _loadingScreenImagePath);
+                        LoadingScreenGenerator.UpdateBackgroundImage(null); //TODO Pass in the sprite.
                     }
                     catch (Exception ex)
                     {

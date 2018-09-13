@@ -15,6 +15,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -40,6 +41,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string CanvasName = "Loading Screen Canvas";
 
         private const string SaveErrorTitle = "Loading Screen Save Error";
+
+        private const int ReferenceWidth = 1080;
+        private const int ReferenceHeight = 1920;
 
         private static readonly string SceneFilePath =
             Path.Combine(SceneDirectoryPath, SceneName);
@@ -68,14 +72,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-            var loadingScreenGameObject = new GameObject(CanvasName);
-
-            AddImageToScene(loadingScreenGameObject, loadingScreenImagePath);
-
-            AddScript(loadingScreenGameObject);
-
-            LoadingBar.AddComponent(loadingScreenGameObject);
-
+            PopulateScene(loadingScreenImagePath, null);
+            
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
 
             if (!saveOk)
@@ -123,42 +121,40 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             };
         }
 
-        // Visible for testing
-        internal static void AddScript(GameObject loadingScreenGameObject)
+        private static void PopulateScene(string imagePath, Sprite backgroundSprite)
         {
-            loadingScreenGameObject.AddComponent<LoadingScreenScript>();
+            var loadingScreenGameObject = new GameObject("Loading Screen");
+
+            var cameraObject = new GameObject("UI Camera");
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = ReferenceHeight / 2f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.white;
+            camera.transform.SetParent(loadingScreenGameObject.transform);
+            
+            var canvasObject = new GameObject(CanvasName);
+            var canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+            var canvasScaler = canvasObject.AddComponent<CanvasScaler>();
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
+            canvasScaler.matchWidthOrHeight = 0f;
+            canvasScaler.transform.SetParent(loadingScreenGameObject.transform);
+            
+            var backgroundObject = new GameObject("Background");
+            var backgroundImage = backgroundObject.AddComponent<Image>();
+            backgroundImage.sprite = backgroundSprite;
+            var backgroundRect = backgroundObject.GetComponent<RectTransform>();
+            backgroundRect.anchorMin = Vector2.zero; // Scale with parent.
+            backgroundRect.anchorMax = Vector2.one;            
         }
-
-
+    
         // Visible for testing
-        internal static void AddImageToScene(GameObject loadingScreenGameObject,
-            string pathToLoadingScreenImage)
+        internal static void UpdateBackgroundImage(Sprite sprite)
         {
-            if (loadingScreenGameObject.GetComponent<Canvas>() == null)
-            {
-                // First time creating a loading screen, configure nested game objects appropriately.
-                var loadingScreenCanvas = loadingScreenGameObject.AddComponent<Canvas>();
-
-                loadingScreenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-                loadingScreenGameObject.AddComponent<Image>();
-            }
-
-            var loadingScreenImageData = File.ReadAllBytes(pathToLoadingScreenImage);
-
-            var tex = new Texture2D(1, 1);
-
-            var texLoaded = tex.LoadImage(loadingScreenImageData);
-
-            if (!texLoaded)
-            {
-                throw new Exception("Failed to load image as a Texture2D.");
-            }
-
-            var loadingImageSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-
-            var loadingScreenImage = loadingScreenGameObject.GetComponent<Image>();
-            loadingScreenImage.sprite = loadingImageSprite;
+            
         }
     }
 }

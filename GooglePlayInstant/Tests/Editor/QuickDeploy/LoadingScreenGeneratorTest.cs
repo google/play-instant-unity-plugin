@@ -48,13 +48,13 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         public void TestAddLoadingScreenScript()
         {
             var loadingScreenGameObject = new GameObject(TestGameObjectName);
-            LoadingScreenGenerator.AddScript(loadingScreenGameObject);
-            Assert.IsNotNull(loadingScreenGameObject.GetComponent<LoadingScreenScript>(),
+            //LoadingScreenGenerator.AddScript(loadingScreenGameObject);
+            Assert.IsNotNull(loadingScreenGameObject.GetComponent<LoadingScreen.LoadingScreen>(),
                 "A script should be attached to the loading screen object.");
         }
 
         [Test]
-        public void TestAddLoadingScreenImage()
+        public void TestUpdateBackgroundImage()
         {
             const string testImage = "example.png";
 
@@ -63,7 +63,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 
             var loadingScreenGameObject = new GameObject(TestGameObjectName);
 
-            LoadingScreenGenerator.AddImageToScene(loadingScreenGameObject, testImage);
+            //LoadingScreenGenerator.AddImageToScene(loadingScreenGameObject, testImage);
 
             Assert.IsNotNull(loadingScreenGameObject.GetComponent<Canvas>(),
                 "A canvas component should have been added to the loading screen game object.");
