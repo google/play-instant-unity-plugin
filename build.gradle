@@ -104,6 +104,48 @@ task exportSampleSphereBlast {
     }
 }
 
+
+task buildTestApp {
+    description 'Creates the instant app test project, then builds a test app'
+    def buildFunction = 'GooglePlayInstant.Samples.TestApp.Editor.TestAppBuilder.Build'
+    def buildPath = "${playInstantBuildPath}/testapp"
+    def logFile = file("testapp.log").getPath()
+    
+    //Specify output file path relative to the root path using -PoutputFile
+    def outputFileArg = project.hasProperty('outputFile') ? outputFile : "${playInstantBuildPath}/testapp.apk"
+    outputFileArg = file(outputFileArg)
+        
+    doFirst {
+        copyFiles(buildPath, ['Tests'])
+        copy {
+            from 'GooglePlayInstant/Samples/TestApp'
+            into "${buildPath}/Assets/TestApp"
+        }
+    }
+    doLast {
+        println "Building to ${outputFileArg}"
+        def argv = [
+            '-batchmode',
+            '-noGraphics',
+            '-projectPath',
+            buildPath,
+            '-logFile',
+            logFile,
+            '-buildTarget',
+            'Android',
+            '-outputFile',
+            outputFileArg,
+            '-executeMethod',
+            buildFunction,
+            '-quit'
+        ]
+        exec {
+            executable unityExe
+            args argv
+        }
+    }
+}
+
 task tests {
     description 'Runs unit tests with Unity test runner'
     def buildPath = "${playInstantBuildPath}/tests"
