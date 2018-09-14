@@ -89,6 +89,7 @@ task exportPlugin {
     }
 }
 
+// Create Sphere Blast sample
 task exportSampleSphereBlast {
     description 'Creates and exports the Plugin unity package'
     def buildPath = "${playInstantBuildPath}/sphereblast"
@@ -104,6 +105,7 @@ task exportSampleSphereBlast {
     }
 }
 
+// Unit tests
 task tests {
     description 'Runs unit tests with Unity test runner'
     def buildPath = "${playInstantBuildPath}/tests"
