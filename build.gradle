@@ -58,6 +58,7 @@ def copyFiles(projectPath, exclusions) {
     }
 }
 
+// Export Unity Package
 def exportUnityPackage(projectPath, packageFilePrefix) {
     description 'Creates a .unitypackage file with the specified prefix'
     def packageFileName = "${packageFilePrefix}-${pluginVersion}.unitypackage"
