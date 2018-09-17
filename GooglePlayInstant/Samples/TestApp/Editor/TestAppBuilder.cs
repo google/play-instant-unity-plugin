@@ -26,7 +26,6 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
     public static class TestAppBuilder
     {
         private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
-        private const string InstantUrl = "https://instant.apps/com.google.android.instantapps.samples.unity.testapp";
         private const string DefaultApkPath = "Assets/../testapp.apk";
         private const string ApkPathArg = "-outputFile";
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
@@ -48,15 +47,14 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             var manifestUpdater = GetAndroidManifestUpdater();
-            var uri = new Uri(InstantUrl);
-            var errorMessage = manifestUpdater.SwitchToInstant(uri);
+            var errorMessage = manifestUpdater.SwitchToInstant(null);
             if (errorMessage != null)
             {
                 Debug.LogErrorFormat("Error updating AndroidManifest.xml: {0}", errorMessage);
                 return;
             }
 
-            PlayInstantBuildConfiguration.SaveConfiguration(InstantUrl, TestScenePaths, "");
+            PlayInstantBuildConfiguration.SaveConfiguration("", TestScenePaths, "");
             PlayInstantBuildConfiguration.SetInstantBuildType();
             PlayerSettings.applicationIdentifier = BundleIdentifier;
         }
