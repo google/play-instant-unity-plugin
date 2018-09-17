@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.IO;
-using System.Linq;
+using System;
 using GooglePlayInstant.Editor;
+using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
+using UnityEngine;
 
 namespace GooglePlayInstant.Samples.TestApp.Editor
 {
@@ -25,6 +26,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
     public static class TestAppBuilder
     {
         private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
+        private const string InstantUrl = "https://instant.apps/com.google.android.instantapps.samples.unity.testapp";
         private const string DefaultApkPath = "Assets/../testapp.apk";
         private const string ApkPathArg = "-outputFile";
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
@@ -45,7 +47,16 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
                 policy.ChangeState();
             }
 
-            PlayInstantBuildConfiguration.SaveConfiguration("", TestScenePaths, "");
+            var manifestUpdater = GetAndroidManifestUpdater();
+            var uri = new Uri(InstantUrl);
+            var errorMessage = manifestUpdater.SwitchToInstant(uri);
+            if (errorMessage != null)
+            {
+                Debug.LogErrorFormat("Error updating AndroidManifest.xml: {0}", errorMessage);
+                return;
+            }
+
+            PlayInstantBuildConfiguration.SaveConfiguration(InstantUrl, TestScenePaths, "");
             PlayInstantBuildConfiguration.SetInstantBuildType();
             PlayerSettings.applicationIdentifier = BundleIdentifier;
         }
@@ -65,6 +76,15 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             return DefaultApkPath;
+        }
+
+        private static IAndroidManifestUpdater GetAndroidManifestUpdater()
+        {
+#if UNITY_2018_1_OR_NEWER
+            return new PostGenerateGradleProjectAndroidManifestUpdater();
+#else
+            return new LegacyAndroidManifestUpdater();
+#endif
         }
     }
 }
