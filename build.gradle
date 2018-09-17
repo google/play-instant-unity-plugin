@@ -137,4 +137,9 @@ task clean(type: Delete) {
     }
 }
 
+task automatedTests {
+    dependsOn 'exportPlugin'
+    dependsOn 'tests'
+}
+
 project.defaultTasks = ['tests', 'exportPlugin']
