@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using GooglePlayInstant.Editor;
 using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
@@ -22,6 +23,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 {
     /// <summary>
     /// Exposes build functionality to the command line for testing.
+    /// Produces both an APK file and a ZIP file
     /// </summary>
     public static class TestAppBuilder
     {
@@ -36,6 +38,11 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             var apkPath = GetApkPath();
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
+
+            var apkDirectory = Path.GetDirectoryName(apkPath);
+            var apkFileName = Path.GetFileNameWithoutExtension(apkPath);
+            var zipApkPath = Path.Combine(apkDirectory, apkFileName+".zip");
+            PlayInstantPublishser.ZipApk(apkPath, zipApkPath);
         }
 
         private static void ConfigureProject()
