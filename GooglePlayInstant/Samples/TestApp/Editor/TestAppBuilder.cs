@@ -40,9 +40,10 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
 
             var apkDirectory = Path.GetDirectoryName(apkPath);
-            var apkFileName = Path.GetFileNameWithoutExtension(apkPath);
-            var zipApkPath = Path.Combine(apkDirectory, apkFileName+".zip");
-            PlayInstantPublishser.ZipApk(apkPath, zipApkPath);
+            var apkFileName = Path.GetFileName(apkPath);
+            var zipFileName = Path.GetFileNameWithoutExtension(apkPath) + ".zip";
+            var zipApkPath = Path.Combine(apkDirectory, zipFileName);
+            ZipUtils.CreateZipFile(apkDirectory, apkFileName, zipApkPath);
         }
 
         private static void ConfigureProject()

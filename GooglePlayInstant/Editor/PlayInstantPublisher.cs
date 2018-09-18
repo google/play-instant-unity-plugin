@@ -48,32 +48,8 @@ namespace GooglePlayInstant.Editor
                 return;
             }
 
-            ZipApk(baseApkPath, zipFilePath);
-        }
-
-        /// <summary>
-        /// Creates a ZIP file containing the specified APK
-        /// </summary>
-        public static void ZipApk(string apkPath, string zipFilePath)
-        {
-            var apkDirectory = Path.GetDirectoryName(apkPath);
-            var apkName = Path.GetFileName(apkPath);
-            
             // Zip creation is fast enough so call jar synchronously rather than wait for post build AppDomain reset.
-            var arguments = string.Format(
-                "cvf {0} -C {1} {2}",
-                CommandLine.QuotePathIfNecessary(zipFilePath),
-                CommandLine.QuotePathIfNecessary(apkDirectory),
-                apkName);
-            var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
-            if (result.exitCode == 0)
-            {
-                Debug.LogFormat("Created ZIP containing {0}: {1}", apkName, zipFilePath);
-            }
-            else
-            {
-                PlayInstantBuilder.LogError(string.Format("Zip creation failed: {0}", result.message));
-            }
+            ZipUtils.CreateZipFile(baseApkDirectory, BaseApkFileName, zipFilePath);
         }
     }
 }
