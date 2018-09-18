@@ -18,11 +18,13 @@ using UnityEngine.Rendering;
 
 namespace GooglePlayInstant.Editor
 {
+    /// <summary>
+    /// Enumerates Unity setting policies that affect whether an instant app can successfully be built. Some settings
+    /// are required and must be configured in a certain way, where others are simply recommended. Each policy can
+    /// report whether it is configured correctly and if not, provides a delegate to change to the preferred state.
+    /// </summary>
     public class PlayInstantSettingPolicy
     {
-        private const string ArmOnlyDescription =
-            "Pre-Oreo x86 devices are generally unsupported for instant apps. Removing x86 reduces APK size.";
-
         private const string MultithreadedRenderingDescription =
             "Pre-Oreo devices do not support instant apps using EGL shared contexts.";
 
@@ -117,7 +119,7 @@ namespace GooglePlayInstant.Editor
                     {
                         PlayerSettings.SetMobileMTRendering(BuildTargetGroup.Android, false);
                         return true;
-                    }),
+                    })
 #else
                 new PlayInstantSettingPolicy(
                     "Mobile Multithreaded Rendering should be disabled",
@@ -127,29 +129,7 @@ namespace GooglePlayInstant.Editor
                     {
                         PlayerSettings.mobileMTRendering = false;
                         return true;
-                    }),
-#endif
-
-#if UNITY_2018_1_OR_NEWER
-                new PlayInstantSettingPolicy(
-                    "Android Target Architecture should be ARMv7",
-                    ArmOnlyDescription,
-                    () => PlayerSettings.Android.targetArchitectures == AndroidArchitecture.ARMv7,
-                    () =>
-                    {
-                        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7;
-                        return true;
-                    }),
-#else
-                new PlayInstantSettingPolicy(
-                    "Android Device Filter should be ARMv7 only",
-                    ArmOnlyDescription,
-                    () => PlayerSettings.Android.targetDevice == AndroidTargetDevice.ARMv7,
-                    () =>
-                    {
-                        PlayerSettings.Android.targetDevice = AndroidTargetDevice.ARMv7;
-                        return true;
-                    }),
+                    })
 #endif
             };
         }
