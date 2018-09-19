@@ -104,6 +104,16 @@ task exportSampleSphereBlast {
     }
 }
 
+task zipTestApp(type: Zip) {
+   def outputFilePath = project.hasProperty('outputFile') ? outputFile : "${playInstantBuildPath}/testapp.apk"
+   def outputFileDirectory = file(outputFilePath).getParentFile()
+   def outputFileName = file(outputFilePath).getName();
+   
+   from outputFileDirectory
+   include outputFileName
+   archiveName outputFileName.replace(".apk", "").concat(".zip")
+   destinationDir outputFileDirectory
+}
 
 task buildTestApp {
     description 'Creates the instant app test project, then builds a test app'
