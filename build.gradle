@@ -192,6 +192,8 @@ task clean(type: Delete) {
 task automatedTests {
     dependsOn 'exportPlugin'
     dependsOn 'tests'
+    dependsOn 'buildTestApp'
+    dependsOn 'zipTestApp'
 }
 
 project.defaultTasks = ['tests', 'exportPlugin']
