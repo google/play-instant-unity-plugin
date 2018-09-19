@@ -426,9 +426,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1454699668}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 021fd3aa896e94318be9438e0f94ac3b, type: 3}
+  m_Script: {fileID: 11500000, guid: a504e9a909cf644ff91bc21a76e3790c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AssetBundleUrl: 
+  LoadingBar: {fileID: 869609295}
 --- !u!222 &1454699671
 CanvasRenderer:
   m_ObjectHideFlags: 0
