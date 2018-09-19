@@ -105,14 +105,11 @@ task exportSampleSphereBlast {
 }
 
 task zipTestApp(type: Zip) {
-   def outputFilePath = project.hasProperty('outputFile') ? outputFile : "${playInstantBuildPath}/testapp.apk"
-   def outputFileDirectory = file(outputFilePath).getParentFile()
-   def outputFileName = file(outputFilePath).getName();
-   
-   from outputFileDirectory
-   include outputFileName
-   archiveName outputFileName.replace(".apk", "").concat(".zip")
-   destinationDir outputFileDirectory
+   mustRunAfter 'buildTestApp'
+   from playInstantBuildPath
+   include "testapp.apk"
+   archiveName "testapp.zip"
+   destinationDir file(playInstantBuildPath)
 }
 
 task buildTestApp {
@@ -120,10 +117,7 @@ task buildTestApp {
     def buildFunction = 'GooglePlayInstant.Samples.TestApp.Editor.TestAppBuilder.Build'
     def buildPath = "${playInstantBuildPath}/testapp"
     def logFile = file("testapp.log").getPath()
-    
-    //Specify output file path relative to the root path using -PoutputFile
-    def outputFileArg = project.hasProperty('outputFile') ? outputFile : "${playInstantBuildPath}/testapp.apk"
-    outputFileArg = file(outputFileArg)
+    def outputFile = file("${playInstantBuildPath}/testapp.apk");
         
     doFirst {
         copyFiles(buildPath, ['Tests'])
@@ -133,7 +127,7 @@ task buildTestApp {
         }
     }
     doLast {
-        println "Building to ${outputFileArg}"
+        println "Building to ${outputFile}"
         def argv = [
             '-batchmode',
             '-noGraphics',
@@ -144,7 +138,7 @@ task buildTestApp {
             '-buildTarget',
             'Android',
             '-outputFile',
-            outputFileArg,
+            outputFile,
             '-executeMethod',
             buildFunction,
             '-quit'
