@@ -30,6 +30,8 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
         private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
         private const string DefaultApkPath = "Assets/../testapp.apk";
         private const string ApkPathArg = "-outputFile";
+        private const string AppName = "testapp";
+        private const string CompanyName = "Google";
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
 
         public static void Build()
@@ -47,6 +49,10 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             {
                 policy.ChangeState();
             }
+
+            SetTargetArchitectures();
+            PlayerSettings.productName = AppName;
+            PlayerSettings.companyName = CompanyName;
 
             var manifestUpdater = GetAndroidManifestUpdater();
             var errorMessage = manifestUpdater.SwitchToInstant(null);
@@ -76,6 +82,15 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             return DefaultApkPath;
+        }
+
+        private static void SetTargetArchitectures()
+        {
+#if UNITY_2018_1_OR_NEWER
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.X86 | AndroidArchitecture.ARMv7;
+#else
+            PlayerSettings.Android.targetDevice = AndroidTargetDevice.X86 | AndroidTargetDevice.ARMv7;
+#endif
         }
 
         private static IAndroidManifestUpdater GetAndroidManifestUpdater()
