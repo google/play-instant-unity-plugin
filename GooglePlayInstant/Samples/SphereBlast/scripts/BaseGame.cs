@@ -13,11 +13,9 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using GooglePlayInstant;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -130,7 +128,7 @@ public class BaseGame : MonoBehaviour
 
     private void UpdateTimer()
     {
-        _timeLeftText.text = "" + System.Math.Max(_timer, 0);
+        _timeLeftText.text = Math.Max(_timer, 0).ToString();
     }
 
     /* SCENE SET UP METHODS */
@@ -144,18 +142,15 @@ public class BaseGame : MonoBehaviour
 
     private static void WriteGameStateToCookie(int level, int score)
     {
-#if UNITY_EDITOR
-        return;
-#endif
+#if !UNITY_EDITOR
         var gameStateCsv = level + "," + score;
         CookieApi.SetInstantAppCookie(gameStateCsv);
+#endif
     }
 
     private void ReadGameStateFromCookie()
     {
-#if UNITY_EDITOR
-        return;
-#endif
+#if !UNITY_EDITOR
         var results = CookieApi.GetInstantAppCookie();
 
 
@@ -173,6 +168,7 @@ public class BaseGame : MonoBehaviour
         _score = int.Parse(cookieScore);
         Debug.Log("CookieLevel: " + cookieLevel);
         Debug.Log("CookieScore: " + cookieScore);
+#endif
     }
 
     /* LEVEL METHODS */
@@ -187,7 +183,7 @@ public class BaseGame : MonoBehaviour
         _level = newLevel;
         _maxTime = _levelTimeLimitMapping[_level - 1];
         _timer = _maxTime;
-        _levelText.text = "" + _level;
+        _levelText.text = _level.ToString();
     }
 
     public int GetLevel()
@@ -210,7 +206,7 @@ public class BaseGame : MonoBehaviour
     public void UpdateScoreDisplay()
     {
         var displayScore = _score % MAX_SCORE_PER_LEVEL;
-        _scoreText.text = "" + displayScore;
+        _scoreText.text = displayScore.ToString();
     }
 
     private void SetScore(int newScore)
@@ -236,7 +232,7 @@ public class BaseGame : MonoBehaviour
 
     public void RestartGame()
     {
-        Application.LoadLevel("SphereScene");
+        SceneManager.LoadScene("SphereScene");
     }
 
     public void IncrementScore()

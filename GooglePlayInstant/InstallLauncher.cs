@@ -52,7 +52,7 @@ namespace GooglePlayInstant
         /// </summary>
         public static void ShowInstallPrompt(string referrer = null)
         {
-            using (var activity = GetCurrentActivity())
+            using (var activity = UnityPlayerHelper.GetCurrentActivity())
             using (var postInstallIntent = CreatePostInstallIntent(activity))
             {
                 ShowInstallPrompt(activity, IgnoredRequestCode, postInstallIntent, referrer);
@@ -76,10 +76,7 @@ namespace GooglePlayInstant
         public static void ShowInstallPrompt(
             AndroidJavaObject activity, int requestCode, AndroidJavaObject postInstallIntent, string referrer)
         {
-#if !PLAY_INSTANT
-            return;
-#endif
-
+#if PLAY_INSTANT
             if (activity == null)
             {
                 throw new ArgumentNullException("activity");
@@ -110,6 +107,9 @@ namespace GooglePlayInstant
                         requestCode);
                 }
             }
+#else
+            throw new InvalidOperationException("ShowInstallPrompt should only be called from instant apps.");
+#endif
         }
 
         [Obsolete("Use UnityPlayerHelper.GetCurrentActivity() instead.")]
