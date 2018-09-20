@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.IO;
 using GooglePlayInstant.Editor;
 using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
@@ -23,7 +21,6 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 {
     /// <summary>
     /// Exposes build functionality to the command line for testing.
-    /// Produces both an APK file and a ZIP file
     /// </summary>
     public static class TestAppBuilder
     {
@@ -51,8 +48,9 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             SetTargetArchitectures();
-            PlayerSettings.productName = AppName;
+            PlayerSettings.applicationIdentifier = BundleIdentifier;
             PlayerSettings.companyName = CompanyName;
+            PlayerSettings.productName = AppName;
 
             var manifestUpdater = GetAndroidManifestUpdater();
             var errorMessage = manifestUpdater.SwitchToInstant(null);
@@ -64,7 +62,6 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 
             PlayInstantBuildConfiguration.SaveConfiguration("", TestScenePaths, "");
             PlayInstantBuildConfiguration.SetInstantBuildType();
-            PlayerSettings.applicationIdentifier = BundleIdentifier;
         }
 
         /// <summary>

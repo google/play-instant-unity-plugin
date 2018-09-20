@@ -63,7 +63,7 @@ namespace GooglePlayInstant.Samples.TestApp
             Debug.LogFormat("Attempting to write cookie: {0}", _storedCookie);
             if (CookieApi.SetInstantAppCookie(_storedCookie))
             {
-                Debug.LogFormat("Successfully wrote cookie");
+                Debug.Log("Successfully wrote cookie");
             }
             else
             {
