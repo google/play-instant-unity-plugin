@@ -104,6 +104,52 @@ task exportSampleSphereBlast {
     }
 }
 
+task zipTestApp(type: Zip) {
+   mustRunAfter 'buildTestApp'
+   from playInstantBuildPath
+   include "testapp.apk"
+   archiveName "testapp.zip"
+   destinationDir file(playInstantBuildPath)
+}
+
+task buildTestApp {
+    description 'Creates the instant app test project, then builds a test app'
+    def buildFunction = 'GooglePlayInstant.Samples.TestApp.Editor.TestAppBuilder.Build'
+    def buildPath = "${playInstantBuildPath}/testapp"
+    def logFile = file("testapp.log").getPath()
+    def outputFile = file("${playInstantBuildPath}/testapp.apk");
+        
+    doFirst {
+        copyFiles(buildPath, ['Tests'])
+        copy {
+            from 'GooglePlayInstant/Samples/TestApp'
+            into "${buildPath}/Assets/TestApp"
+        }
+    }
+    doLast {
+        println "Building to ${outputFile}"
+        def argv = [
+            '-batchmode',
+            '-noGraphics',
+            '-projectPath',
+            buildPath,
+            '-logFile',
+            logFile,
+            '-buildTarget',
+            'Android',
+            '-outputFile',
+            outputFile,
+            '-executeMethod',
+            buildFunction,
+            '-quit'
+        ]
+        exec {
+            executable unityExe
+            args argv
+        }
+    }
+}
+
 task tests {
     description 'Runs unit tests with Unity test runner'
     def buildPath = "${playInstantBuildPath}/tests"
@@ -140,6 +186,8 @@ task clean(type: Delete) {
 task automatedTests {
     dependsOn 'exportPlugin'
     dependsOn 'tests'
+    dependsOn 'buildTestApp'
+    dependsOn 'zipTestApp'
 }
 
 project.defaultTasks = ['tests', 'exportPlugin']
