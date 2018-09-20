@@ -26,9 +26,6 @@ namespace GooglePlayInstant.LoadingScreen
     /// </summary>
     public static class LoadingBarGenerator
     {
-        // Loading bar fill's padding against the loading bar outline.
-        private const int LoadingBarFillPadding = 17;
-
         // Loading bar size as a proportion of the screen size. Adjust if needed.
         private const float LoadingBarWidthProportion = 0.7f;
         private const float LoadingBarHeightProportion = 0.02f;
@@ -46,34 +43,57 @@ namespace GooglePlayInstant.LoadingScreen
 
         public static LoadingBar GenerateLoadingBar()
         {
-            var progressHolderObject = new GameObject(ProgressName);
-           
-            var loadingBarObject = new GameObject(RootName);
+            var progressHolderObject = GenerateUiObject(ProgressName);
+
+            var loadingBarObject = GenerateUiObject(RootName);
+
             var loadingBar = loadingBarObject.AddComponent<LoadingBar>();
-            loadingBar.Outline = GenerateImage(OutlineName, Color.black);
-            loadingBar.Background = GenerateImage(BackgroundName, Color.white);
-            loadingBar.ProgressFill = GenerateImage(FillName, Color.grey);
-            loadingBar.ProgressHolder = progressHolderObject.AddComponent<RectTransform>();
-            
-            loadingBar.Outline.SetParent(loadingBar.transform, false);
-            loadingBar.Background.transform.SetParent(loadingBar.transform, false);
-            loadingBar.ProgressFill.transform.SetParent(progressHolderObject.transform, false);
+            loadingBar.Outline = GenerateImage(loadingBarObject, OutlineName, Color.black);
+            loadingBar.Background = GenerateImage(loadingBarObject, BackgroundName, Color.white);
+            loadingBar.ProgressFill = GenerateImage(progressHolderObject, FillName, Color.grey);
+
+            loadingBar.ProgressHolder = progressHolderObject.GetComponent<RectTransform>();
             loadingBar.ProgressHolder.transform.SetParent(loadingBar.transform, false);
-            
-            //loadingBar.
-            
+            SetAnchorsToScaleWithParent(loadingBar.ProgressHolder);
+
+            var loadingBarRectTransform = loadingBarObject.GetComponent<RectTransform>();
+            loadingBarRectTransform.anchorMin = new Vector2(LoadingBarPositionX - LoadingBarWidthProportion / 2f,
+                LoadingBarPositionY - LoadingBarHeightProportion / 2f);
+            loadingBarRectTransform.anchorMax = new Vector2(LoadingBarPositionX + LoadingBarWidthProportion / 2f,
+                LoadingBarPositionY + LoadingBarHeightProportion / 2f);
+            loadingBarRectTransform.sizeDelta = Vector2.zero;
+
             return loadingBar;
         }
 
-        private static RectTransform GenerateImage(string name, Color color)
+        private static RectTransform GenerateImage(GameObject parent, string name, Color color)
         {
-            var imageObject = new GameObject(name);
-            
+            var imageObject = GenerateUiObject(name);
+            imageObject.transform.SetParent(parent.transform, false);
+
             var image = imageObject.AddComponent<Image>();
             image.color = color;
-            
-            var rectTransform = imageObject.AddComponent<RectTransform>();
+
+            var rectTransform = imageObject.GetComponent<RectTransform>();
+
             return rectTransform;
+        }
+
+        //Creates a new GameObject with a RectTransform instead of a normal Transform
+        private static GameObject GenerateUiObject(string name)
+        {
+            var gameObject = new GameObject(name, typeof(RectTransform));
+            var rectTransform = gameObject.GetComponent<RectTransform>();
+            SetAnchorsToScaleWithParent(rectTransform);
+
+            return gameObject;
+        }
+
+        private static void SetAnchorsToScaleWithParent(RectTransform rectTransform)
+        {
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.sizeDelta = Vector2.zero;
         }
     }
 }

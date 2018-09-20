@@ -80,7 +80,7 @@ namespace GooglePlayInstant.LoadingScreen
                 yield return new WaitForSeconds(2);
 
                 //TODO: revisit this methodology of setting the loading bar
-                LoadingBar.Reset();
+                LoadingBar.SetProgress(0f);
 
                 yield return GetAssetBundle(assetBundleUrl);
             }

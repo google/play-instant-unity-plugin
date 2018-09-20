@@ -125,36 +125,78 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
 
+            var camera = GenerateCamera();
+            camera.transform.SetParent(loadingScreenGameObject.transform);
+
+            var canvasObject = GenerateCanvas(camera);
+            canvasObject.transform.SetParent(loadingScreenGameObject.transform);
+
+            var backgroundObject = GenerateBackground(backgroundSprite);
+            backgroundObject.transform.SetParent(canvasObject.transform);
+
+            var loadingBar = LoadingBarGenerator.GenerateLoadingBar();
+            loadingBar.transform.SetParent(canvasObject.transform, false);
+        }
+
+        private static Camera GenerateCamera()
+        {
             var cameraObject = new GameObject("UI Camera");
+            
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
             camera.orthographicSize = ReferenceHeight / 2f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = Color.white;
-            camera.transform.SetParent(loadingScreenGameObject.transform);
-            
+
+            return camera;
+        }
+        
+        private static GameObject GenerateCanvas(Camera camera)
+        {
             var canvasObject = new GameObject(CanvasName);
+            
             var canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = camera;
+            
             var canvasScaler = canvasObject.AddComponent<CanvasScaler>();
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
             canvasScaler.matchWidthOrHeight = 0f;
-            canvasScaler.transform.SetParent(loadingScreenGameObject.transform);
-            
+
+            return canvasObject;
+        }
+        
+        private static GameObject GenerateBackground(Sprite backgroundSprite)
+        {
             var backgroundObject = new GameObject("Background");
+            
             var backgroundImage = backgroundObject.AddComponent<Image>();
             backgroundImage.sprite = backgroundSprite;
+            
             var backgroundRect = backgroundObject.GetComponent<RectTransform>();
             backgroundRect.anchorMin = Vector2.zero; // Scale with parent.
-            backgroundRect.anchorMax = Vector2.one;            
+            backgroundRect.anchorMax = Vector2.one;
+            backgroundRect.sizeDelta = Vector2.zero;
+            
+            var backgroundAspectRatioFitter = backgroundObject.AddComponent<AspectRatioFitter>();
+            backgroundAspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            if (backgroundImage.sprite == null)
+            {
+                backgroundAspectRatioFitter.aspectRatio = ReferenceWidth / (float) ReferenceHeight;
+            }
+            else
+            {
+                backgroundAspectRatioFitter.aspectRatio = backgroundImage.sprite.rect.width / backgroundImage.sprite.rect.height;
+            }
+
+            return backgroundObject;
         }
     
         // Visible for testing
         internal static void UpdateBackgroundImage(Sprite sprite)
         {
-            
+            //TODO: Implement this method
         }
     }
 }

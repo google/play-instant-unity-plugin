@@ -63,6 +63,7 @@ namespace GooglePlayInstant.LoadingScreen
             if (ResizeAutomatically)
             {
                 ApplyBorderWidth();
+                SetProgress(Progress);
             }
         }
 
@@ -74,7 +75,7 @@ namespace GooglePlayInstant.LoadingScreen
             Outline.anchorMin = Vector3.zero;
             Outline.anchorMax = Vector3.one;
             Outline.sizeDelta = Vector2.one * (OutlineWidth + InnerBorderWidth);
-            
+
             Background.anchorMin = Vector3.zero;
             Background.anchorMax = Vector3.one;
             Background.sizeDelta = Vector2.one * (InnerBorderWidth);
@@ -83,15 +84,9 @@ namespace GooglePlayInstant.LoadingScreen
         public void SetProgress(float proportionOfLoadingBar)
         {
             Progress = proportionOfLoadingBar;
-            ProgressFill.anchorMax = Vector2.right * proportionOfLoadingBar;
-        }
 
-        /// <summary>
-        /// Resets the loading bar back to 0 percent.
-        /// </summary>
-        public void Reset()
-        {
-            SetProgress(0f);
+            if (ProgressFill != null)
+                ProgressFill.anchorMax = new Vector2(proportionOfLoadingBar, ProgressFill.anchorMax.y);
         }
 
         /// <summary>
