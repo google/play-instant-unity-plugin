@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if UNITY_2018_3_OR_NEWER
 using UnityEditor;
 using UnityEngine;
+#else
+using System;
+#endif
 
 namespace GooglePlayInstant.Editor
 {
