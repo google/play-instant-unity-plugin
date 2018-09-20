@@ -22,7 +22,7 @@ namespace GooglePlayInstant.Editor
     /// <summary>
     /// Helper to build a ZIP file suitable for publishing on Play Console.
     /// </summary>
-    public static class PlayInstantPublishser
+    public static class PlayInstantPublisher
     {
         private const string BaseApkFileName = "base.apk";
 
@@ -37,6 +37,10 @@ namespace GooglePlayInstant.Editor
                 // Assume cancelled.
                 return;
             }
+
+#if UNITY_2018_3_OR_NEWER
+            EditorUserBuildSettings.buildAppBundle = false;
+#endif
 
             var baseApkDirectory = Path.GetTempPath();
             var baseApkPath = Path.Combine(baseApkDirectory, BaseApkFileName);

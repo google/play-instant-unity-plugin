@@ -68,13 +68,21 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Build for Play Console...", false, 300)]
+#if UNITY_2018_3_OR_NEWER
+        [MenuItem("PlayInstant/Build Android App Bundle...", false, 300)]
+        private static void BuildAndroidAppBundle()
+        {
+            AppBundlePublisher.Build();
+        }
+#endif
+
+        [MenuItem("PlayInstant/Build for Play Console...", false, 301)]
         private static void BuildForPlayConsole()
         {
-            PlayInstantPublishser.Build();
+            PlayInstantPublisher.Build();
         }
 
-        [MenuItem("PlayInstant/Build and Run #%r", false, 301)]
+        [MenuItem("PlayInstant/Build and Run #%r", false, 302)]
         private static void BuildAndRun()
         {
             PlayInstantRunner.BuildAndRun();

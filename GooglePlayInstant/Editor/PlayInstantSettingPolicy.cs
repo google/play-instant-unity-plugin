@@ -181,12 +181,21 @@ namespace GooglePlayInstant.Editor
 
                 case ScriptingImplementation.Mono2x:
                     policies.Add(new PlayInstantSettingPolicy(
-                        "Mono builds should use the highest code stripping level (micro mscorlib)",
+                        "Mono builds should use code stripping",
                         "This setting reduces APK size.",
+#if UNITY_2018_3_OR_NEWER
+                        () => PlayerSettings.GetManagedStrippingLevel(BuildTargetGroup.Android) ==
+                              ManagedStrippingLevel.Normal,
+                        () =>
+                        {
+                            PlayerSettings.SetManagedStrippingLevel(
+                                BuildTargetGroup.Android, ManagedStrippingLevel.Normal);
+#else
                         () => PlayerSettings.strippingLevel == StrippingLevel.UseMicroMSCorlib,
                         () =>
                         {
                             PlayerSettings.strippingLevel = StrippingLevel.UseMicroMSCorlib;
+#endif
                             return true;
                         }));
                     break;
