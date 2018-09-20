@@ -212,6 +212,8 @@ namespace GooglePlayInstant.Editor
             _assetBundleManifestPath = _assetBundleManifestPath.Trim();
             PlayInstantBuildConfiguration.SaveConfiguration(_instantUrl, scenesInBuild, _assetBundleManifestPath);
             PlayInstantBuildConfiguration.SetInstantBuildType();
+            Debug.Log("Saved Play Instant Build Settings.");
+
             // If a TextField is in focus, it won't update to reflect the Trim(). So reassign focus to controlID 0.
             GUIUtility.keyboardControl = 0;
             Repaint();
@@ -226,6 +228,7 @@ namespace GooglePlayInstant.Editor
         {
             PlayInstantBuildConfiguration.SetInstalledBuildType();
             _androidManifestUpdater.SwitchToInstalled();
+            Debug.Log("Switched to Android Build Type \"Installed\".");
         }
 
         private static void DisplayUrlError(string message)

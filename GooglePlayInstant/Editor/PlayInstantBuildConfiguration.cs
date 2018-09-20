@@ -92,7 +92,6 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void SaveConfiguration(string instantUrl, string[] scenesInBuild, string assetBundleManifestPath)
         {
-            Debug.Log("Saving Play Instant build settings...");
             _config = _config ?? new Configuration();
             _config.instantUrl = instantUrl;
             _config.scenesInBuild = scenesInBuild;
@@ -182,6 +181,7 @@ namespace GooglePlayInstant.Editor
                 var oldInstantUrl = EditorPrefs.GetString(key);
                 SaveConfiguration(oldInstantUrl, null, null);
                 EditorPrefs.DeleteKey(key);
+                Debug.Log("Migrated Instant URL.");
             }
         }
     }
