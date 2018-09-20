@@ -89,7 +89,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 #if UNITY_2018_1_OR_NEWER
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.X86 | AndroidArchitecture.ARMv7;
 #else
-            PlayerSettings.Android.targetDevice = AndroidTargetDevice.X86 | AndroidTargetDevice.ARMv7;
+            PlayerSettings.Android.targetDevice = AndroidTargetDevice.FAT;
 #endif
         }
 
