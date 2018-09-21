@@ -14,7 +14,6 @@
 
 using System.Collections;
 using System.IO;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -111,7 +110,7 @@ namespace GooglePlayInstant.LoadingScreen
 #if UNITY_2017_2_OR_NEWER
             var assetBundleDownloadOperation = webRequest.SendWebRequest();
 #else
-            var assetbundleDownloadOperation = webRequest.Send();
+            var assetBundleDownloadOperation = webRequest.Send();
 #endif
 
             return assetBundleDownloadOperation;
