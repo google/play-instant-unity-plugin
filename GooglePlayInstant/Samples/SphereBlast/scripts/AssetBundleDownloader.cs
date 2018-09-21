@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AssetBundleDownloader : MonoBehaviour
@@ -24,9 +23,10 @@ public class AssetBundleDownloader : MonoBehaviour
     private IEnumerator Start()
     {
         // Cleans local cache of asset bundles. 
-        // This here for download validation purposes
-        // and should be removed from published builds
-        Caching.ClearCache();
+        // Uncomment this line for download validation purposes.
+        // Remove this line from published builds.
+        //Caching.ClearCache();
+
         // Download and load required scenes
         yield return StartCoroutine(
             DownloadAsset(AssetBundleUrl, true));
