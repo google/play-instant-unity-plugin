@@ -71,7 +71,22 @@ namespace GooglePlayInstant.Editor
         /// Synchronously calls the apksigner tool to sign the specified APK using APK Signature Scheme V2.
         /// </summary>
         /// <returns>true if the specified APK was successfully signed, false otherwise</returns>
-        public static bool Sign(string apkPath)
+        public static bool SignApk(string apkFilePath)
+        {
+            return SignFile(apkFilePath, string.Empty);
+        }
+
+        /// <summary>
+        /// Synchronously calls the apksigner tool to sign the specified ZIP file using APK Signature Scheme V1,
+        /// simulating jarsigner behavior. This can be used to sign an Android App Bundles.
+        /// </summary>
+        /// <returns>true if the specified file was successfully signed, false otherwise</returns>
+        public static bool SignZip(string zipFilePath)
+        {
+            return SignFile(zipFilePath, "--min-sdk-version 1 --v1-signing-enabled true --v2-signing-enabled false ");
+        }
+
+        private static bool SignFile(string filePath, string additionalArguments)
         {
             string keystoreName;
             string keystorePass;
@@ -109,16 +124,17 @@ namespace GooglePlayInstant.Editor
                 return false;
             }
 
-            // This command will sign the APK file {3} using key {2} contained in keystore file {1}.
-            // ApkSignerResponder will provide passwords using the default method of stdin, so no need
-            // to specify "--ks-pass" or "--key-pass". ApkSignerResponder will encode the passwords
-            // with UTF8, so we specify "--pass-encoding utf-8" here.
+            // Sign the file {4} using key {2} contained in keystore file {1} using additional arguments {3}.
+            // ApkSignerResponder will provide passwords using stdin; this is the default for apksigner
+            // so there is no need to specify "--ks-pass" or "--key-pass" arguments.
+            // ApkSignerResponder will encode the passwords with UTF8, so we specify "--pass-encoding utf-8" here.
             var arguments = string.Format(
-                "-jar {0} sign --ks {1} --ks-key-alias {2} --pass-encoding utf-8 {3}",
+                "-jar {0} sign --ks {1} --ks-key-alias {2} --pass-encoding utf-8 {3}{4}",
                 CommandLine.QuotePathIfNecessary(GetApkSignerJarPath()),
                 CommandLine.QuotePathIfNecessary(keystoreName),
                 keyaliasName,
-                CommandLine.QuotePathIfNecessary(apkPath));
+                additionalArguments,
+                CommandLine.QuotePathIfNecessary(filePath));
 
             var promptToPasswordDictionary = new Dictionary<string, string>
             {
