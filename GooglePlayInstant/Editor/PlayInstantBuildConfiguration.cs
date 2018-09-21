@@ -104,7 +104,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static bool IsInstantBuildType()
         {
-            return IsPlayInstantScriptingSymbolDefined(GetScriptingDefineSymbols());
+            return IsScriptingSymbolDefined(GetScriptingDefineSymbols(), PlayInstantScriptingDefineSymbol);
         }
 
         /// <summary>
@@ -112,11 +112,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void SetInstantBuildType()
         {
-            var scriptingDefineSymbols = GetScriptingDefineSymbols();
-            if (!IsPlayInstantScriptingSymbolDefined(scriptingDefineSymbols))
-            {
-                SetScriptingDefineSymbols(scriptingDefineSymbols.Concat(new[] {PlayInstantScriptingDefineSymbol}));
-            }
+            AddScriptingDefineSymbol(PlayInstantScriptingDefineSymbol);
         }
 
         /// <summary>
@@ -125,15 +121,27 @@ namespace GooglePlayInstant.Editor
         public static void SetInstalledBuildType()
         {
             var scriptingDefineSymbols = GetScriptingDefineSymbols();
-            if (IsPlayInstantScriptingSymbolDefined(scriptingDefineSymbols))
+            if (IsScriptingSymbolDefined(scriptingDefineSymbols, PlayInstantScriptingDefineSymbol))
             {
                 SetScriptingDefineSymbols(scriptingDefineSymbols.Where(sym => sym != PlayInstantScriptingDefineSymbol));
             }
         }
 
-        private static bool IsPlayInstantScriptingSymbolDefined(string[] scriptingDefineSymbols)
+        /// <summary>
+        /// Adds the specified scripting define symbol for Android, but only if it isn't already defined.
+        /// </summary>
+        public static void AddScriptingDefineSymbol(string symbol)
         {
-            return Array.IndexOf(scriptingDefineSymbols, PlayInstantScriptingDefineSymbol) >= 0;
+            var scriptingDefineSymbols = GetScriptingDefineSymbols();
+            if (!IsScriptingSymbolDefined(scriptingDefineSymbols, symbol))
+            {
+                SetScriptingDefineSymbols(scriptingDefineSymbols.Concat(new[] {symbol}));
+            }
+        }
+
+        private static bool IsScriptingSymbolDefined(string[] scriptingDefineSymbols, string symbol)
+        {
+            return Array.IndexOf(scriptingDefineSymbols, symbol) >= 0;
         }
 
         private static string[] GetScriptingDefineSymbols()
