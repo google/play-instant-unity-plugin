@@ -12,32 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.IO;
 using GooglePlayInstant.Editor.GooglePlayServices;
-using UnityEngine;
 
 namespace GooglePlayInstant.Editor
 {
+    /// <summary>
+    /// Utility methods that use Java's "jar" command for zip creation/extraction since zip functionality
+    /// isn't built into .NET 3.5.
+    /// </summary>
     public static class ZipUtils
     {
         /// <summary>
         /// Creates a ZIP file containing the specified file in the specified directory.
         /// </summary>
-        public static void CreateZipFile(string inputDirectoryName, string inputFileName, string zipFilePath)
+        /// <returns>null if the operation succeeded, or an error message if it failed.</returns>
+        public static string CreateZipFile(string zipFilePath, string inputDirectoryName, string inputFileName)
         {
+            if (inputFileName.Contains(" "))
+            {
+                throw new ArgumentException("Spaces are not supported for inputFileName.", "inputFileName");
+            }
+
+            // Create zip file with options "0" (no per-file compression) and "M" (no JAR manifest file).
             var arguments = string.Format(
-                "cvf {0} -C {1} {2}",
+                "c0Mf {0} -C {1} {2}",
                 CommandLine.QuotePathIfNecessary(zipFilePath),
                 CommandLine.QuotePathIfNecessary(inputDirectoryName),
                 inputFileName);
             var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
-            if (result.exitCode == 0)
-            {
-                Debug.LogFormat("Created ZIP file: {0}", zipFilePath);
-            }
-            else
-            {
-                PlayInstantBuilder.LogError(string.Format("Zip creation failed: {0}", result.message));
-            }
+            return result.exitCode == 0 ? null : result.message;
+        }
+
+        /// <summary>
+        /// Unzips the specified file into the specified output location.
+        /// Note: this operation will change the current directory to the output location.
+        /// </summary>
+        /// <returns>null if the operation succeeded, or an error message if it failed.</returns>
+        public static string UnzipFile(string zipFilePath, string outputDirectoryName)
+        {
+            // Must change the current directory before zip extraction.
+            Directory.SetCurrentDirectory(outputDirectoryName);
+            var arguments = string.Format("xf {0}", CommandLine.QuotePathIfNecessary(zipFilePath));
+            var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
+            return result.exitCode == 0 ? null : result.message;
         }
     }
 }
