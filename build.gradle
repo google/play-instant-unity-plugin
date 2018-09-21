@@ -53,7 +53,7 @@ def copyFiles(projectPath, exclusions) {
     copy {
         from 'GooglePlayInstant', 'LICENSE', 'README.md', 'CONTRIBUTING.md'
         into "${projectPath}/Assets/GooglePlayInstant"
-        exclude 'Samples', '**/*.meta'
+        exclude 'Samples'
         exclude exclusions
     }
 }
