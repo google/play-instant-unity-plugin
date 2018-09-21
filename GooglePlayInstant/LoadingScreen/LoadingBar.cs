@@ -40,18 +40,11 @@ namespace GooglePlayInstant.LoadingScreen
         public RectTransform ProgressHolder;
         public RectTransform ProgressFill;
 
-        [Tooltip("Percentage of the loading bar allocated to the asset bundle downloading process.")]
-        public float AssetBundleDownloadMaxWidthPercentage = .8f;
+        [Tooltip("Proportion of the loading bar allocated to the asset bundle downloading process. " +
+                 "The rest is allocated to installing.")]
+        [Range(0f, 1f)] public float AssetBundleDownloadMaxProportion = .8f;
 
         private RectTransform _rectTransform;
-
-        /// <summary>
-        /// Percentage of the loading bar allocated to the the scene loading process.
-        /// </summary>
-        public float SceneLoadingMaxWidthPercentage
-        {
-            get { return 1f - AssetBundleDownloadMaxWidthPercentage; }
-        }
 
         private void Start()
         {
@@ -90,15 +83,17 @@ namespace GooglePlayInstant.LoadingScreen
         }
 
         /// <summary>
-        /// Updates a loading bar by the progress made by an asynchronous operation up to a specific percentage of
-        /// the loading bar. 
+        /// Updates a loading bar by the progress made by an asynchronous operation.
+        /// The bar will interpolate between startingFillProportion and endingFillProportion as the operation progresses.
         /// </summary>
-        public IEnumerator FillUntilDone(AsyncOperation operation, float percentageOfLoadingBar)
+        public IEnumerator FillUntilDone(AsyncOperation operation, float startingFillProportion,
+            float endingFillProportion)
         {
             var isDone = false;
             while (!isDone)
             {
-                SetProgress(operation.progress);
+                var fillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+                SetProgress(fillProportion);
 
                 if (operation.isDone)
                 {
@@ -107,6 +102,9 @@ namespace GooglePlayInstant.LoadingScreen
 
                 yield return null;
             }
+            
+            var finalFillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+            SetProgress(finalFillProportion);
         }
     }
 }

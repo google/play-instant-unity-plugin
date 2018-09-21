@@ -72,7 +72,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-            PopulateScene(loadingScreenImagePath, null);
+            PopulateScene(loadingScreenImagePath, null, assetBundleUrl);
             
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
 
@@ -121,9 +121,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             };
         }
 
-        private static void PopulateScene(string imagePath, Sprite backgroundSprite)
+        private static void PopulateScene(string imagePath, Sprite backgroundSprite, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
+            var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
+            loadingScreen.AssetBundleUrl = assetBundleUrl;
 
             var camera = GenerateCamera();
             camera.transform.SetParent(loadingScreenGameObject.transform);
@@ -134,8 +136,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var backgroundObject = GenerateBackground(backgroundSprite);
             backgroundObject.transform.SetParent(canvasObject.transform);
 
-            var loadingBar = LoadingBarGenerator.GenerateLoadingBar();
-            loadingBar.transform.SetParent(canvasObject.transform, false);
+            loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
+            loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
         }
 
         private static Camera GenerateCamera()
