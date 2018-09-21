@@ -109,7 +109,12 @@ namespace GooglePlayInstant.Editor
 #endif
         }
 
-        private static bool Build(BuildPlayerOptions buildPlayerOptions)
+        /// <summary>
+        /// Builds a Play Instant APK or AAB based on the specified options.
+        /// Displays warning/error dialogs if there are issues during the build.
+        /// </summary>
+        /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
+        public static bool Build(BuildPlayerOptions buildPlayerOptions)
         {
             if (!PlayInstantBuildConfiguration.IsInstantBuildType())
             {

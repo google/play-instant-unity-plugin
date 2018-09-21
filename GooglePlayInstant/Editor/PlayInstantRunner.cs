@@ -53,6 +53,10 @@ namespace GooglePlayInstant.Editor
                 return;
             }
 
+#if UNITY_2018_3_OR_NEWER
+            EditorUserBuildSettings.buildAppBundle = false;
+#endif
+
             var apkPath = Path.Combine(Path.GetTempPath(), "temp.apk");
             Debug.LogFormat("Build and Run package location: {0}", apkPath);
 
