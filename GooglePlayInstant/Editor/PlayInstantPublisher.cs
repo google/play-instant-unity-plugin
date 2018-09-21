@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.IO;
-using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,7 +52,15 @@ namespace GooglePlayInstant.Editor
             }
 
             // Zip creation is fast enough so call jar synchronously rather than wait for post build AppDomain reset.
-            ZipUtils.CreateZipFile(baseApkDirectory, BaseApkFileName, zipFilePath);
+            var zipFileResult = ZipUtils.CreateZipFile(zipFilePath, baseApkDirectory, BaseApkFileName);
+            if (zipFileResult == null)
+            {
+                Debug.LogFormat("Created ZIP file: {0}", zipFilePath);
+            }
+            else
+            {
+                PlayInstantBuilder.LogError(string.Format("Zip creation failed: {0}", zipFileResult));
+            }
         }
     }
 }
