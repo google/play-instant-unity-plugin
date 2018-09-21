@@ -43,9 +43,9 @@ namespace GooglePlayInstant.Editor
         }
 
         /// <summary>
-        /// Returns a BuildPlayerOptions struct based on the specified options that is suitable for building an APK.
+        /// Returns a BuildPlayerOptions struct based on the specified options that is suitable for building an app.
         /// </summary>
-        public static BuildPlayerOptions CreateBuildPlayerOptions(string apkPath, BuildOptions options)
+        public static BuildPlayerOptions CreateBuildPlayerOptions(string locationPathName, BuildOptions options)
         {
             var scenesInBuild = PlayInstantBuildConfiguration.ScenesInBuild;
             if (scenesInBuild.Length == 0)
@@ -56,7 +56,7 @@ namespace GooglePlayInstant.Editor
             return new BuildPlayerOptions
             {
                 assetBundleManifestPath = PlayInstantBuildConfiguration.AssetBundleManifestPath,
-                locationPathName = apkPath,
+                locationPathName = locationPathName,
                 options = options,
                 scenes = scenesInBuild,
                 target = BuildTarget.Android,
@@ -97,7 +97,7 @@ namespace GooglePlayInstant.Editor
             }
 
             Debug.Log("APK must be re-signed for APK Signature Scheme V2...");
-            if (ApkSigner.Sign(apkPath))
+            if (ApkSigner.SignApk(apkPath))
             {
                 Debug.Log("Re-signed with APK Signature Scheme V2.");
                 return true;
