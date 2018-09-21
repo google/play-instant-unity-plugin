@@ -204,7 +204,7 @@ namespace GooglePlayInstant.Editor
         public static void LogError(string message)
         {
             Debug.LogErrorFormat("Build error: {0}", message);
-            EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
+            //EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
         }
     }
 }
