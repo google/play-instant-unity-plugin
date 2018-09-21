@@ -23,11 +23,23 @@ namespace GooglePlayInstant
     public static class PlaySignatureVerifier
     {
         /// <summary>
+        /// Scripting define symbol that causes <see cref="VerifyGooglePlayServices"/> to always return true.
+        /// </summary>
+        public const string SkipVerifyGooglePlayServicesScriptingDefineSymbol =
+            "PLAY_INSTANT_SKIP_VERIFY_GOOGLE_PLAY_SERVICES";
+
+        /// <summary>
         /// Returns true if Google Play Services is installed and its signature matches the expected value.
         /// </summary>
         public static bool VerifyGooglePlayServices(AndroidJavaObject packageManager)
         {
+#if PLAY_INSTANT_SKIP_VERIFY_GOOGLE_PLAY_SERVICES
+            // Some Google-internal builds of Google Play Services have a different signature.
+            Debug.Log("Skipped Google Play Services signature verification.");
+            return true;
+#else
             return VerifyGooglePlayPackage(packageManager, Android.GooglePlayServicesPackageName);
+#endif
         }
 
         private static bool VerifyGooglePlayPackage(AndroidJavaObject packageManager, string packageName)
