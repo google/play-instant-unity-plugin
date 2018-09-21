@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using GooglePlayInstant.Editor;
 using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
-using UnityEngine;
 
 namespace GooglePlayInstant.Samples.TestApp.Editor
 {
@@ -24,19 +24,25 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
     /// </summary>
     public static class TestAppBuilder
     {
-        private const string BundleIdentifier = "com.google.android.instantapps.samples.unity.testapp";
-        private const string DefaultApkPath = "Assets/../testapp.apk";
         private const string ApkPathArg = "-outputFile";
-        private const string AppName = "testapp";
+        private const string ApplicationIdentifier = "com.google.android.instantapps.samples.unity.testapp";
         private const string CompanyName = "Google";
+        private const string ProductName = "testapp";
+
         private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
 
         public static void Build()
         {
             ConfigureProject();
+
+            // Build APK
             var apkPath = GetApkPath();
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
+
+            // Build AAB
+            var aabPath = apkPath.Substring(0, apkPath.Length - 3) + "aab";
+            AppBundlePublisher.Build(aabPath);
         }
 
         private static void ConfigureProject()
@@ -48,16 +54,15 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             SetTargetArchitectures();
-            PlayerSettings.applicationIdentifier = BundleIdentifier;
+            PlayerSettings.applicationIdentifier = ApplicationIdentifier;
             PlayerSettings.companyName = CompanyName;
-            PlayerSettings.productName = AppName;
+            PlayerSettings.productName = ProductName;
 
             var manifestUpdater = GetAndroidManifestUpdater();
             var errorMessage = manifestUpdater.SwitchToInstant(null);
             if (errorMessage != null)
             {
-                Debug.LogErrorFormat("Error updating AndroidManifest.xml: {0}", errorMessage);
-                return;
+                throw new Exception(string.Format("Error updating AndroidManifest.xml: {0}", errorMessage));
             }
 
             PlayInstantBuildConfiguration.AddScriptingDefineSymbol(
@@ -71,7 +76,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
         /// </summary>
         private static string GetApkPath()
         {
-            var args = System.Environment.GetCommandLineArgs();
+            var args = Environment.GetCommandLineArgs();
             for (var i = 0; i < args.Length - 1; i++)
             {
                 if (args[i] == ApkPathArg)
@@ -80,7 +85,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
                 }
             }
 
-            return DefaultApkPath;
+            throw new Exception(string.Format("Missing required argument \"{0}\"", ApkPathArg));
         }
 
         private static void SetTargetArchitectures()

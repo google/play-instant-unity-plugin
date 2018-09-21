@@ -222,7 +222,10 @@ namespace GooglePlayInstant.Editor
             }
         }
 
-        private static bool IsHeadlessMode()
+        /// <summary>
+        /// Returns true if this is a headless command line build, and false if it is an Editor-initiated build.
+        /// </summary>
+        public static bool IsHeadlessMode()
         {
             return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
         }

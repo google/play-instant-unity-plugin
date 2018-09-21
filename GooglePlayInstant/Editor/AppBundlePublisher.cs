@@ -12,26 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if UNITY_2018_3_OR_NEWER
 using UnityEditor;
 using UnityEngine;
-#else
-using System;
-#endif
 
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
-    /// Helper to build an Android App Bundle file suitable for publishing on Play Console.
+    /// Helper to build <a href="https://developer.android.com/platform/technology/app-bundle/">Android App Bundle</a>
+    /// files suitable for publishing on Play Console.
     /// </summary>
     public static class AppBundlePublisher
     {
         /// <summary>
-        /// Builds an Android App Bundle.
+        /// Builds an Android App Bundle at a user-specified file location.
         /// </summary>
         public static void Build()
         {
-#if UNITY_2018_3_OR_NEWER
+#if !UNITY_2018_3_OR_NEWER
+            if (!AndroidAssetPackagingTool.CheckConvert())
+            {
+                return;
+            }
+
+            if (!Bundletool.CheckBundletool())
+            {
+                return;
+            }
+#endif
+
+            // TODO: add checks for preferred Scripting Backend and Target Architectures.
+
             var aabFilePath = EditorUtility.SaveFilePanel("Create Android App Bundle", null, null, "aab");
             if (string.IsNullOrEmpty(aabFilePath))
             {
@@ -39,7 +49,17 @@ namespace GooglePlayInstant.Editor
                 return;
             }
 
+            Build(aabFilePath);
+        }
+
+        /// <summary>
+        /// Builds an Android App Bundle at the specified location. Assumes that all dependencies (e.g. aapt)
+        /// are already in-place.
+        /// </summary>
+        public static void Build(string aabFilePath)
+        {
             Debug.LogFormat("Building app bundle: {0}", aabFilePath);
+#if UNITY_2018_3_OR_NEWER
             EditorUserBuildSettings.buildAppBundle = true;
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(aabFilePath, BuildOptions.None);
             if (PlayInstantBuilder.Build(buildPlayerOptions))
@@ -48,7 +68,7 @@ namespace GooglePlayInstant.Editor
                 Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
             }
 #else
-            throw new InvalidOperationException("Android App Bundles are only supported on Unity 2018.3+");
+            AppBundleBuilder.Build(aabFilePath);
 #endif
         }
     }
