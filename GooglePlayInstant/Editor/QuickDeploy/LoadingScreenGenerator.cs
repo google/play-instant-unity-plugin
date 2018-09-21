@@ -53,17 +53,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
         /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateScene(string assetBundleUrl, string loadingScreenImagePath)
+        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
                 throw new ArgumentException("AssetBundle URL text field cannot be null or empty.");
-            }
-
-            if (!File.Exists(loadingScreenImagePath))
-            {
-                throw new FileNotFoundException(string.Format("Loading screen image file cannot be found: {0}",
-                    loadingScreenImagePath));
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
@@ -72,7 +66,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-            PopulateScene(loadingScreenImagePath, null, assetBundleUrl);
+            PopulateScene(loadingScreenImage, assetBundleUrl);
             
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
 
@@ -121,20 +115,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             };
         }
 
-        private static void PopulateScene(string imagePath, Sprite backgroundSprite, string assetBundleUrl)
+        private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
             var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
             loadingScreen.AssetBundleUrl = assetBundleUrl;
 
             var camera = GenerateCamera();
-            camera.transform.SetParent(loadingScreenGameObject.transform);
+            camera.transform.SetParent(loadingScreenGameObject.transform, false);
 
             var canvasObject = GenerateCanvas(camera);
-            canvasObject.transform.SetParent(loadingScreenGameObject.transform);
+            canvasObject.transform.SetParent(loadingScreenGameObject.transform, false);
 
-            var backgroundObject = GenerateBackground(backgroundSprite);
-            backgroundObject.transform.SetParent(canvasObject.transform);
+            var backgroundObject = GenerateBackground(backgroundTexture);
+            backgroundObject.transform.SetParent(canvasObject.transform, false);
 
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
             loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
@@ -169,12 +163,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return canvasObject;
         }
         
-        private static GameObject GenerateBackground(Sprite backgroundSprite)
+        private static GameObject GenerateBackground(Texture backgroundTexture)
         {
             var backgroundObject = new GameObject("Background");
             
-            var backgroundImage = backgroundObject.AddComponent<Image>();
-            backgroundImage.sprite = backgroundSprite;
+            var backgroundImage = backgroundObject.AddComponent<RawImage>();
+            backgroundImage.texture = backgroundTexture;
             
             var backgroundRect = backgroundObject.GetComponent<RectTransform>();
             backgroundRect.anchorMin = Vector2.zero; // Scale with parent.
@@ -183,22 +177,26 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             
             var backgroundAspectRatioFitter = backgroundObject.AddComponent<AspectRatioFitter>();
             backgroundAspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
-            if (backgroundImage.sprite == null)
+            if (backgroundImage.texture == null)
             {
                 backgroundAspectRatioFitter.aspectRatio = ReferenceWidth / (float) ReferenceHeight;
             }
             else
             {
-                backgroundAspectRatioFitter.aspectRatio = backgroundImage.sprite.rect.width / backgroundImage.sprite.rect.height;
+                backgroundAspectRatioFitter.aspectRatio = backgroundImage.texture.width / (float)backgroundImage.texture.height;
             }
 
             return backgroundObject;
         }
     
         // Visible for testing
-        internal static void UpdateBackgroundImage(Sprite sprite)
+        internal static void UpdateBackgroundImage(Texture backgroundTexture)
         {
-            //TODO: Implement this method
+            var loadingScreen = GameObject.FindObjectOfType<LoadingScreen.LoadingScreen>();
+            
+            if(backgroundTexture != null)
+                loadingScreen.Background.texture = backgroundTexture;
+
         }
     }
 }

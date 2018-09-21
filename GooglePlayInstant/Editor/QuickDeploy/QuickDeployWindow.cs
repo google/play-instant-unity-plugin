@@ -56,7 +56,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int ShortButtonWidth = 100;
         private const int ToolbarHeight = 25;
 
-        private string _loadingScreenImagePath;
+        private Texture2D _loadingScreenImage;
 
         // Titles for errors that occur
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
@@ -76,7 +76,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private void OnEnable()
         {
             Config.LoadConfiguration();
-            
+
             var scenesViewState = Config.AssetBundleScenes ?? new PlayInstantSceneTreeView.State();
 
             _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(scenesViewState);
@@ -320,32 +320,23 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 "Choose image to use as background for the loading scene.", descriptionTextStyle);
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Image File Path", GUILayout.MinWidth(FieldMinWidth));
+            EditorGUILayout.LabelField("Background Texture", GUILayout.MinWidth(FieldMinWidth));
 
-            _loadingScreenImagePath =
-                EditorGUILayout.TextField(_loadingScreenImagePath, GUILayout.MinWidth(FieldMinWidth));
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
-            {
-                _loadingScreenImagePath =
-                    EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
-                HandleDialogExit();
-            }
+            _loadingScreenImage = (Texture2D) EditorGUILayout.ObjectField(_loadingScreenImage, typeof(Texture2D), false,
+                GUILayout.MinWidth(FieldMinWidth));
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
             if (LoadingScreenGenerator.LoadingScreenExists())
             {
+                //TODO Give the user feedback about whether or not the background or url changed
                 if (GUILayout.Button("Update Loading Scene"))
                 {
                     try
                     {
                         Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                        LoadingScreenGenerator.UpdateBackgroundImage(null); //TODO Pass in the sprite.
+                        LoadingScreenGenerator.UpdateBackgroundImage(_loadingScreenImage);
                     }
                     catch (Exception ex)
                     {
@@ -362,7 +353,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     {
                         Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
                         LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl,
-                            _loadingScreenImagePath);
+                            _loadingScreenImage);
                     }
                     catch (Exception ex)
                     {

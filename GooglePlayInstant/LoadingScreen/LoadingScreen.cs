@@ -17,6 +17,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace GooglePlayInstant.LoadingScreen
 {
@@ -27,10 +28,12 @@ namespace GooglePlayInstant.LoadingScreen
     {
         [Tooltip("The url used to fetch the AssetBundle on Start")]
         public string AssetBundleUrl;
-        
+
         [Tooltip("The LoadingBar used to indicated download and install progress")]
         public LoadingBar LoadingBar;
-        
+
+        public RawImage Background;
+
         private const int MaxAttemptCount = 3;
         private AssetBundle _bundle;
         private int _assetBundleRetrievalAttemptCount;
@@ -41,13 +44,13 @@ namespace GooglePlayInstant.LoadingScreen
             {
                 yield return GetAssetBundle(AssetBundleUrl);
             }
-            
+
             if (_bundle == null)
             {
                 Debug.LogError("AssetBundle failed to be downloaded.");
                 yield break;
             }
-                        
+
             var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
             yield return LoadingBar.FillUntilDone(sceneLoadOperation, LoadingBar.AssetBundleDownloadMaxProportion, 1f);
         }
@@ -56,11 +59,11 @@ namespace GooglePlayInstant.LoadingScreen
         {
             UnityWebRequest webRequest;
             var downloadOperation = StartAssetBundleDownload(assetBundleUrl, out webRequest);
-            
+
             yield return LoadingBar.FillUntilDone(downloadOperation,
                 0f, LoadingBar.AssetBundleDownloadMaxProportion);
 
-            if(DidRequestFail(webRequest))
+            if (DidRequestFail(webRequest))
             {
                 yield return HandleRequestFailed(assetBundleUrl, webRequest);
             }
@@ -70,7 +73,7 @@ namespace GooglePlayInstant.LoadingScreen
             }
         }
 
-        private  IEnumerator HandleRequestFailed(string assetBundleUrl, UnityWebRequest webRequest)
+        private IEnumerator HandleRequestFailed(string assetBundleUrl, UnityWebRequest webRequest)
         {
             if (_assetBundleRetrievalAttemptCount < MaxAttemptCount)
             {
@@ -88,7 +91,7 @@ namespace GooglePlayInstant.LoadingScreen
                 Debug.LogErrorFormat("Error downloading asset bundle: {0}", webRequest.error);
             }
         }
-        
+
         private static bool DidRequestFail(UnityWebRequest webRequest)
         {
 #if UNITY_2017_1_OR_NEWER
@@ -106,7 +109,7 @@ namespace GooglePlayInstant.LoadingScreen
 #else
             webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
 #endif
-            
+
 #if UNITY_2017_2_OR_NEWER
             var assetBundleDownloadOperation = webRequest.SendWebRequest();
 #else
