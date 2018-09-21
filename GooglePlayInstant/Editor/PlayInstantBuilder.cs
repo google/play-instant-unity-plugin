@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.Build.Reporting;
 #endif
@@ -209,7 +208,16 @@ namespace GooglePlayInstant.Editor
         public static void LogError(string message)
         {
             Debug.LogErrorFormat("Build error: {0}", message);
-            EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
+
+            if (!IsHeadlessMode())
+            {
+                EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
+            }
+        }
+
+        private static bool IsHeadlessMode()
+        {
+            return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
         }
     }
 }
