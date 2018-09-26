@@ -13,12 +13,10 @@ buildscript {
  * Project level variables.
  */
 project.ext {
-    // Search for the Unity Editor executable.
-    unityExe = System.getProperty('UNITY_EXE')
-    if (unityExe == null || unityExe.isEmpty()) {
-        unityExe = System.getenv('UNITY_EXE')
-    }
-    if (unityExe == null || unityExe.isEmpty()) {
+    // The Unity Editor executable path can be passed in from the command line:
+    //   gradle -PunityExe=/path/to/unity/editor
+    // If the path is not provided, a default path will be tried based on the OS.
+    if (!project.hasProperty('unityExe')) {
         def osName = System.getProperty('os.name').toLowerCase();
         if (osName.contains('mac os x')) {
             unityExe = '/Applications/Unity/Unity.app/Contents/MacOS/Unity'
@@ -32,7 +30,7 @@ project.ext {
     }
     def unityExeFound = (new File(unityExe)).exists();
     if (!unityExeFound) {
-        throw new GradleException('Unity Editor executable not found')
+        throw new GradleException("Unity Editor executable not found: ${unityExe}")
     }
 
     // If the git project is located directly under the Assets folder, then we move up two
