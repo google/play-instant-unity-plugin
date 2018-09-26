@@ -164,22 +164,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.LabelField("Create AssetBundle", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
-
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Select scenes to be put into an AssetBundle and then build it.",
                 descriptionTextStyle);
-
             EditorGUILayout.Space();
-
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space();
 
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
             EditorGUILayout.Space();
-
             _playInstantSceneTreeTreeView.OnGUI(GUILayoutUtility.GetRect(position.width,
                 position.height - SceneViewDeltaFromTop));
+            EditorGUILayout.Space();
+
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Add Open Scenes"))
@@ -188,32 +186,19 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
 
             EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
 
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.LabelField("AssetBundle File Path", GUILayout.MinWidth(FieldMinWidth));
-            Config.AssetBundleFileName = EditorGUILayout.TextField(Config.AssetBundleFileName,
-                GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
+            if (GUILayout.Button("Build AssetBundle..."))
             {
-                Config.AssetBundleFileName = EditorUtility.SaveFilePanel("Save AssetBundle", "", "", "");
+                Config.AssetBundleFileName =
+                    EditorUtility.SaveFilePanel("Save AssetBundle", "", Config.AssetBundleFileName, "");
                 HandleDialogExit();
-            }
 
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-
-            if (GUILayout.Button("Build AssetBundle"))
-            {
                 try
                 {
                     Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
