@@ -195,23 +195,27 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Build AssetBundle..."))
             {
-                Config.AssetBundleFileName =
-                    EditorUtility.SaveFilePanel("Save AssetBundle", "", Config.AssetBundleFileName, "");
-                HandleDialogExit();
+                string saveFilePath =
+                    DialogHelper.SaveFilePanel("Save AssetBundle", Config.AssetBundleFileName, "");
 
-                try
+                if (!String.IsNullOrEmpty(saveFilePath))
                 {
-                    Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
-                    AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle,
-                        ex.Message);
-                    throw;
-                }
+                    Config.AssetBundleFileName = saveFilePath;
 
-                HandleDialogExit();
+                    try
+                    {
+                        Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                        AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
+                    }
+                    catch (Exception ex)
+                    {
+                        DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle,
+                            ex.Message);
+                        throw;
+                    }
+
+                    HandleDialogExit();
+                }
             }
 
             EditorGUILayout.EndHorizontal();
