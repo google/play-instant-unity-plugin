@@ -47,9 +47,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
-        /// Creates a scene in the current project that acts as a loading scene until assetbundles are
-        /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
-        /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
+        /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
+        /// Takes in an assetbundle URL, and a background image to display behind the loading bar.
+        /// Replaces the current loading scene with a new one if it exists.
         /// </summary>
         public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage)
         {
@@ -194,7 +194,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var loadingScreen = GameObject.FindObjectOfType<LoadingScreen.LoadingScreen>();
 
-            if (backgroundTexture != null)
+            if (loadingScreen.Background != null)
                 loadingScreen.Background.texture = backgroundTexture;
         }
     }

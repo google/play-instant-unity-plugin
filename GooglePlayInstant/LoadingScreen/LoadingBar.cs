@@ -29,6 +29,7 @@ namespace GooglePlayInstant.LoadingScreen
         [Tooltip("If true, this object's RectTransform will update to adjust the outline and border width")]
         public bool ResizeAutomatically = true;
 
+        [Tooltip("Asset Bundle download and install progress. The value set in the Editor is ignored at runtime.")]
         [Range(0f, 1f)] public float Progress = 0.25f;
 
         public RectTransform Background;
@@ -59,7 +60,10 @@ namespace GooglePlayInstant.LoadingScreen
         // TODO: Make sure this scales correctly in landscape
         public void ApplyBorderWidth()
         {
-            if (_rectTransform == null) _rectTransform = GetComponent<RectTransform>();
+            if (_rectTransform == null)
+            {
+                _rectTransform = GetComponent<RectTransform>();
+            }
 
             Outline.anchorMin = Vector3.zero;
             Outline.anchorMax = Vector3.one;

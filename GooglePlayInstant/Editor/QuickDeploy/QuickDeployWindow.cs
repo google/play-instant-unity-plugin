@@ -195,30 +195,37 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Build AssetBundle..."))
             {
-                string saveFilePath =
-                    DialogHelper.SaveFilePanel("Save AssetBundle", Config.AssetBundleFileName, "");
-
-                if (!String.IsNullOrEmpty(saveFilePath))
-                {
-                    Config.AssetBundleFileName = saveFilePath;
-
-                    try
-                    {
-                        Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
-                        AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
-                    }
-                    catch (Exception ex)
-                    {
-                        DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle,
-                            ex.Message);
-                        throw;
-                    }
-
-                    HandleDialogExit();
-                }
+                HandleBuildAssetBundleButton();
+                HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Displays a save dialog, saves the specified path to config, and then creates an AssetBundle at that path.
+        /// </summary>
+        private void HandleBuildAssetBundleButton()
+        {
+            string saveFilePath = DialogHelper.SaveFilePanel("Save AssetBundle", Config.AssetBundleFileName, "");
+            if (String.IsNullOrEmpty(saveFilePath))
+            {
+                // Assume cancelled.
+                return;
+            }
+
+            Config.AssetBundleFileName = saveFilePath;
+
+            try
+            {
+                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
+            }
+            catch (Exception ex)
+            {
+                DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle, ex.Message);
+                throw;
+            }
         }
 
         private string[] GetEnabledSceneItemPaths()
@@ -319,7 +326,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (LoadingScreenGenerator.LoadingScreenExists())
             {
-                //TODO Give the user feedback about whether or not the background or url changed
+                // TODO: Give the user feedback about whether or not the background or url changed.
                 if (GUILayout.Button("Update Loading Scene"))
                 {
                     try

@@ -46,7 +46,8 @@ namespace GooglePlayInstant.LoadingScreen
 
             if (_bundle == null)
             {
-                Debug.LogError("AssetBundle failed to be downloaded.");
+                // TODO: Develop UI for when AssetBundle download fails, e.g. a user prompt with a retry button.
+                Debug.LogErrorFormat("Failed to download AssetBundle after {0} attempts.", MaxAttemptCount);
                 yield break;
             }
 
@@ -62,7 +63,7 @@ namespace GooglePlayInstant.LoadingScreen
             yield return LoadingBar.FillUntilDone(downloadOperation,
                 0f, LoadingBar.AssetBundleDownloadMaxProportion);
 
-            if (DidRequestFail(webRequest))
+            if (IsFailedRequest(webRequest))
             {
                 yield return HandleRequestFailed(assetBundleUrl, webRequest);
             }
@@ -91,14 +92,13 @@ namespace GooglePlayInstant.LoadingScreen
             }
         }
 
-        private static bool DidRequestFail(UnityWebRequest webRequest)
+        private static bool IsFailedRequest(UnityWebRequest webRequest)
         {
 #if UNITY_2017_1_OR_NEWER
-            var requestFailed = (webRequest.isHttpError || webRequest.isNetworkError);
+            return webRequest.isHttpError || webRequest.isNetworkError;
 #else
-            var requestFailed = webRequest.isError;
+            return webRequest.isError;
 #endif
-            return requestFailed;
         }
 
         private static AsyncOperation StartAssetBundleDownload(string assetBundleUrl, out UnityWebRequest webRequest)

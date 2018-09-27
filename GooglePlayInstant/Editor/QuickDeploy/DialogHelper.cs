@@ -42,7 +42,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static string SaveFilePanel(string title, string defaultPath, string extension)
         {
 
-            string fileName = "";
+            string fileName;
             try
             {
                 fileName = Path.GetFileName(defaultPath);
@@ -52,7 +52,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 fileName = "";
             }
             
-            string directory = "";
+            string directory;
             try
             {
                 directory = Path.GetDirectoryName(defaultPath);
@@ -62,7 +62,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 directory = "";
             }
 
-            return EditorUtility.SaveFilePanel(title, directory, fileName, "");
+            return EditorUtility.SaveFilePanel(title, directory, fileName, extension);
         }
     }
 }

@@ -70,12 +70,12 @@ namespace GooglePlayInstant.LoadingScreen
             var image = imageObject.AddComponent<Image>();
             image.color = color;
 
-            var rectTransform = imageObject.GetComponent<RectTransform>();
-
-            return rectTransform;
+            return imageObject.GetComponent<RectTransform>();
         }
 
-        //Creates a new GameObject with a RectTransform instead of a normal Transform
+        /// <summary>
+        /// Create a new GameObject with the specified name and a RectTransform instead of a normal Transform.
+        /// </summary>
         private static GameObject GenerateUiObject(string name)
         {
             var gameObject = new GameObject(name, typeof(RectTransform));
