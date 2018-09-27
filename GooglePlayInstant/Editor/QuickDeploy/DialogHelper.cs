@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.Remoting.Messaging;
+using System;
+using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
@@ -32,6 +32,37 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static void DisplayMessage(string title, string message)
         {
             EditorUtility.DisplayDialog(title, message, OkButtonText);
+        }
+
+        /// <summary>
+        /// Displays a save dialog pointing to the default path.
+        /// If the path points to a file then that file will be used as the default file name.
+        /// </summary>
+        /// <returns>The user selected path</returns>
+        public static string SaveFilePanel(string title, string defaultPath, string extension)
+        {
+
+            string fileName;
+            try
+            {
+                fileName = Path.GetFileName(defaultPath);
+            }
+            catch (ArgumentException)
+            {
+                fileName = "";
+            }
+            
+            string directory;
+            try
+            {
+                directory = Path.GetDirectoryName(defaultPath);
+            }
+            catch (ArgumentException)
+            {
+                directory = "";
+            }
+
+            return EditorUtility.SaveFilePanel(title, directory, fileName, extension);
         }
     }
 }

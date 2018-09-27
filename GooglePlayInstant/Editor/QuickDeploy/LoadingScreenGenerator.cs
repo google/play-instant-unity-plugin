@@ -18,7 +18,6 @@ using System.Runtime.CompilerServices;
 using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -32,7 +31,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class LoadingScreenGenerator
     {
-        public const string SceneName = "play-instant-loading-screen-scene.unity";
+        public const string SceneName = "PlayInstantLoadingScreen.unity";
 
         public static readonly string SceneDirectoryPath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
@@ -41,25 +40,22 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         private const string SaveErrorTitle = "Loading Screen Save Error";
 
+        private const int ReferenceWidth = 1080;
+        private const int ReferenceHeight = 1920;
+
         private static readonly string SceneFilePath =
             Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
-        /// Creates a scene in the current project that acts as a loading scene until assetbundles are
-        /// downloaded from the CDN. Takes in a loadingScreenImagePath, a path to the image shown in the loading scene,
-        /// and an assetbundle URL. Replaces the current loading scene with a new one if it exists.
+        /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
+        /// Takes in an assetbundle URL, and a background image to display behind the loading bar.
+        /// Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateScene(string assetBundleUrl, string loadingScreenImagePath)
+        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
                 throw new ArgumentException("AssetBundle URL text field cannot be null or empty.");
-            }
-
-            if (!File.Exists(loadingScreenImagePath))
-            {
-                throw new FileNotFoundException(string.Format("Loading screen image file cannot be found: {0}",
-                    loadingScreenImagePath));
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
@@ -68,13 +64,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
-            var loadingScreenGameObject = new GameObject(CanvasName);
-
-            AddImageToScene(loadingScreenGameObject, loadingScreenImagePath);
-
-            AddScript(loadingScreenGameObject);
-
-            LoadingBar.AddComponent(loadingScreenGameObject);
+            PopulateScene(loadingScreenImage, assetBundleUrl);
 
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
 
@@ -123,42 +113,89 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             };
         }
 
-        // Visible for testing
-        internal static void AddScript(GameObject loadingScreenGameObject)
+        private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
         {
-            loadingScreenGameObject.AddComponent<LoadingScreenScript>();
+            var loadingScreenGameObject = new GameObject("Loading Screen");
+
+            var camera = GenerateCamera();
+            camera.transform.SetParent(loadingScreenGameObject.transform, false);
+
+            var canvasObject = GenerateCanvas(camera);
+            canvasObject.transform.SetParent(loadingScreenGameObject.transform, false);
+
+            var backgroundImage = GenerateBackground(backgroundTexture);
+            backgroundImage.transform.SetParent(canvasObject.transform, false);
+
+            var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
+            loadingScreen.AssetBundleUrl = assetBundleUrl;
+            loadingScreen.Background = backgroundImage;
+            loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
+            loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
         }
 
+        private static Camera GenerateCamera()
+        {
+            var cameraObject = new GameObject("UI Camera");
+
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = ReferenceHeight / 2f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.white;
+
+            return camera;
+        }
+
+        private static GameObject GenerateCanvas(Camera camera)
+        {
+            var canvasObject = new GameObject(CanvasName);
+
+            var canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = camera;
+
+            var canvasScaler = canvasObject.AddComponent<CanvasScaler>();
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
+            canvasScaler.matchWidthOrHeight = 0f;
+
+            return canvasObject;
+        }
+
+        private static RawImage GenerateBackground(Texture backgroundTexture)
+        {
+            var backgroundObject = new GameObject("Background");
+
+            var backgroundImage = backgroundObject.AddComponent<RawImage>();
+            backgroundImage.texture = backgroundTexture;
+
+            var backgroundRect = backgroundObject.GetComponent<RectTransform>();
+            backgroundRect.anchorMin = Vector2.zero; // Scale with parent.
+            backgroundRect.anchorMax = Vector2.one;
+            backgroundRect.sizeDelta = Vector2.zero;
+
+            var backgroundAspectRatioFitter = backgroundObject.AddComponent<AspectRatioFitter>();
+            backgroundAspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            if (backgroundImage.texture == null)
+            {
+                backgroundAspectRatioFitter.aspectRatio = ReferenceWidth / (float) ReferenceHeight;
+            }
+            else
+            {
+                backgroundAspectRatioFitter.aspectRatio =
+                    backgroundImage.texture.width / (float) backgroundImage.texture.height;
+            }
+
+            return backgroundImage;
+        }
 
         // Visible for testing
-        internal static void AddImageToScene(GameObject loadingScreenGameObject,
-            string pathToLoadingScreenImage)
+        internal static void UpdateBackgroundImage(Texture backgroundTexture)
         {
-            if (loadingScreenGameObject.GetComponent<Canvas>() == null)
-            {
-                // First time creating a loading screen, configure nested game objects appropriately.
-                var loadingScreenCanvas = loadingScreenGameObject.AddComponent<Canvas>();
+            var loadingScreen = GameObject.FindObjectOfType<LoadingScreen.LoadingScreen>();
 
-                loadingScreenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-                loadingScreenGameObject.AddComponent<Image>();
-            }
-
-            var loadingScreenImageData = File.ReadAllBytes(pathToLoadingScreenImage);
-
-            var tex = new Texture2D(1, 1);
-
-            var texLoaded = tex.LoadImage(loadingScreenImageData);
-
-            if (!texLoaded)
-            {
-                throw new Exception("Failed to load image as a Texture2D.");
-            }
-
-            var loadingImageSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-
-            var loadingScreenImage = loadingScreenGameObject.GetComponent<Image>();
-            loadingScreenImage.sprite = loadingImageSprite;
+            if (loadingScreen.Background != null)
+                loadingScreen.Background.texture = backgroundTexture;
         }
     }
 }

@@ -29,8 +29,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
     [TestFixture]
     public class LoadingScreenGeneratorTest
     {
-        private const string TestGameObjectName = "Testing Object";
-
         [Test]
         public void TestSetMainSceneInBuild()
         {
@@ -45,30 +43,11 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         }
 
         [Test]
-        public void TestAddLoadingScreenScript()
+        public void TestGenerateScene()
         {
-            var loadingScreenGameObject = new GameObject(TestGameObjectName);
-            LoadingScreenGenerator.AddScript(loadingScreenGameObject);
-            Assert.IsNotNull(loadingScreenGameObject.GetComponent<LoadingScreenScript>(),
-                "A script should be attached to the loading screen object.");
-        }
-
-        [Test]
-        public void TestAddLoadingScreenImage()
-        {
-            const string testImage = "example.png";
-
-            // Create an empty test file by immediately closing the FileStream returned by File.Create().
-            using (File.Create(testImage)) ;
-
-            var loadingScreenGameObject = new GameObject(TestGameObjectName);
-
-            LoadingScreenGenerator.AddImageToScene(loadingScreenGameObject, testImage);
-
-            Assert.IsNotNull(loadingScreenGameObject.GetComponent<Canvas>(),
-                "A canvas component should have been added to the loading screen game object.");
-            Assert.IsNotNull(loadingScreenGameObject.GetComponent<Image>(),
-                "An image component should have been added to the loading screen game object.");
+            LoadingScreenGenerator.GenerateScene("", null);
+            Assert.IsNotNull(Object.FindObjectOfType<LoadingScreen.LoadingScreen>(),
+                "A LoadingScreen component should be present in the generated scene");
         }
     }
 }

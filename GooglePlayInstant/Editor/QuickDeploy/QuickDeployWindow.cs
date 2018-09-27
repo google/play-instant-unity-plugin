@@ -56,7 +56,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int ShortButtonWidth = 100;
         private const int ToolbarHeight = 25;
 
-        private string _loadingScreenImagePath;
+        private Texture2D _loadingScreenImage;
 
         // Titles for errors that occur
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
@@ -76,7 +76,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private void OnEnable()
         {
             Config.LoadConfiguration();
-            
+
             var scenesViewState = Config.AssetBundleScenes ?? new PlayInstantSceneTreeView.State();
 
             _playInstantSceneTreeTreeView = new PlayInstantSceneTreeView(scenesViewState);
@@ -164,22 +164,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.LabelField("Create AssetBundle", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
-
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Select scenes to be put into an AssetBundle and then build it.",
                 descriptionTextStyle);
-
             EditorGUILayout.Space();
-
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space();
 
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
             EditorGUILayout.Space();
-
             _playInstantSceneTreeTreeView.OnGUI(GUILayoutUtility.GetRect(position.width,
                 position.height - SceneViewDeltaFromTop));
+            EditorGUILayout.Space();
+
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Add Open Scenes"))
@@ -188,48 +186,46 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
 
             EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
 
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.LabelField("AssetBundle File Path", GUILayout.MinWidth(FieldMinWidth));
-            Config.AssetBundleFileName = EditorGUILayout.TextField(Config.AssetBundleFileName,
-                GUILayout.MinWidth(FieldMinWidth));
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
+            if (GUILayout.Button("Build AssetBundle..."))
             {
-                Config.AssetBundleFileName = EditorUtility.SaveFilePanel("Save AssetBundle", "", "", "");
+                HandleBuildAssetBundleButton();
                 HandleDialogExit();
             }
 
             EditorGUILayout.EndHorizontal();
+        }
 
-            EditorGUILayout.BeginHorizontal();
-
-            if (GUILayout.Button("Build AssetBundle"))
+        /// <summary>
+        /// Displays a save dialog, saves the specified path to config, and then creates an AssetBundle at that path.
+        /// </summary>
+        private void HandleBuildAssetBundleButton()
+        {
+            string saveFilePath = DialogHelper.SaveFilePanel("Save AssetBundle", Config.AssetBundleFileName, "");
+            if (String.IsNullOrEmpty(saveFilePath))
             {
-                try
-                {
-                    Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
-                    AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle,
-                        ex.Message);
-                    throw;
-                }
-
-                HandleDialogExit();
+                // Assume cancelled.
+                return;
             }
 
-            EditorGUILayout.EndHorizontal();
+            Config.AssetBundleFileName = saveFilePath;
+
+            try
+            {
+                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
+            }
+            catch (Exception ex)
+            {
+                DialogHelper.DisplayMessage(AssetBundleBuildErrorTitle, ex.Message);
+                throw;
+            }
         }
 
         private string[] GetEnabledSceneItemPaths()
@@ -320,33 +316,23 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 "Choose image to use as background for the loading scene.", descriptionTextStyle);
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Image File Path", GUILayout.MinWidth(FieldMinWidth));
+            EditorGUILayout.LabelField("Background Texture", GUILayout.MinWidth(FieldMinWidth));
 
-            _loadingScreenImagePath =
-                EditorGUILayout.TextField(_loadingScreenImagePath, GUILayout.MinWidth(FieldMinWidth));
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Browse", GUILayout.Width(ShortButtonWidth)))
-            {
-                _loadingScreenImagePath =
-                    EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg,tif,tiff,gif,bmp");
-                HandleDialogExit();
-            }
+            _loadingScreenImage = (Texture2D) EditorGUILayout.ObjectField(_loadingScreenImage, typeof(Texture2D), false,
+                GUILayout.MinWidth(FieldMinWidth));
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
             if (LoadingScreenGenerator.LoadingScreenExists())
             {
+                // TODO: Give the user feedback about whether or not the background or url changed.
                 if (GUILayout.Button("Update Loading Scene"))
                 {
                     try
                     {
                         Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                        LoadingScreenGenerator.AddImageToScene(LoadingScreenGenerator.GetLoadingScreenCanvasObject(),
-                            _loadingScreenImagePath);
+                        LoadingScreenGenerator.UpdateBackgroundImage(_loadingScreenImage);
                     }
                     catch (Exception ex)
                     {
@@ -363,7 +349,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     {
                         Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
                         LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl,
-                            _loadingScreenImagePath);
+                            _loadingScreenImage);
                     }
                     catch (Exception ex)
                     {

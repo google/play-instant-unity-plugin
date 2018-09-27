@@ -15,7 +15,6 @@
 using System;
 using System.IO;
 using GooglePlayInstant.LoadingScreen;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
