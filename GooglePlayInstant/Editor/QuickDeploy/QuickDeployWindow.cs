@@ -246,9 +246,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var descriptionTextStyle = CreateDescriptionTextStyle();
 
-            EditorGUILayout.LabelField("Set AssetBundle URL", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Configure Loading Scene", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
-
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(
                 "Specify the URL that points to the deployed AssetBundle. The AssetBundle will be downloaded at game startup. ",
@@ -260,36 +259,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 EditorGUILayout.TextField(Config.AssetBundleUrl, GUILayout.MinWidth(FieldMinWidth));
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Check AssetBundle"))
-            {
-                var window = AssetBundleVerifierWindow.ShowWindow();
-
-                try
-                {
-                    Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                    window.StartAssetBundleDownload(Config.AssetBundleUrl);
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(AssetBundleCheckerErrorTitle, ex.Message);
-
-                    window.Close();
-
-                    throw;
-                }
-            }
-
-            EditorGUILayout.Space();
-
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Select Loading Screen Image", EditorStyles.boldLabel);
-            EditorGUILayout.BeginVertical(UserInputGuiStyle);
-            EditorGUILayout.Space();
-
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider); // Draws a horizontal line
+            
             EditorGUILayout.LabelField(
                 "Choose image to use as background for the loading scene.", descriptionTextStyle);
             EditorGUILayout.Space();
@@ -301,7 +272,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
 
+            EditorGUILayout.Space();
             if (GUILayout.Button("Create Loading Scene..."))
             {
                 string saveFilePath = DialogHelper.SaveFilePanel("Create Loading Scene", Config.LoadingSceneFileName, "unity");
@@ -326,10 +299,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     throw;
                 }
             }
-
-            EditorGUILayout.Space();
-
-            EditorGUILayout.EndVertical();
         }
 
         // Call this method after any of the SaveFilePanels and OpenFilePanels placed inbetween BeginHorizontal()s or
