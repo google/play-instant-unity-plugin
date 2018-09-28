@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.IO;
 using GooglePlayInstant.Editor.GooglePlayServices;
 
 namespace GooglePlayInstant.Editor
@@ -46,16 +45,13 @@ namespace GooglePlayInstant.Editor
         }
 
         /// <summary>
-        /// Unzips the specified file into the specified output location.
-        /// Note: this operation will change the current directory to the output location.
+        /// Unzips the specified ZIP file into the specified output location.
         /// </summary>
         /// <returns>null if the operation succeeded, or an error message if it failed.</returns>
         public static string UnzipFile(string zipFilePath, string outputDirectoryName)
         {
-            // Must change the current directory before zip extraction.
-            Directory.SetCurrentDirectory(outputDirectoryName);
             var arguments = string.Format("xf {0}", CommandLine.QuotePathIfNecessary(zipFilePath));
-            var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
+            var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments, outputDirectoryName);
             return result.exitCode == 0 ? null : result.message;
         }
     }

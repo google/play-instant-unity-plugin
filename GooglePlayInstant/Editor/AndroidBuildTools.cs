@@ -65,6 +65,15 @@ namespace GooglePlayInstant.Editor
             return newestBuildTools;
         }
 
+        /// <summary>
+        /// Returns true if the specified existing version is the same as or newer than the specified minimum version,
+        /// and false otherwise.
+        /// </summary>
+        public static bool IsBuildToolsVersionAtLeast(string existingVersion, string minimumRequiredVersion)
+        {
+            return ConvertVersionStringToLong(existingVersion) >= ConvertVersionStringToLong(minimumRequiredVersion);
+        }
+
         // Visible for testing.
         public static string GetNewestVersion(IEnumerable<string> versions)
         {

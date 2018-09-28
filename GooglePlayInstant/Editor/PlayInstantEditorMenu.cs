@@ -17,6 +17,9 @@ using UnityEngine;
 
 namespace GooglePlayInstant.Editor
 {
+    /// <summary>
+    /// Provides all "PlayInstant" menu items for the Unity Editor.
+    /// </summary>
     public static class PlayInstantEditorMenu
     {
         [MenuItem("PlayInstant/Documentation/GitHub Project", false, 100)]
@@ -62,10 +65,10 @@ namespace GooglePlayInstant.Editor
         }
 
         // Note: cannot use string.Format() in an attribute argument.
-        [MenuItem("PlayInstant/Set up " + PlayInstantSdkInstaller.InstantAppsSdkName + "...", false, 202)]
+        [MenuItem("PlayInstant/Set up " + PlayInstantRunner.InstantAppsSdkShortDisplayName + "...", false, 202)]
         private static void SetUpPlayInstantSdk()
         {
-            PlayInstantSdkInstaller.SetUp();
+            PlayInstantRunner.InstallPlayInstantSdk();
         }
 
 #if UNITY_2018_3_OR_NEWER

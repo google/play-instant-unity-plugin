@@ -19,23 +19,26 @@ using UnityEngine;
 
 namespace GooglePlayInstant.Editor
 {
-    public static class PlayInstantSdkInstaller
+    /// <summary>
+    /// Utility class that uses <see cref="AndroidSdkManager"/> to install Android SDK packages.
+    /// </summary>
+    public static class AndroidSdkPackageInstaller
     {
-        public const string InstantAppsSdkName = "Instant Apps Development SDK";
-        private const string InstantAppsSdkManagerPackageName = "extras;google;instantapps";
-
-        public static void SetUp()
+        /// <summary>
+        /// Installs the specified Android SDK package.
+        /// </summary>
+        public static void InstallPackage(string packageName, string displayName)
         {
             // In many cases the SDK install is quick and clearly indicates download/install progress. However, on
             // some systems it can take a couple minutes and not indicate progress - set expectations with a dialog.
             // TODO: figure out if we can target this message only for when it is needed.
             const string message =
-                "On some systems the SDK install process is slow and does not provide feedback, " +
+                "On some systems the install process is slow and does not provide feedback, " +
                 "which may lead you to believe that Unity has frozen or crashed.\n\n" +
                 "Click \"OK\" to continue.";
             if (!EditorUtility.DisplayDialog("Install Note", message, "OK", "Cancel"))
             {
-                Debug.LogFormat("Cancelled install of {0}", InstantAppsSdkName);
+                Debug.LogFormat("Cancelled install of {0}", displayName);
                 return;
             }
 
@@ -43,10 +46,10 @@ namespace GooglePlayInstant.Editor
             {
                 manager.QueryPackages(collection =>
                 {
-                    var package = collection.GetMostRecentAvailablePackage(InstantAppsSdkManagerPackageName);
+                    var package = collection.GetMostRecentAvailablePackage(packageName);
                     if (package == null)
                     {
-                        ShowMessage(string.Format("Unable to locate the {0} package", InstantAppsSdkName));
+                        ShowMessage(string.Format("Unable to locate the {0} package", displayName));
                         return;
                     }
 
@@ -54,7 +57,7 @@ namespace GooglePlayInstant.Editor
                     {
                         ShowMessage(string.Format(
                             "The {0} package is already installed at the latest available version ({1})",
-                            InstantAppsSdkName, package.VersionString));
+                            displayName, package.VersionString));
                         return;
                     }
 
@@ -64,11 +67,11 @@ namespace GooglePlayInstant.Editor
                         if (success)
                         {
                             ShowMessage(string.Format("Successfully updated the {0} package to version {1}",
-                                InstantAppsSdkName, package.VersionString));
+                                displayName, package.VersionString));
                         }
                         else
                         {
-                            ShowMessage(string.Format("Failed to set up the {0} package", InstantAppsSdkName));
+                            ShowMessage(string.Format("Failed to install the {0} package", displayName));
                         }
                     });
                 });
@@ -77,8 +80,8 @@ namespace GooglePlayInstant.Editor
 
         private static void ShowMessage(string message)
         {
-            Debug.LogFormat("PlayInstantSdkInstaller: {0}", message);
-            EditorUtility.DisplayDialog(InstantAppsSdkName, message, "OK");
+            Debug.LogFormat("AndroidSdkPackageInstaller: {0}", message);
+            EditorUtility.DisplayDialog("Android SDK Package Installer", message, "OK");
         }
     }
 }
