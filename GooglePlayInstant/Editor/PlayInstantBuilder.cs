@@ -199,6 +199,12 @@ namespace GooglePlayInstant.Editor
         /// <returns>True if the user clicks "OK", otherwise false.</returns>
         public static bool DisplayBuildErrorDialog(string message)
         {
+            if (IsHeadlessMode())
+            {
+                // During a headless build it isn't possible to prompt to fix the issue, so always return false.
+                Debug.LogErrorFormat("Build error in headless mode: {0}", message);
+                return false;
+            }
             return EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText, CancelButtonText);
         }
 

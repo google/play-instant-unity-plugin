@@ -23,6 +23,16 @@ namespace GooglePlayInstant.Tests.Editor
     public class AndroidBuildToolsTests
     {
         [Test]
+        public void TestIsBuildToolsVersionAtLeast()
+        {
+            Assert.IsFalse(AndroidBuildTools.IsBuildToolsVersionAtLeast("27.0.0", "28.0.0"));
+            Assert.IsFalse(AndroidBuildTools.IsBuildToolsVersionAtLeast("28.0.0-rc5", "28.0.0"));
+            Assert.IsTrue(AndroidBuildTools.IsBuildToolsVersionAtLeast("28.0.0", "28.0.0"));
+            Assert.IsTrue(AndroidBuildTools.IsBuildToolsVersionAtLeast("28.0.1-rc1", "28.0.0"));
+            Assert.IsTrue(AndroidBuildTools.IsBuildToolsVersionAtLeast("28.0.1", "28.0.0"));
+        }
+
+        [Test]
         public void TestGetNewestVersion_Null()
         {
             Assert.Throws<NullReferenceException>(() => AndroidBuildTools.GetNewestVersion(null));

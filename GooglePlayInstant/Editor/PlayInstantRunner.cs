@@ -24,6 +24,9 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class PlayInstantRunner
     {
+        public const string InstantAppsSdkDisplayName = "Google Play Instant Development SDK";
+        public const string InstantAppsSdkShortDisplayName = "Play Instant SDK";
+        private const string InstantAppsSdkPackageName = "extras;google;instantapps";
         private const string InstantAppsJarPath = "extras/google/instantapps/tools/ia.jar";
 
         /// <summary>
@@ -33,7 +36,8 @@ namespace GooglePlayInstant.Editor
         {
             if (!Directory.Exists(AndroidSdkManager.AndroidSdkRoot))
             {
-                PlayInstantBuilder.LogError("Failed to locate the Android SDK. Check Preferences -> External Tools to set the path.");
+                PlayInstantBuilder.LogError(
+                    "Failed to locate the Android SDK. Check Preferences -> External Tools to set the path.");
                 return;
             }
 
@@ -44,10 +48,10 @@ namespace GooglePlayInstant.Editor
                 var message =
                     string.Format(
                         "Failed to locate version 1.2 or later of the {0}.\n\nClick \"OK\" to install the {0}.",
-                        PlayInstantSdkInstaller.InstantAppsSdkName);
+                        InstantAppsSdkDisplayName);
                 if (PlayInstantBuilder.DisplayBuildErrorDialog(message))
                 {
-                    PlayInstantSdkInstaller.SetUp();
+                    InstallPlayInstantSdk();
                 }
 
                 return;
@@ -84,6 +88,14 @@ namespace GooglePlayInstant.Editor
             window.CommandLineParams.AddEnvironmentVariable(
                 AndroidSdkManager.AndroidHome, AndroidSdkManager.AndroidSdkRoot);
             window.Show();
+        }
+
+        /// <summary>
+        /// Performs installation or upgrade of the Google Play Instant Development SDK.
+        /// </summary>
+        public static void InstallPlayInstantSdk()
+        {
+            AndroidSdkPackageInstaller.InstallPackage(InstantAppsSdkPackageName, InstantAppsSdkDisplayName);
         }
     }
 }
