@@ -25,7 +25,7 @@ The plugin’s Unity Engine (runtime) features include:
  * Import the .unitypackage by clicking the Unity IDE menu option _Assets > Import package > Custom Package_ and importing all items.
 
 ## Unity Editor Features
-After import there will be a “PlayInstant” menu in Unity providing several options described below.
+After import there will be a "PlayInstant" menu in Unity providing several options described below.
 
 ### Build Settings...
 Opens a window that enables switching between "Installed" and "Instant" development modes. Switching to "Instant" performs the following changes:
@@ -42,10 +42,10 @@ The Play Instant Build Settings window also provides control over the scenes inc
  * Scenes that are not included in the build, but that are loaded via Asset Bundles, may have required components removed by engine stripping. Specify the path to an Asset Bundle Manifest file to retain these required components.
 
 ### Player Settings...
-Opens a window that lists Android Player Settings that should be changed to make the app Google Play Instant compatible. These are divided into Required and Recommended settings. Click on an “Update” button to change a setting.
+Opens a window that lists Android Player Settings that should be changed to make the app Google Play Instant compatible. These are divided into Required and Recommended settings. Click on an "Update" button to change a setting.
 
 ### Set up Play Instant SDK...
-Installs or updates the “Google Play Instant Development SDK” (formerly the "Instant Apps Development SDK") using [sdkmanager](https://developer.android.com/studio/command-line/sdkmanager). The plugin requires SDK version 1.2 or higher. If there is a license that needs to be accepted, the plugin will prompt for acceptance.
+Installs or updates the "Google Play Instant Development SDK" (formerly the "Instant Apps Development SDK") using [sdkmanager](https://developer.android.com/studio/command-line/sdkmanager). The plugin requires SDK version 1.2 or higher. If there is a license that needs to be accepted, the plugin will prompt for acceptance.
 
 ### Build for Play Console...
 [Google Play Console](https://play.google.com/apps/publish/) requires that the APKs for an instant app are published together in a ZIP file. Although most Unity instant apps will consist of a single APK, the requirement holds. This menu option performs a build and stores the resulting APK in a ZIP file suitable for publishing.
@@ -53,7 +53,7 @@ Installs or updates the “Google Play Instant Development SDK” (formerly the 
 ### Build and Run
 This option runs the instant app on an adb connected device by performing the following steps:
  * Verifies that required Unity Build Settings and Android Player Settings are configured correctly.
- * Invokes Unity's BuildPlayer method to create an APK containing all scenes that are currently enabled in “Build Settings”.
+ * Invokes Unity's BuildPlayer method to create an APK containing all scenes that are currently enabled in "Build Settings".
  * If the connected device is running an Android version before 8.0 (Oreo), provisions the device for Instant App development by installing "Google Play Services for Instant Apps" and "Instant Apps Development Manager" (only if not done already).
  * Runs the APK as an instant app on the adb connected device.
 
