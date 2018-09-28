@@ -36,6 +36,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static readonly string SceneDirectoryPath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
 
+        public static LoadingScreen.LoadingScreen CurrentLoadingScreen { get; private set; }
+
         private const string CanvasName = "Loading Screen Canvas";
 
         private const string SaveErrorTitle = "Loading Screen Save Error";
@@ -51,7 +53,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Takes in an assetbundle URL, and a background image to display behind the loading bar.
         /// Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage)
+        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage, string sceneFilePath)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
@@ -66,7 +68,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             PopulateScene(loadingScreenImage, assetBundleUrl);
 
-            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
+            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, sceneFilePath);
 
             if (!saveOk)
             {
@@ -92,16 +94,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     }
                 };
             }
-        }
-
-        public static bool LoadingScreenExists()
-        {
-            return SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)).IsValid();
-        }
-
-        public static GameObject GetLoadingScreenCanvasObject()
-        {
-            return GameObject.Find(CanvasName);
         }
 
         // Visible for testing
@@ -131,6 +123,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingScreen.Background = backgroundImage;
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
             loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
+
+            CurrentLoadingScreen = loadingScreen;
         }
 
         private static Camera GenerateCamera()
@@ -187,15 +181,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             return backgroundImage;
-        }
-
-        // Visible for testing
-        internal static void UpdateBackgroundImage(Texture backgroundTexture)
-        {
-            var loadingScreen = GameObject.FindObjectOfType<LoadingScreen.LoadingScreen>();
-
-            if (loadingScreen.Background != null)
-                loadingScreen.Background.texture = backgroundTexture;
         }
     }
 }

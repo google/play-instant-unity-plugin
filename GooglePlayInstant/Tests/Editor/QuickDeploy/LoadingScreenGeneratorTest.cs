@@ -45,7 +45,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         [Test]
         public void TestGenerateScene()
         {
-            LoadingScreenGenerator.GenerateScene("", null);
+            LoadingScreenGenerator.GenerateScene("", null, "");
             Assert.IsNotNull(Object.FindObjectOfType<LoadingScreen.LoadingScreen>(),
                 "A LoadingScreen component should be present in the generated scene");
         }

@@ -37,28 +37,32 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// The Editor Configuration singleton that should be used to read and modify Quick Deploy configuration.
         /// Modified values are persisted by calling SaveEditorConfiguration.
         /// </summary>
-        private EditorConfiguration EditorConfig;
+        private EditorConfiguration _editorConfig;
 
         /// <summary>
         /// The Engine Configuration singleton that should be used to read and modify Loading Screen configuration.
         /// Modified values are persisted by calling SaveEngineConfiguration.
         /// </summary>
-        private LoadingScreenConfig.EngineConfiguration EngineConfig;
+        private LoadingScreenConfig.EngineConfiguration _engineConfig;
 
         // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-        public string AssetBundleFileName;
-        public PlayInstantSceneTreeView.State AssetBundleScenes;
         public string AssetBundleUrl;
+        public string AssetBundleFileName;
+        public string LoadingSceneFileName;
+        public Texture2D LoadingBackgroundImage;
+        public PlayInstantSceneTreeView.State AssetBundleScenes;
 
         public void LoadConfiguration()
         {
-            EditorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
-            EngineConfig = LoadEngineConfiguration(EngineConfigurationFilePath);
-            
+            _editorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
+            _engineConfig = LoadEngineConfiguration(EngineConfigurationFilePath);
+
             // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-            AssetBundleFileName = EditorConfig.assetBundleFileName;
-            AssetBundleScenes = EditorConfig.assetBundleScenes;
-            AssetBundleUrl = EngineConfig.assetBundleUrl;
+            AssetBundleUrl = _engineConfig.assetBundleUrl;
+            AssetBundleFileName = _editorConfig.assetBundleFileName;
+            AssetBundleScenes = _editorConfig.assetBundleScenes;
+            LoadingSceneFileName = _editorConfig.loadingSceneFileName;
+            LoadingBackgroundImage = _editorConfig.loadingBackgroundImage;
         }
 
         /// <summary>
@@ -70,12 +74,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             switch (currentTab)
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
-                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, EditorConfig,
-                        EditorConfigurationFilePath);
+                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen, EngineConfig,
-                        EngineConfigurationFilePath);
+                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
+                    SaveEngineConfiguration(currentTab, _engineConfig, EngineConfigurationFilePath);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
@@ -91,6 +94,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
                     configuration.assetBundleFileName = AssetBundleFileName;
                     configuration.assetBundleScenes = AssetBundleScenes;
+                    break;
+                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
+                    configuration.loadingBackgroundImage = LoadingBackgroundImage;
+                    configuration.loadingSceneFileName = LoadingSceneFileName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab,
@@ -168,6 +175,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public class EditorConfiguration
         {
             public string assetBundleFileName;
+            public string loadingSceneFileName;
+            public Texture2D loadingBackgroundImage;
             public PlayInstantSceneTreeView.State assetBundleScenes;
         }
     }
