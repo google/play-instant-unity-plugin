@@ -45,8 +45,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int ReferenceWidth = 1080;
         private const int ReferenceHeight = 1920;
 
-        private static readonly string SceneFilePath =
-            Path.Combine(SceneDirectoryPath, SceneName);
+        private static readonly string DefaultSceneFilePath = Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
@@ -68,6 +67,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             PopulateScene(loadingScreenImage, assetBundleUrl);
 
+            //Relative to the Assets Path
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, sceneFilePath);
 
             if (!saveOk)
@@ -83,26 +83,43 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             else
             {
                 AssetDatabase.Refresh();
-                EditorApplication.delayCall += () =>
-                {
-                    //TODO: move this to DialogHelper
-                    if (EditorUtility.DisplayDialog("Change Scenes in Build",
-                        "Would you like to replace any existing Scenes in Build with the loading screen scene?", "Yes",
-                        "No"))
-                    {
-                        SetMainSceneInBuild(SceneFilePath);
-                    }
-                };
+                SetMainSceneInBuild(sceneFilePath);
             }
         }
 
         // Visible for testing
+        /// <summary>
+        /// Adds the specified path to the build settings, if it isn't there, and marks it as included in the build.
+        /// All other scenes are marked as excluded from the build.
+        /// </summary>
         internal static void SetMainSceneInBuild(string pathToScene)
         {
-            EditorBuildSettings.scenes = new[]
+            var buildScenes = EditorBuildSettings.scenes;
+            var index = Array.FindIndex(buildScenes, (scene) => scene.path == pathToScene);
+
+            //Disable all other scenes
+            for (int i = 0; i < buildScenes.Length; i++)
             {
-                new EditorBuildSettingsScene(pathToScene, true)
-            };
+                buildScenes[i].enabled = i == index;
+            }
+            
+            //If the scene isn't already in the list, add it and set it to enabled
+            if (index < 0)
+            {
+                var appendedScenes = new EditorBuildSettingsScene[buildScenes.Length+1];
+                Array.Copy(buildScenes, appendedScenes, buildScenes.Length);
+                appendedScenes[buildScenes.Length] = new EditorBuildSettingsScene(pathToScene, true);
+                EditorBuildSettings.scenes = appendedScenes;
+            }
+            else
+            {
+                EditorBuildSettings.scenes = buildScenes;
+            }
+        }
+
+        private static void FindSceneInBuildSettings()
+        {
+            
         }
 
         private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
