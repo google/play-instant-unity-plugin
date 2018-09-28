@@ -261,26 +261,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
-
-            var setAssetBundleText = QuickDeployConfig.EngineConfigExists()
-                ? "Update AssetBundle URL"
-                : "Set AssetBundle URL";
-
-            if (GUILayout.Button(setAssetBundleText))
-            {
-                try
-                {
-                    Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(AssetBundleCheckerErrorTitle, ex.Message);
-
-                    throw;
-                }
-            }
-
-            EditorGUILayout.Space();
             if (GUILayout.Button("Check AssetBundle"))
             {
                 var window = AssetBundleVerifierWindow.ShowWindow();
