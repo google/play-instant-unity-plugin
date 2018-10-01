@@ -23,8 +23,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 {
     public class ConfigurationTest
     {
-        private static readonly string TestConfigurationPath =
-            Path.Combine("Assets", LoadingScreenConfig.EngineConfigurationFileName);
+        private static readonly string TestConfigurationPath = "Assets/QuickDeployConfig.json";
 
         // Dispose of temporarily created file.  
         [TearDown]
@@ -73,48 +72,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         }
 
         [Test]
-        public void TestSavingConfigOnLoadingScreenWithString()
-        {
-            var quickDeployConfig = new QuickDeployConfig
-            {
-                AssetBundleUrl = "testurl"
-            };
-
-            var inputConfig = new LoadingScreenConfig.EngineConfiguration();
-
-            quickDeployConfig.SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen,
-                inputConfig,
-                TestConfigurationPath);
-
-            var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
-            var outputConfig =
-                JsonUtility.FromJson<LoadingScreenConfig.EngineConfiguration>(outputConfigurationJson);
-
-            Assert.AreEqual(outputConfig.assetBundleUrl, quickDeployConfig.AssetBundleUrl);
-        }
-
-        [Test]
-        public void TestSavingConfigOnLoadingScreenWithEmptyString()
-        {
-            var quickDeployConfig = new QuickDeployConfig
-            {
-                AssetBundleUrl = ""
-            };
-
-            var inputConfig = new LoadingScreenConfig.EngineConfiguration();
-
-            quickDeployConfig.SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen,
-                inputConfig,
-                TestConfigurationPath);
-
-            var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
-            var outputConfig =
-                JsonUtility.FromJson<LoadingScreenConfig.EngineConfiguration>(outputConfigurationJson);
-
-            Assert.IsEmpty(outputConfig.assetBundleUrl);
-        }
-
-        [Test]
         public void TestLoadingEditorConfiguration()
         {
             var quickDeployConfig = new QuickDeployConfig();
@@ -129,20 +86,6 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
             var outputConfig = quickDeployConfig.LoadEditorConfiguration(TestConfigurationPath);
 
             Assert.AreEqual(inputConfig.assetBundleFileName, outputConfig.assetBundleFileName);
-        }
-
-        [Test]
-        public void TestLoadingEngineConfiguration()
-        {
-            var quickDeployConfig = new QuickDeployConfig();
-
-            var inputConfig = new LoadingScreenConfig.EngineConfiguration {assetBundleUrl = "testurl"};
-
-            File.WriteAllText(TestConfigurationPath, JsonUtility.ToJson(inputConfig));
-
-            var outputConfig = quickDeployConfig.LoadEngineConfiguration(TestConfigurationPath);
-
-            Assert.AreEqual(inputConfig.assetBundleUrl, outputConfig.assetBundleUrl);
         }
     }
 }

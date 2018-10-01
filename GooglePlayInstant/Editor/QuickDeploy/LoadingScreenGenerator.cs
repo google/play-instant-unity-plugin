@@ -36,6 +36,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public static readonly string SceneDirectoryPath =
             Path.Combine("Assets", "PlayInstantLoadingScreen");
 
+        public static LoadingScreen.LoadingScreen CurrentLoadingScreen { get; private set; }
+
         private const string CanvasName = "Loading Screen Canvas";
 
         private const string SaveErrorTitle = "Loading Screen Save Error";
@@ -43,15 +45,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int ReferenceWidth = 1080;
         private const int ReferenceHeight = 1920;
 
-        private static readonly string SceneFilePath =
-            Path.Combine(SceneDirectoryPath, SceneName);
+        private static readonly string DefaultSceneFilePath = Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
         /// Takes in an assetbundle URL, and a background image to display behind the loading bar.
         /// Replaces the current loading scene with a new one if it exists.
         /// </summary>
-        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage)
+        public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage, string sceneFilePath)
         {
             if (string.IsNullOrEmpty(assetBundleUrl))
             {
@@ -59,14 +60,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
-            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)),
+            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(sceneFilePath)),
                 true);
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
 
             PopulateScene(loadingScreenImage, assetBundleUrl);
 
-            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, SceneFilePath);
+            // TODO: Change sceneFilePath to be relative to the Assets folder.
+            bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, sceneFilePath);
 
             if (!saveOk)
             {
@@ -81,39 +83,42 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             else
             {
                 AssetDatabase.Refresh();
-                EditorApplication.delayCall += () =>
-                {
-                    //TODO: move this to DialogHelper
-                    if (EditorUtility.DisplayDialog("Change Scenes in Build",
-                        "Would you like to replace any existing Scenes in Build with the loading screen scene?", "Yes",
-                        "No"))
-                    {
-                        SetMainSceneInBuild(SceneFilePath);
-                    }
-                };
+                SetMainSceneInBuild(sceneFilePath);
             }
         }
 
-        public static bool LoadingScreenExists()
+        // Visible for testing
+        /// <summary>
+        /// Adds the specified path to the build settings, if it isn't there, and marks it as included in the build.
+        /// All other scenes are marked as excluded from the build.
+        /// </summary>
+        internal static void SetMainSceneInBuild(string pathToScene)
         {
-            return SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)).IsValid();
-        }
+            var buildScenes = EditorBuildSettings.scenes;
+            var index = Array.FindIndex(buildScenes, (scene) => scene.path == pathToScene);
 
-        public static GameObject GetLoadingScreenCanvasObject()
-        {
-            return GameObject.Find(CanvasName);
+            //Disable all other scenes
+            for (int i = 0; i < buildScenes.Length; i++)
+            {
+                buildScenes[i].enabled = i == index;
+            }
+
+            //If the scene isn't already in the list, add it and set it to enabled
+            if (index < 0)
+            {
+                var appendedScenes = new EditorBuildSettingsScene[buildScenes.Length + 1];
+                Array.Copy(buildScenes, appendedScenes, buildScenes.Length);
+                appendedScenes[buildScenes.Length] = new EditorBuildSettingsScene(pathToScene, true);
+                EditorBuildSettings.scenes = appendedScenes;
+            }
+            else
+            {
+                EditorBuildSettings.scenes = buildScenes;
+            }
         }
 
         // Visible for testing
-        internal static void SetMainSceneInBuild(string pathToScene)
-        {
-            EditorBuildSettings.scenes = new[]
-            {
-                new EditorBuildSettingsScene(pathToScene, true)
-            };
-        }
-
-        private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
+        internal static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
 
@@ -131,6 +136,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingScreen.Background = backgroundImage;
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
             loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
+
+            CurrentLoadingScreen = loadingScreen;
         }
 
         private static Camera GenerateCamera()
@@ -187,15 +194,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             return backgroundImage;
-        }
-
-        // Visible for testing
-        internal static void UpdateBackgroundImage(Texture backgroundTexture)
-        {
-            var loadingScreen = GameObject.FindObjectOfType<LoadingScreen.LoadingScreen>();
-
-            if (loadingScreen.Background != null)
-                loadingScreen.Background.texture = backgroundTexture;
         }
     }
 }

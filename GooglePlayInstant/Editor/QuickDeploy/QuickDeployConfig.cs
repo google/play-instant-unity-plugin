@@ -14,7 +14,6 @@
 
 using System;
 using System.IO;
-using GooglePlayInstant.LoadingScreen;
 using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
@@ -24,41 +23,31 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class QuickDeployConfig
     {
-        private static readonly string EditorConfigurationFilePath =
+        internal static readonly string EditorConfigurationFilePath =
             Path.Combine("Library", "PlayInstantQuickDeployEditorConfig.json");
-
-        private static readonly string ResourcesDirectoryPath =
-            Path.Combine(LoadingScreenGenerator.SceneDirectoryPath, "Resources");
-
-        private static readonly string EngineConfigurationFilePath =
-            Path.Combine(ResourcesDirectoryPath, LoadingScreenConfig.EngineConfigurationFileName);
 
         /// <summary>
         /// The Editor Configuration singleton that should be used to read and modify Quick Deploy configuration.
         /// Modified values are persisted by calling SaveEditorConfiguration.
         /// </summary>
-        private EditorConfiguration EditorConfig;
+        private EditorConfiguration _editorConfig;
 
-        /// <summary>
-        /// The Engine Configuration singleton that should be used to read and modify Loading Screen configuration.
-        /// Modified values are persisted by calling SaveEngineConfiguration.
-        /// </summary>
-        private LoadingScreenConfig.EngineConfiguration EngineConfig;
-
-        // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-        public string AssetBundleFileName;
-        public PlayInstantSceneTreeView.State AssetBundleScenes;
+        // Copy of fields from EditorConfig for holding unsaved values set in the UI.
         public string AssetBundleUrl;
+        public string AssetBundleFileName;
+        public string LoadingSceneFileName;
+        public Texture2D LoadingBackgroundImage;
+        public PlayInstantSceneTreeView.State AssetBundleScenes;
 
         public void LoadConfiguration()
         {
-            EditorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
-            EngineConfig = LoadEngineConfiguration(EngineConfigurationFilePath);
-            
-            // Copy of fields from EditorConfig and EngineConfig for holding unsaved values set in the UI.
-            AssetBundleFileName = EditorConfig.assetBundleFileName;
-            AssetBundleScenes = EditorConfig.assetBundleScenes;
-            AssetBundleUrl = EngineConfig.assetBundleUrl;
+            _editorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
+
+            // Copy of fields from EditorConfig for holding unsaved values set in the UI.
+            AssetBundleFileName = _editorConfig.assetBundleFileName;
+            AssetBundleScenes = _editorConfig.assetBundleScenes;
+            LoadingSceneFileName = _editorConfig.loadingSceneFileName;
+            LoadingBackgroundImage = _editorConfig.loadingBackgroundImage;
         }
 
         /// <summary>
@@ -70,12 +59,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             switch (currentTab)
             {
                 case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
-                    SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, EditorConfig,
-                        EditorConfigurationFilePath);
+                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen, EngineConfig,
-                        EngineConfigurationFilePath);
+                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
@@ -92,6 +79,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     configuration.assetBundleFileName = AssetBundleFileName;
                     configuration.assetBundleScenes = AssetBundleScenes;
                     break;
+                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
+                    configuration.loadingBackgroundImage = LoadingBackgroundImage;
+                    configuration.loadingSceneFileName = LoadingSceneFileName;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException("currentTab", currentTab,
                         "Can't save editor configurations from this tab.");
@@ -100,27 +91,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // Shouldn't hurt to write to persistent storage as long as SaveEditorConfiguration(currentTab) is only called
             // when a major action happens.
             File.WriteAllText(editorConfigurationPath, JsonUtility.ToJson(configuration));
-        }
-
-        // Visible for testing
-        internal void SaveEngineConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab,
-            LoadingScreenConfig.EngineConfiguration configuration, string engineConfigurationPath)
-        {
-            switch (currentTab)
-            {
-                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    configuration.assetBundleUrl = AssetBundleUrl;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("currentTab", currentTab,
-                        "Can't save engine configurations from this tab.");
-            }
-
-            Directory.CreateDirectory(ResourcesDirectoryPath);
-
-            // Shouldn't hurt to write to persistent storage as long as SaveEngineConfiguration(currentTab) is only called
-            // when a major action happens.
-            File.WriteAllText(engineConfigurationPath, JsonUtility.ToJson(configuration));
         }
 
         /// <summary>
@@ -139,35 +109,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         /// <summary>
-        /// De-serialize engine configuration file contents into EngineConfiguration instance if the file exists exists, otherwise
-        /// return Configuration instance with empty fields.
-        /// </summary>
-        internal LoadingScreenConfig.EngineConfiguration LoadEngineConfiguration(string engineConfigurationPath)
-        {
-            if (!File.Exists(engineConfigurationPath))
-            {
-                return new LoadingScreenConfig.EngineConfiguration();
-            }
-
-            var configurationJson = File.ReadAllText(engineConfigurationPath);
-            return JsonUtility.FromJson<LoadingScreenConfig.EngineConfiguration>(configurationJson);
-        }
-
-        /// <summary>
-        /// Returns true if an instance of the engine configuration exists.
-        /// </summary>
-        public static bool EngineConfigExists()
-        {
-            return File.Exists(EngineConfigurationFilePath);
-        }
-
-        /// <summary>
         /// Represents JSON contents of the quick deploy configuration file.
         /// </summary>
         [Serializable]
         public class EditorConfiguration
         {
             public string assetBundleFileName;
+            public string loadingSceneFileName;
+            public Texture2D loadingBackgroundImage;
             public PlayInstantSceneTreeView.State assetBundleScenes;
         }
     }
