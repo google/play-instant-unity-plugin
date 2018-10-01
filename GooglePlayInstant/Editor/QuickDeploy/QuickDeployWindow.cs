@@ -258,9 +258,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Config.AssetBundleUrl =
                 EditorGUILayout.TextField(Config.AssetBundleUrl, GUILayout.MinWidth(FieldMinWidth));
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
 
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider); // Draws a horizontal line
-
+            EditorGUILayout.BeginVertical(UserInputGuiStyle);
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField(
                 "Choose image to use as background for the loading scene.", descriptionTextStyle);
             EditorGUILayout.Space();
