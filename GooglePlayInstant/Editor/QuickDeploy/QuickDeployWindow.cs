@@ -260,14 +260,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider); // Draws a horizontal line
-            
+
             EditorGUILayout.LabelField(
                 "Choose image to use as background for the loading scene.", descriptionTextStyle);
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Background Texture", GUILayout.MinWidth(FieldMinWidth));
 
-            Config.LoadingBackgroundImage = (Texture2D) EditorGUILayout.ObjectField(Config.LoadingBackgroundImage, typeof(Texture2D), false,
+            Config.LoadingBackgroundImage = (Texture2D) EditorGUILayout.ObjectField(Config.LoadingBackgroundImage,
+                typeof(Texture2D), false,
                 GUILayout.MinWidth(FieldMinWidth));
 
             EditorGUILayout.EndHorizontal();
@@ -277,27 +278,40 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             EditorGUILayout.Space();
             if (GUILayout.Button("Create Loading Scene..."))
             {
-                string saveFilePath = DialogHelper.SaveFilePanel("Create Loading Scene", Config.LoadingSceneFileName, "unity");
-                if (String.IsNullOrEmpty(saveFilePath))
-                {
-                    // Assume cancelled.
-                    return;
-                }
+                HandleCreateLoadingSceneButton();
+            }
+        }
 
-                Config.LoadingSceneFileName = saveFilePath;
+        /// <summary>
+        /// Displays a save dialog, saves the specified path to config, and then creates a loading scene at that path.
+        /// </summary>
+        private void HandleCreateLoadingSceneButton()
+        {
+            string saveFilePath =
+                DialogHelper.SaveFilePanel("Create Loading Scene", Config.LoadingSceneFileName, "unity");
+            if (String.IsNullOrEmpty(saveFilePath))
+            {
+                // Assume cancelled.
+                return;
+            }
 
-                try
-                {
-                    Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
-                    LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl, Config.LoadingBackgroundImage, saveFilePath);
-                    Selection.SetActiveObjectWithContext(LoadingScreenGenerator.CurrentLoadingScreen, null);
-                    Close();
-                }
-                catch (Exception ex)
-                {
-                    DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
-                    throw;
-                }
+            Config.LoadingSceneFileName = saveFilePath;
+
+            try
+            {
+                Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl, Config.LoadingBackgroundImage,
+                    saveFilePath);
+
+                // Select the Loading screen element in the generated scene, so the user can see the assetBundle url
+                // field in the inspector.
+                Selection.SetActiveObjectWithContext(LoadingScreenGenerator.CurrentLoadingScreen, null);
+                Close();
+            }
+            catch (Exception ex)
+            {
+                DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle, ex.Message);
+                throw;
             }
         }
 
