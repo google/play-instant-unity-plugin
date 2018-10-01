@@ -67,7 +67,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             PopulateScene(loadingScreenImage, assetBundleUrl);
 
-            //Relative to the Assets Path
+            // TODO: Change sceneFilePath to be relative to the Assets folder.
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, sceneFilePath);
 
             if (!saveOk)
@@ -102,11 +102,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 buildScenes[i].enabled = i == index;
             }
-            
+
             //If the scene isn't already in the list, add it and set it to enabled
             if (index < 0)
             {
-                var appendedScenes = new EditorBuildSettingsScene[buildScenes.Length+1];
+                var appendedScenes = new EditorBuildSettingsScene[buildScenes.Length + 1];
                 Array.Copy(buildScenes, appendedScenes, buildScenes.Length);
                 appendedScenes[buildScenes.Length] = new EditorBuildSettingsScene(pathToScene, true);
                 EditorBuildSettings.scenes = appendedScenes;
@@ -119,7 +119,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         private static void FindSceneInBuildSettings()
         {
-            
         }
 
         private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
