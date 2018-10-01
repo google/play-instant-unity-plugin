@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.IO;
 using GooglePlayInstant.Editor.QuickDeploy;
-using GooglePlayInstant.LoadingScreen;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
-using UnityEngine.UI;
+using System;
+using Object = UnityEngine.Object;
 
 namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 {
@@ -32,22 +30,31 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         [Test]
         public void TestSetMainSceneInBuild()
         {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-            LoadingScreenGenerator.SetMainSceneInBuild(scene.path);
+            var emptyScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            LoadingScreenGenerator.SetMainSceneInBuild(emptyScene.path);
 
-            Assert.AreEqual(EditorBuildSettings.scenes.Length, 1,
-                "There should be only one scene in Build Settings.");
+            var scenesWithOurPath = Array.FindAll(EditorBuildSettings.scenes, (scene) => scene.path == emptyScene.path);
+            Assert.AreEqual(scenesWithOurPath.Length, 1,
+                "The scene should be present in Build Settings once and only once");
 
-            Assert.AreEqual(EditorBuildSettings.scenes[0].path, scene.path,
-                "The new scene built should be identical to the one in Build Settings.");
+            Assert.IsTrue(scenesWithOurPath[0].enabled,
+                "The scene should be enabled");
+
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                if (scene.path == emptyScene.path) continue;
+
+                Assert.IsFalse(scene.enabled,
+                    "All other scenes should be disabled");
+            }
         }
 
         [Test]
-        public void TestGenerateScene()
+        public void TestPopulateScene()
         {
-            LoadingScreenGenerator.GenerateScene("", null, "");
+            LoadingScreenGenerator.PopulateScene(null, "https://www.validAssetBundleUrl.com");
             Assert.IsNotNull(Object.FindObjectOfType<LoadingScreen.LoadingScreen>(),
-                "A LoadingScreen component should be present in the generated scene");
+                "A LoadingScreen component should be present in the populated scene");
         }
     }
 }

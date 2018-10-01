@@ -60,7 +60,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             // Removes the loading scene if it is present, otherwise does nothing.
-            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(SceneName)),
+            EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(sceneFilePath)),
                 true);
 
             var loadingScreenScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
@@ -117,11 +117,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
         }
 
-        private static void FindSceneInBuildSettings()
-        {
-        }
-
-        private static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
+        // Visible for testing
+        internal static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
 
