@@ -23,8 +23,8 @@ namespace GooglePlayInstant.LoadingScreen
     [ExecuteInEditMode]
     public class LoadingBar : MonoBehaviour
     {
-        public float OutlineWidth = 10f;
-        public float InnerBorderWidth = 10f;
+        public float OutlineWidth = 6f;
+        public float InnerBorderWidth = 6f;
 
         [Tooltip("If true, this object's RectTransform will update to adjust the outline and border width")]
         public bool ResizeAutomatically = true;
