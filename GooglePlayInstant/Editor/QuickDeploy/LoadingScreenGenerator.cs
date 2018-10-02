@@ -54,11 +54,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         public static void GenerateScene(string assetBundleUrl, Texture2D loadingScreenImage, string sceneFilePath)
         {
-            if (string.IsNullOrEmpty(assetBundleUrl))
-            {
-                throw new ArgumentException("AssetBundle URL text field cannot be null or empty.");
-            }
-
             // Removes the loading scene if it is present, otherwise does nothing.
             EditorSceneManager.CloseScene(SceneManager.GetSceneByName(Path.GetFileNameWithoutExtension(sceneFilePath)),
                 true);
@@ -67,7 +62,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             PopulateScene(loadingScreenImage, assetBundleUrl);
 
-            // TODO: Change sceneFilePath to be relative to the Assets folder.
             bool saveOk = EditorSceneManager.SaveScene(loadingScreenScene, sceneFilePath);
 
             if (!saveOk)

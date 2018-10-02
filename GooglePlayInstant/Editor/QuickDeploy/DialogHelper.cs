@@ -15,6 +15,7 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
@@ -23,7 +24,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public static class DialogHelper
     {
-
         private const string OkButtonText = "OK";
 
         /// <summary>
@@ -38,10 +38,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Displays a save dialog pointing to the default path.
         /// If the path points to a file then that file will be used as the default file name.
         /// </summary>
-        /// <returns>The user selected path</returns>
+        /// <returns>The user selected path or null if the dialog is closed</returns>
         public static string SaveFilePanel(string title, string defaultPath, string extension)
         {
-
             string fileName;
             try
             {
@@ -51,7 +50,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             {
                 fileName = "";
             }
-            
+
             string directory;
             try
             {
@@ -63,6 +62,56 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             return EditorUtility.SaveFilePanel(title, directory, fileName, extension);
+        }
+
+        /// <summary>
+        /// Displays a save dialog pointing to the default path,
+        /// and requires the user to select a path within the Assets folder.
+        /// If the path points to a file then that file will be used as the default file name.
+        /// </summary>
+        /// <returns>The user selected path relative to the Assets folder, or null if the dialog is closed</returns>
+        public static string SaveFilePanelInProject(string title, string defaultPath, string extension)
+        {
+            // We use this instead of EditorUtility.SaveFilePanelInProject,
+            // because that function doesn't allow us to specify a default path.
+
+            string saveFilePath = null;
+            while (saveFilePath == null)
+            {
+                saveFilePath = SaveFilePanel(title, defaultPath, extension);
+                if (String.IsNullOrEmpty(saveFilePath))
+                {
+                    // Assume cancelled.
+                    return null;
+                }
+
+                saveFilePath = AbsoluteToAssetsRelativePath(saveFilePath);
+                if (String.IsNullOrEmpty(saveFilePath))
+                {
+                    DisplayMessage("Need to save in the Assets folder",
+                        "You need to save the file inside of the project's assets folder");
+                }
+            }
+
+            return saveFilePath;
+        }
+
+        /// <summary>
+        /// Converts the specified absolute path to a path relative to the Assets folder.
+        /// Returns null if the path does not contains the Assets folder.
+        /// </summary>
+        private static string AbsoluteToAssetsRelativePath(string absolutePath)
+        {
+            var parentPath = Application.dataPath + Path.DirectorySeparatorChar;
+            var index = absolutePath.IndexOf(parentPath, StringComparison.Ordinal);
+            if (index != 0)
+            {
+                return null;
+            }
+
+            var relativePath = absolutePath.Remove(index, parentPath.Length);
+            relativePath = Path.Combine("Assets/", relativePath);
+            return relativePath;
         }
     }
 }

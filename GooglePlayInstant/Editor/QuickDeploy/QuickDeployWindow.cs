@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -289,14 +290,20 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         private void HandleCreateLoadingSceneButton()
         {
+            if (string.IsNullOrEmpty(Config.AssetBundleUrl))
+            {
+                DialogHelper.DisplayMessage(LoadingScreenCreationErrorTitle,
+                    "AssetBundle URL text field cannot be null or empty.");
+                return;
+            }
+
             string saveFilePath =
-                DialogHelper.SaveFilePanel("Create Loading Scene", Config.LoadingSceneFileName, "unity");
+                DialogHelper.SaveFilePanelInProject("Create Loading Scene", Config.LoadingSceneFileName, "unity");
             if (String.IsNullOrEmpty(saveFilePath))
             {
                 // Assume cancelled.
                 return;
             }
-
             Config.LoadingSceneFileName = saveFilePath;
 
             try
