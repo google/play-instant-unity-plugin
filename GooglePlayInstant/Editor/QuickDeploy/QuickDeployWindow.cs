@@ -53,14 +53,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int SceneViewDeltaFromTop = 230;
 
         private const int FieldMinWidth = 100;
-        private const int ShortButtonWidth = 100;
         private const int ToolbarHeight = 25;
 
         // Titles for errors that occur
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
-        private const string AssetBundleCheckerErrorTitle = "AssetBundle Checker Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
-        private const string LoadingScreenUpdateErrorTitle = "Loading Screen Update Error";
 
         private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
 
