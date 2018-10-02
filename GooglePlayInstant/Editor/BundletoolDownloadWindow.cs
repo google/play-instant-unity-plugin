@@ -17,6 +17,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#if !UNITY_2017_2_OR_NEWER
+using System.IO;
+#endif
+
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
