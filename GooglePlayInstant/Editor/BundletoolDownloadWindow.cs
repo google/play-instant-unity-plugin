@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -39,7 +38,7 @@ namespace GooglePlayInstant.Editor
                 "Bundletool is a command line java program used for creating Android App Bundles (.aab files). " +
                 "Bundletool is also used to generate a set of APKs from an .aab file.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
-            CreateButton("Learn more",
+            WindowUtils.CreateRightAlignedButton("Learn more",
                 () => { Application.OpenURL("https://developer.android.com/studio/command-line/bundletool"); });
 
             EditorGUILayout.Space();
@@ -49,7 +48,7 @@ namespace GooglePlayInstant.Editor
             EditorGUILayout.LabelField(string.Format("Click \"Download\" to download bundletool version {0}.",
                 Bundletool.BundletoolVersion), EditorStyles.wordWrappedLabel);
             EditorGUILayout.Space();
-            CreateButton("Download", StartDownload);
+            WindowUtils.CreateRightAlignedButton("Download", StartDownload);
 
             GUI.enabled = true;
         }
@@ -146,18 +145,6 @@ namespace GooglePlayInstant.Editor
             _downloadRequest = UnityWebRequest.Get(bundletoolUri);
             _downloadRequest.Send();
 #endif
-        }
-
-        private static void CreateButton(string text, Action action)
-        {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(text, GUILayout.Width(100)))
-            {
-                action();
-            }
-
-            EditorGUILayout.EndHorizontal();
         }
 
         /// <summary>
