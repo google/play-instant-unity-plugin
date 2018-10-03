@@ -20,6 +20,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// Contains a set of operations for storing and retrieving quick deploy configurations.
+    /// Used to preserve user input data when quick deploy windows are reloaded or closed.
     /// </summary>
     public class QuickDeployConfig
     {
@@ -44,6 +45,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _editorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
 
             // Copy of fields from EditorConfig for holding unsaved values set in the UI.
+            AssetBundleUrl = _editorConfig.assetBundleUrl;
             AssetBundleFileName = _editorConfig.assetBundleFileName;
             AssetBundleScenes = _editorConfig.assetBundleScenes;
             LoadingSceneFileName = _editorConfig.loadingSceneFileName;
@@ -80,6 +82,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     configuration.assetBundleScenes = AssetBundleScenes;
                     break;
                 case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
+                    configuration.assetBundleUrl = AssetBundleUrl;
                     configuration.loadingBackgroundImage = LoadingBackgroundImage;
                     configuration.loadingSceneFileName = LoadingSceneFileName;
                     break;
@@ -114,6 +117,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         [Serializable]
         public class EditorConfiguration
         {
+            public string assetBundleUrl;
             public string assetBundleFileName;
             public string loadingSceneFileName;
             public Texture2D loadingBackgroundImage;

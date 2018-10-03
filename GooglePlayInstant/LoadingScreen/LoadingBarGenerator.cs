@@ -22,20 +22,23 @@ namespace GooglePlayInstant.LoadingScreen
     /// </summary>
     public static class LoadingBarGenerator
     {
-        // Loading bar size as a proportion of the screen size. Adjust if needed.
-        private const float LoadingBarWidthProportion = 0.7f;
-        private const float LoadingBarHeightProportion = 0.02f;
+        // Loading bar size in pixels.
+        private const float LoadingBarWidth = 672.0f;
+        private const float LoadingBarHeight = 54.0f;
 
         // Loading bar placement as a proportion of the screen size relative to the bottom left corner. Adjust if needed.
         private const float LoadingBarPositionX = 0.5f;
-        private const float LoadingBarPositionY = 0.3f;
+        private const float LoadingBarPositionY = 0.3984375f; // Corresponds to a position of 765 on 1080x1920 devices.
 
-        // Names for the gameobject components
+        // Names for the gameobject components.
         private const string RootName = "Loading Bar";
         private const string OutlineName = "Outline";
         private const string BackgroundName = "Background";
         private const string FillName = "Fill";
         private const string ProgressName = "Progress";
+
+        // Color of the inner fill and outline of the loading bar.
+        private static readonly Color DarkGrey = new Color32(74, 74, 74, 255);
 
         public static LoadingBar GenerateLoadingBar()
         {
@@ -44,20 +47,18 @@ namespace GooglePlayInstant.LoadingScreen
             var loadingBarObject = GenerateUiObject(RootName);
 
             var loadingBar = loadingBarObject.AddComponent<LoadingBar>();
-            loadingBar.Outline = GenerateImage(loadingBarObject, OutlineName, Color.black);
+            loadingBar.Outline = GenerateImage(loadingBarObject, OutlineName, DarkGrey);
             loadingBar.Background = GenerateImage(loadingBarObject, BackgroundName, Color.white);
-            loadingBar.ProgressFill = GenerateImage(progressHolderObject, FillName, Color.grey);
+            loadingBar.ProgressFill = GenerateImage(progressHolderObject, FillName, DarkGrey);
 
             loadingBar.ProgressHolder = progressHolderObject.GetComponent<RectTransform>();
             loadingBar.ProgressHolder.transform.SetParent(loadingBar.transform, false);
             SetAnchorsToScaleWithParent(loadingBar.ProgressHolder);
 
             var loadingBarRectTransform = loadingBarObject.GetComponent<RectTransform>();
-            loadingBarRectTransform.anchorMin = new Vector2(LoadingBarPositionX - LoadingBarWidthProportion / 2f,
-                LoadingBarPositionY - LoadingBarHeightProportion / 2f);
-            loadingBarRectTransform.anchorMax = new Vector2(LoadingBarPositionX + LoadingBarWidthProportion / 2f,
-                LoadingBarPositionY + LoadingBarHeightProportion / 2f);
-            loadingBarRectTransform.sizeDelta = Vector2.zero;
+            loadingBarRectTransform.anchorMin = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
+            loadingBarRectTransform.anchorMax = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
+            loadingBarRectTransform.sizeDelta = new Vector2(LoadingBarWidth, LoadingBarHeight);
 
             return loadingBar;
         }

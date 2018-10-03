@@ -164,7 +164,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var canvasScaler = canvasObject.AddComponent<CanvasScaler>();
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
-            canvasScaler.matchWidthOrHeight = 0f;
+            canvasScaler.matchWidthOrHeight = 0.5f;
 
             return canvasObject;
         }
