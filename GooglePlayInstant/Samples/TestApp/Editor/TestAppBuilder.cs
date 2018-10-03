@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using GooglePlayInstant.Editor;
 using GooglePlayInstant.Editor.AndroidManifest;
 using UnityEditor;
-using UnityEngine;
 
 namespace GooglePlayInstant.Samples.TestApp.Editor
 {
@@ -33,10 +33,8 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 
         public static void Build()
         {
-            ConfigureProject();
-            var apkPath = GetApkPath();
-            var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
-            PlayInstantBuilder.BuildAndSign(buildPlayerOptions);
+            var newestBuildToolsVersion = AndroidBuildTools.GetNewestBuildToolsVersion();
+            throw new Exception(string.Format("Newest build tools version: {0}", newestBuildToolsVersion));
         }
 
         private static void ConfigureProject()
@@ -56,8 +54,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             var errorMessage = manifestUpdater.SwitchToInstant(null);
             if (errorMessage != null)
             {
-                Debug.LogErrorFormat("Error updating AndroidManifest.xml: {0}", errorMessage);
-                return;
+                throw new Exception(string.Format("Error updating AndroidManifest.xml: {0}", errorMessage));
             }
 
             PlayInstantBuildConfiguration.AddScriptingDefineSymbol(
@@ -71,7 +68,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
         /// </summary>
         private static string GetApkPath()
         {
-            var args = System.Environment.GetCommandLineArgs();
+            var args = Environment.GetCommandLineArgs();
             for (var i = 0; i < args.Length - 1; i++)
             {
                 if (args[i] == ApkPathArg)
