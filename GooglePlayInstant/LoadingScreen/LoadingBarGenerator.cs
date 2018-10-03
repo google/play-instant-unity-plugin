@@ -28,7 +28,7 @@ namespace GooglePlayInstant.LoadingScreen
 
         // Loading bar placement as a proportion of the screen size relative to the bottom left corner. Adjust if needed.
         private const float LoadingBarPositionX = 0.5f;
-        private const float LoadingBarPositionY = 0.3984375f;
+        private const float LoadingBarPositionY = 0.3984375f; // Corresponds to a position of 765 on 1080x1920 devices.
 
         // Names for the gameobject components.
         private const string RootName = "Loading Bar";
