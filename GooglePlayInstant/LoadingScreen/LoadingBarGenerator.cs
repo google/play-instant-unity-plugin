@@ -22,9 +22,9 @@ namespace GooglePlayInstant.LoadingScreen
     /// </summary>
     public static class LoadingBarGenerator
     {
-        // Loading bar size.
-        private const float LoadingBarWidth = 672;
-        private const float LoadingBarHeight = 54;
+        // Loading bar size in pixels.
+        private const float LoadingBarWidth = 672.0f;
+        private const float LoadingBarHeight = 54.0f;
 
         // Loading bar placement as a proportion of the screen size relative to the bottom left corner. Adjust if needed.
         private const float LoadingBarPositionX = 0.5f;
