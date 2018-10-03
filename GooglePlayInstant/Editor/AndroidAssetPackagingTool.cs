@@ -71,7 +71,10 @@ namespace GooglePlayInstant.Editor
         /// <returns>An error message if there was a problem running aapt2, or null if successful.</returns>
         public static string Convert(string inputPath, string outputPath)
         {
-            var arguments = string.Format("convert -o {0} --output-format proto {1}", outputPath, inputPath);
+            var arguments = string.Format(
+                "convert -o {0} --output-format proto {1}",
+                CommandLine.QuotePath(outputPath),
+                CommandLine.QuotePath(inputPath));
             var result = CommandLine.Run(GetAapt2Path(), arguments);
             return result.exitCode == 0 ? null : result.message;
         }

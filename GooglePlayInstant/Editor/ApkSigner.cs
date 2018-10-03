@@ -52,8 +52,8 @@ namespace GooglePlayInstant.Editor
         {
             var arguments = string.Format(
                 "-jar {0} verify {1}",
-                CommandLine.QuotePathIfNecessary(GetApkSignerJarPath()),
-                CommandLine.QuotePathIfNecessary(apkPath));
+                CommandLine.QuotePath(GetApkSignerJarPath()),
+                CommandLine.QuotePath(apkPath));
 
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
             if (result.exitCode == 0)
@@ -130,11 +130,11 @@ namespace GooglePlayInstant.Editor
             // ApkSignerResponder will encode the passwords with UTF8, so we specify "--pass-encoding utf-8" here.
             var arguments = string.Format(
                 "-jar {0} sign --ks {1} --ks-key-alias {2} --pass-encoding utf-8 {3}{4}",
-                CommandLine.QuotePathIfNecessary(GetApkSignerJarPath()),
-                CommandLine.QuotePathIfNecessary(keystoreName),
+                CommandLine.QuotePath(GetApkSignerJarPath()),
+                CommandLine.QuotePath(keystoreName),
                 keyaliasName,
                 additionalArguments,
-                CommandLine.QuotePathIfNecessary(filePath));
+                CommandLine.QuotePath(filePath));
 
             var promptToPasswordDictionary = new Dictionary<string, string>
             {
@@ -157,7 +157,7 @@ namespace GooglePlayInstant.Editor
             }
 
             var newestBuildToolsPath = Path.Combine(AndroidBuildTools.GetBuildToolsPath(), newestBuildToolsVersion);
-            var apkSignerJarPath = Path.Combine(newestBuildToolsPath, "lib/apksigner.jar");
+            var apkSignerJarPath = Path.Combine(newestBuildToolsPath, Path.Combine("lib", "apksigner.jar"));
             if (File.Exists(apkSignerJarPath))
             {
                 return apkSignerJarPath;

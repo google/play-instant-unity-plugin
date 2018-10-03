@@ -37,8 +37,8 @@ namespace GooglePlayInstant.Editor
             // Create zip file with options "0" (no per-file compression) and "M" (no JAR manifest file).
             var arguments = string.Format(
                 "c0Mf {0} -C {1} {2}",
-                CommandLine.QuotePathIfNecessary(zipFilePath),
-                CommandLine.QuotePathIfNecessary(inputDirectoryName),
+                CommandLine.QuotePath(zipFilePath),
+                CommandLine.QuotePath(inputDirectoryName),
                 inputFileName);
             var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
             return result.exitCode == 0 ? null : result.message;
@@ -50,7 +50,7 @@ namespace GooglePlayInstant.Editor
         /// <returns>null if the operation succeeded, or an error message if it failed.</returns>
         public static string UnzipFile(string zipFilePath, string outputDirectoryName)
         {
-            var arguments = string.Format("xf {0}", CommandLine.QuotePathIfNecessary(zipFilePath));
+            var arguments = string.Format("xf {0}", CommandLine.QuotePath(zipFilePath));
             var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments, outputDirectoryName);
             return result.exitCode == 0 ? null : result.message;
         }
