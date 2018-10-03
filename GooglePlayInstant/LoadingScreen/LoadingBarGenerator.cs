@@ -36,9 +36,9 @@ namespace GooglePlayInstant.LoadingScreen
         private const string BackgroundName = "Background";
         private const string FillName = "Fill";
         private const string ProgressName = "Progress";
-        
+
         // Color of the inner fill and outline of the loading bar.
-        private static readonly Color DarkGrey = new Color32(74,74,74, 255);
+        private static readonly Color DarkGrey = new Color32(74, 74, 74, 255);
 
         public static LoadingBar GenerateLoadingBar()
         {
