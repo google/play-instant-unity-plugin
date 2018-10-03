@@ -102,7 +102,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         // Visible for testing
-        internal static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
+        internal static void PopulateScene(Texture2D backgroundTexture, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
 
@@ -153,7 +153,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return canvasObject;
         }
 
-        private static RawImage GenerateBackground(Texture backgroundTexture)
+        private static RawImage GenerateBackground(Texture2D backgroundTexture)
         {
             var backgroundObject = new GameObject("Background");
 
@@ -173,11 +173,32 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
             else
             {
-                backgroundAspectRatioFitter.aspectRatio =
-                    backgroundImage.texture.width / (float) backgroundImage.texture.height;
+                var textureDimensions = GetPreImportTextureDimensions(backgroundTexture);
+                backgroundAspectRatioFitter.aspectRatio = textureDimensions.x / textureDimensions.y;
             }
 
             return backgroundImage;
+        }
+
+        /// <summary>
+        /// This returns a texture's size before it's import settings are applied.
+        /// This is useful in cases, for example, where the TextureImporter
+        /// rounds an image's size to the nearest power of 2.
+        /// </summary>
+        /// <exception cref="ArgumentException">If a texture is provided that isn't associated with an asset. </exception>
+        private static Vector2 GetPreImportTextureDimensions(Texture2D texture)
+        {
+            var texturePath = AssetDatabase.GetAssetPath(texture);
+            if (string.IsNullOrEmpty(texturePath))
+            {
+                throw new ArgumentException("The provided texture must be associated with an asset");
+            }
+
+            // Load the image from disk then return it's width and height.
+            var imageBytes = File.ReadAllBytes(texturePath);
+            var tempTexture = new Texture2D(1, 1);
+            tempTexture.LoadImage(imageBytes);
+            return new Vector2(tempTexture.width, tempTexture.height);
         }
     }
 }
