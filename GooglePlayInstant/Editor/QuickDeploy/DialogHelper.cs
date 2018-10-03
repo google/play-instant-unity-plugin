@@ -110,8 +110,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             var relativePath = absolutePath.Remove(index, parentPath.Length);
-            relativePath = Path.Combine("Assets/", relativePath);
-            return relativePath;
+            return Path.Combine("Assets", relativePath);
         }
     }
 }
