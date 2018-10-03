@@ -671,11 +671,11 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
         }
 
         /// <summary>
-        /// Returns the specified argument in double quotes if it contains at least one space, otherwise returns as is.
+        /// Returns the specified argument in double quotes.
         /// </summary>
-        public static string QuotePathIfNecessary(string path)
+        public static string QuotePath(string path)
         {
-            return path.Contains(" ") ? string.Format("\"{0}\"", path) : path;
+            return string.Format("\"{0}\"", path);
         }
 
 #if UNITY_EDITOR

@@ -93,11 +93,12 @@ namespace GooglePlayInstant.Editor
             var bundleConfigJsonFile = Path.Combine(Path.GetTempPath(), "BundleConfig.json");
             File.WriteAllText(bundleConfigJsonFile, BundleConfigJsonText);
 
-            var arguments = string.Format("-jar {0} build-bundle --config={1} --modules={2} --output={3}",
-                GetBundletoolJarPath(),
-                bundleConfigJsonFile,
-                baseModuleZip,
-                outputFile);
+            var arguments = string.Format(
+                "-jar {0} build-bundle --config={1} --modules={2} --output={3}",
+                CommandLine.QuotePath(GetBundletoolJarPath()),
+                CommandLine.QuotePath(bundleConfigJsonFile),
+                CommandLine.QuotePath(baseModuleZip),
+                CommandLine.QuotePath(outputFile));
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
             return result.exitCode == 0 ? null : result.message;
         }

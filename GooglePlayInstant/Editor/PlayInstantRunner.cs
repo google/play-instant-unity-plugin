@@ -82,8 +82,8 @@ namespace GooglePlayInstant.Editor
                 FileName = JavaUtilities.JavaBinaryPath,
                 Arguments = string.Format(
                     "-jar {0} run {1}",
-                    CommandLine.QuotePathIfNecessary(jarPath),
-                    CommandLine.QuotePathIfNecessary(apkPath))
+                    CommandLine.QuotePath(jarPath),
+                    CommandLine.QuotePath(apkPath))
             };
             window.CommandLineParams.AddEnvironmentVariable(
                 AndroidSdkManager.AndroidHome, AndroidSdkManager.AndroidSdkRoot);
