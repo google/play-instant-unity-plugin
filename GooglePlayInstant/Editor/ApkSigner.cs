@@ -34,7 +34,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class ApkSigner
     {
-        private const string AndroidDebugKeystore = ".android/debug.keystore";
+        private static readonly string AndroidDebugKeystore = Path.Combine(".android", "debug.keystore");
 
         /// <summary>
         /// Returns true if apksigner is available to call, false otherwise.
@@ -70,8 +70,8 @@ namespace GooglePlayInstant.Editor
         /// <summary>
         /// Synchronously calls the apksigner tool to sign the specified APK using APK Signature Scheme V2.
         /// </summary>
-        /// <returns>true if the specified APK was successfully signed, false otherwise</returns>
-        public static bool SignApk(string apkFilePath)
+        /// <returns>An error message if there was a problem running apksigner, or null if successful.</returns>
+        public static string SignApk(string apkFilePath)
         {
             return SignFile(apkFilePath, string.Empty);
         }
@@ -80,29 +80,30 @@ namespace GooglePlayInstant.Editor
         /// Synchronously calls the apksigner tool to sign the specified ZIP file using APK Signature Scheme V1,
         /// simulating jarsigner behavior. This can be used to sign an Android App Bundles.
         /// </summary>
-        /// <returns>true if the specified file was successfully signed, false otherwise</returns>
-        public static bool SignZip(string zipFilePath)
+        /// <returns>An error message if there was a problem running apksigner, or null if successful.</returns>
+        public static string SignZip(string zipFilePath)
         {
             return SignFile(zipFilePath, "--min-sdk-version 1 --v1-signing-enabled true --v2-signing-enabled false ");
         }
 
-        private static bool SignFile(string filePath, string additionalArguments)
+        private static string SignFile(string filePath, string additionalArguments)
         {
             string keystoreName;
             string keystorePass;
             string keyaliasName;
             string keyaliasPass;
-            if (string.IsNullOrEmpty(PlayerSettings.Android.keystoreName))
+
+            if (string.IsNullOrEmpty(PlayerSettings.Android.keystoreName) ||
+                string.IsNullOrEmpty(PlayerSettings.Android.keyaliasName))
             {
-                Debug.Log("No keystore specified. Signing using Android debug keystore.");
+                Debug.Log("No keystore and/or no keyalias specified. Signing using Android debug keystore.");
                 var homePath =
                     Application.platform == RuntimePlatform.WindowsEditor
                         ? Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%")
                         : Environment.GetEnvironmentVariable("HOME");
                 if (string.IsNullOrEmpty(homePath))
                 {
-                    Debug.LogError("Failed to locate home directory that contains Android debug keystore.");
-                    return false;
+                    return "Failed to locate directory that contains Android debug keystore.";
                 }
 
                 keystoreName = Path.Combine(homePath, AndroidDebugKeystore);
@@ -120,8 +121,7 @@ namespace GooglePlayInstant.Editor
 
             if (!File.Exists(keystoreName))
             {
-                Debug.LogErrorFormat("Failed to locate keystore file: {0}", keystoreName);
-                return false;
+                return string.Format("Failed to locate keystore file: {0}", keystoreName);
             }
 
             // Sign the file {4} using key {2} contained in keystore file {1} using additional arguments {3}.
@@ -145,13 +145,7 @@ namespace GooglePlayInstant.Editor
             };
             var responder = new ApkSignerResponder(promptToPasswordDictionary);
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments, ioHandler: responder.AggregateLine);
-            if (result.exitCode == 0)
-            {
-                return true;
-            }
-
-            Debug.LogErrorFormat("APK re-signing failed: {0}", result.message);
-            return false;
+            return result.exitCode == 0 ? null : result.message;
         }
 
         private static string GetApkSignerJarPath()

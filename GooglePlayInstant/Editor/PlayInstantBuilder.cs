@@ -97,13 +97,14 @@ namespace GooglePlayInstant.Editor
             }
 
             Debug.Log("APK must be re-signed for APK Signature Scheme V2...");
-            if (ApkSigner.SignApk(apkPath))
+            var signingResult = ApkSigner.SignApk(apkPath);
+            if (signingResult == null)
             {
                 Debug.Log("Re-signed with APK Signature Scheme V2.");
                 return true;
             }
 
-            LogError("Failed to re-sign the APK using apksigner. Check the Console log for more details.");
+            LogError(string.Format("Failed to re-sign the APK using apksigner:\n\n{0}", signingResult));
             return false;
 #endif
         }
