@@ -20,6 +20,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// Contains a set of operations for storing and retrieving quick deploy configurations.
+    /// Used to preserve user input data when quick deploy windows are reloaded or closed.
     /// </summary>
     public class QuickDeployConfig
     {
