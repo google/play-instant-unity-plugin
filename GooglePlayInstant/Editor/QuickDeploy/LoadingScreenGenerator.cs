@@ -31,11 +31,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class LoadingScreenGenerator
     {
-        public const string SceneName = "PlayInstantLoadingScreen.unity";
-
-        public static readonly string SceneDirectoryPath =
-            Path.Combine("Assets", "PlayInstantLoadingScreen");
-
         public static LoadingScreen.LoadingScreen CurrentLoadingScreen { get; private set; }
 
         private const string CanvasName = "Loading Screen Canvas";
@@ -44,8 +39,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         private const int ReferenceWidth = 1080;
         private const int ReferenceHeight = 1920;
-
-        private static readonly string DefaultSceneFilePath = Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
@@ -67,11 +60,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (!saveOk)
             {
                 // Not a fatal issue. User can attempt to resave this scene.
-                var warningMessage = string.Format("Issue while saving scene {0}.",
-                    SceneName);
-
+                var warningMessage = string.Format("Issue while saving scene {0}.", sceneFilePath);
                 Debug.LogWarning(warningMessage);
-
                 DialogHelper.DisplayMessage(SaveErrorTitle, warningMessage);
             }
             else

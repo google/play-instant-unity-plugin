@@ -118,8 +118,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public class EditorConfiguration
         {
             public string assetBundleUrl;
-            public string assetBundleFileName;
-            public string loadingSceneFileName;
+            public string assetBundleFileName = Path.Combine("Assets", "MainBundle");
+            public string loadingSceneFileName = Path.Combine("Assets", "PlayInstantLoadingScreen.unity");
             public Texture2D loadingBackgroundImage;
             public PlayInstantSceneTreeView.State assetBundleScenes;
         }
