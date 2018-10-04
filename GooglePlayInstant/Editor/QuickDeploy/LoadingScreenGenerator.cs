@@ -181,7 +181,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         /// <summary>
-        /// This returns a texture's size before it's import settings are applied.
+        /// This returns a texture's size before its import settings are applied.
         /// This is useful in cases, for example, where the TextureImporter
         /// rounds an image's size to the nearest power of 2.
         /// </summary>
@@ -194,7 +194,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 throw new ArgumentException("The provided texture must be associated with an asset");
             }
 
-            // Load the image from disk then return it's width and height.
+            // Load the image from disk then return its width and height.
             var imageBytes = File.ReadAllBytes(texturePath);
             var tempTexture = new Texture2D(1, 1);
             tempTexture.LoadImage(imageBytes);

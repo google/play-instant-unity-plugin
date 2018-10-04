@@ -41,8 +41,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
             };
             var inputConfig = new QuickDeployConfig.EditorConfiguration();
 
-            quickDeployConfig.SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, inputConfig,
-                TestConfigurationPath);
+            quickDeployConfig.SaveEditorConfiguration(inputConfig, TestConfigurationPath);
 
             var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
             var outputConfig =
@@ -61,8 +60,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 
             var inputConfig = new QuickDeployConfig.EditorConfiguration();
 
-            quickDeployConfig.SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton.CreateBundle, inputConfig,
-                TestConfigurationPath);
+            quickDeployConfig.SaveEditorConfiguration(inputConfig, TestConfigurationPath);
 
             var outputConfigurationJson = File.ReadAllText(TestConfigurationPath);
             var outputConfig =

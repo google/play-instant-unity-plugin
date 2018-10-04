@@ -40,6 +40,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         public Texture2D LoadingBackgroundImage;
         public PlayInstantSceneTreeView.State AssetBundleScenes;
 
+        private const float SaveCooldown = 1.0f; //How long should we wait before saving config in seconds.
+        private bool _configChangedSinceLastSave;
+        private float _lastSaveTime;
+
         public void LoadConfiguration()
         {
             _editorConfig = LoadEditorConfiguration(EditorConfigurationFilePath);
@@ -52,44 +56,44 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             LoadingBackgroundImage = _editorConfig.loadingBackgroundImage;
         }
 
-        /// <summary>
-        /// Store configuration from the current quick deploy tab to persistent storage.
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if tab shouldn't have input fields.</exception>
-        public void SaveConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab)
+        public void PollForChanges()
         {
-            switch (currentTab)
+            float timeSinceLastSave = Time.realtimeSinceStartup - _lastSaveTime;
+            if (timeSinceLastSave > SaveCooldown && _configChangedSinceLastSave)
             {
-                case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
-                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    SaveEditorConfiguration(currentTab, _editorConfig, EditorConfigurationFilePath);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("currentTab", currentTab, "Can't save from this tab.");
+                SaveEditorConfiguration(_editorConfig, EditorConfigurationFilePath);
+            }
+        }
+
+        /// <summary>
+        /// Store configuration to persistent storage.
+        /// </summary>
+        /// <param name="saveImmediately">
+        /// If false, writing to persistent storage may be delayed by up to SaveCooldown seconds to limit file I/O.
+        /// </param>
+        public void SaveConfiguration(bool saveImmediately)
+        {
+            if (saveImmediately)
+            {
+                SaveEditorConfiguration(_editorConfig, EditorConfigurationFilePath);
+            }
+            else
+            {
+                _configChangedSinceLastSave = true;
             }
         }
 
         // Visible for testing
-        internal void SaveEditorConfiguration(QuickDeployWindow.ToolBarSelectedButton currentTab,
-            EditorConfiguration configuration, string editorConfigurationPath)
+        internal void SaveEditorConfiguration(EditorConfiguration configuration, string editorConfigurationPath)
         {
-            switch (currentTab)
-            {
-                case QuickDeployWindow.ToolBarSelectedButton.CreateBundle:
-                    configuration.assetBundleFileName = AssetBundleFileName;
-                    configuration.assetBundleScenes = AssetBundleScenes;
-                    break;
-                case QuickDeployWindow.ToolBarSelectedButton.LoadingScreen:
-                    configuration.assetBundleUrl = AssetBundleUrl;
-                    configuration.loadingBackgroundImage = LoadingBackgroundImage;
-                    configuration.loadingSceneFileName = LoadingSceneFileName;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("currentTab", currentTab,
-                        "Can't save editor configurations from this tab.");
-            }
+            _lastSaveTime = Time.realtimeSinceStartup;
+            _configChangedSinceLastSave = false;
+
+            configuration.assetBundleFileName = AssetBundleFileName;
+            configuration.assetBundleScenes = AssetBundleScenes;
+            configuration.assetBundleUrl = AssetBundleUrl;
+            configuration.loadingBackgroundImage = LoadingBackgroundImage;
+            configuration.loadingSceneFileName = LoadingSceneFileName;
 
             // Shouldn't hurt to write to persistent storage as long as SaveEditorConfiguration(currentTab) is only called
             // when a major action happens.

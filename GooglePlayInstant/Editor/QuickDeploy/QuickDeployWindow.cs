@@ -55,7 +55,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int FieldMinWidth = 100;
         private const int ToolbarHeight = 25;
 
-        // Titles for errors that occur
+        // Titles for errors that occur.
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
 
@@ -78,8 +78,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _playInstantSceneTreeTreeView.OnTreeStateChanged += (treeState) =>
             {
                 Config.AssetBundleScenes = treeState;
-                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                Config.SaveConfiguration(true);
             };
+        }
+
+
+        private void Update()
+        {
+            Config.PollForChanges();
         }
 
         private void OnGUI()
@@ -213,7 +219,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             try
             {
-                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                Config.SaveConfiguration(true);
                 AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
             }
             catch (Exception ex)
@@ -282,7 +288,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (EditorGUI.EndChangeCheck())
             {
-                Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                Config.SaveConfiguration(false);
             }
         }
 
@@ -305,11 +311,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 // Assume cancelled.
                 return;
             }
+
             Config.LoadingSceneFileName = saveFilePath;
 
             try
             {
-                Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                Config.SaveConfiguration(true);
                 LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl, Config.LoadingBackgroundImage,
                     saveFilePath);
 
