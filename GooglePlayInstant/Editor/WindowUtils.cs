@@ -23,8 +23,15 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class WindowUtils
     {
+        public const string OkButtonText = "OK";
+        public const string CancelButtonText = "Cancel";
+
         private const float ShortButtonWidth = 100.0f;
 
+        /// <summary>
+        /// Creates a right-aligned fixed-width button with the specified button text. If the button is clicked,
+        /// the specified action will be invoked.
+        /// </summary>
         public static void CreateRightAlignedButton(string text, Action action)
         {
             EditorGUILayout.BeginHorizontal();
@@ -35,6 +42,15 @@ namespace GooglePlayInstant.Editor
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Returns true if the running instance of Unity is headless (e.g. a command line build),
+        /// and false if it's a normal instance of Unity.
+        /// </summary>
+        public static bool IsHeadlessMode()
+        {
+            return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
         }
     }
 }

@@ -202,7 +202,7 @@ namespace GooglePlayInstant.Editor
             {
                 var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
                 Debug.LogError(message);
-                EditorUtility.DisplayDialog("Error Saving", message, "OK");
+                EditorUtility.DisplayDialog("Error Saving", message, WindowUtils.OkButtonText);
                 return;
             }
 
@@ -234,7 +234,7 @@ namespace GooglePlayInstant.Editor
         private static void DisplayUrlError(string message)
         {
             Debug.LogError(message);
-            EditorUtility.DisplayDialog("Invalid Default URL", message, "OK");
+            EditorUtility.DisplayDialog("Invalid Default URL", message, WindowUtils.OkButtonText);
         }
     }
 }

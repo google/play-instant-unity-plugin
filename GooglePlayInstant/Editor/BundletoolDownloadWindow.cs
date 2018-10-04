@@ -76,7 +76,9 @@ namespace GooglePlayInstant.Editor
 
                     Debug.LogErrorFormat("Bundletool download error: {0}", downloadRequestError);
                     if (EditorUtility.DisplayDialog("Download Failed",
-                        downloadRequestError + "\n\nClick \"OK\" to retry.", "OK", "Cancel"))
+                        string.Format("{0}\n\nClick \"{1}\" to retry.", downloadRequestError, WindowUtils.OkButtonText),
+                        WindowUtils.OkButtonText,
+                        WindowUtils.CancelButtonText))
                     {
                         StartDownload();
                     }
@@ -99,7 +101,7 @@ namespace GooglePlayInstant.Editor
                 Debug.LogFormat("Bundletool downloaded: {0}", bundletoolJarPath);
                 var message = string.Format(
                     "Bundletool has been downloaded to your project's \"Library\" directory: {0}", bundletoolJarPath);
-                if (EditorUtility.DisplayDialog("Download Complete", message, "OK"))
+                if (EditorUtility.DisplayDialog("Download Complete", message, WindowUtils.OkButtonText))
                 {
                     Close();
                 }

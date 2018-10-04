@@ -25,41 +25,36 @@ namespace GooglePlayInstant.Editor
     {
         private const string BaseModuleZipFileName = "base.zip";
 
+        /// <summary>
+        /// Build an app bundle at the specified path, overwriting an existing file if one exists.
+        /// </summary>
         public static void Build(string aabFilePath)
         {
-            var tempFilePath = Path.GetTempFileName();
-            Debug.LogFormat("Building Package: {0}", tempFilePath);
-            var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(tempFilePath, BuildOptions.None);
+            var binaryFormatFilePath = Path.GetTempFileName();
+            Debug.LogFormat("Building Package: {0}", binaryFormatFilePath);
 
             // Do not use BuildAndSign since this signature won't be used.
-            if (!PlayInstantBuilder.Build(buildPlayerOptions))
+            if (!PlayInstantBuilder.Build(
+                PlayInstantBuilder.CreateBuildPlayerOptions(binaryFormatFilePath, BuildOptions.None)))
             {
                 // Do not log here. The method we called was responsible for logging.
                 return;
             }
 
-            CreateAppBundle(tempFilePath, aabFilePath);
-        }
-
-        // TODO: currently all processing is synchronous; consider moving to a separate thread
-        private static void CreateAppBundle(string inputFile, string aabFilePath)
-        {
+            // TODO: currently all processing is synchronous; consider moving to a separate thread
             try
             {
                 DisplayProgress("Running aapt2", 0.2f);
                 var workingDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "play-instant-unity"));
-                if (workingDirectory.Exists)
-                {
-                    workingDirectory.Delete(true);
-                }
+                workingDirectory.Delete(true);
 
                 workingDirectory.Create();
                 var sourceDirectoryInfo = workingDirectory.CreateSubdirectory("source");
                 var destinationDirectoryInfo = workingDirectory.CreateSubdirectory("destination");
 
-                var tempFileName = Path.GetRandomFileName();
-                var tempFilePath = Path.Combine(sourceDirectoryInfo.FullName, tempFileName);
-                var aaptResult = AndroidAssetPackagingTool.Convert(inputFile, tempFilePath);
+                var protoFormatFileName = Path.GetRandomFileName();
+                var protoFormatFilePath = Path.Combine(sourceDirectoryInfo.FullName, protoFormatFileName);
+                var aaptResult = AndroidAssetPackagingTool.Convert(binaryFormatFilePath, protoFormatFilePath);
                 if (aaptResult != null)
                 {
                     LogError("aapt2", aaptResult);
@@ -67,14 +62,14 @@ namespace GooglePlayInstant.Editor
                 }
 
                 DisplayProgress("Creating base module", 0.4f);
-                var unzipFileResult = ZipUtils.UnzipFile(tempFileName, sourceDirectoryInfo.FullName);
+                var unzipFileResult = ZipUtils.UnzipFile(protoFormatFileName, sourceDirectoryInfo.FullName);
                 if (unzipFileResult != null)
                 {
                     LogError("Unzip", unzipFileResult);
                     return;
                 }
 
-                File.Delete(tempFilePath);
+                File.Delete(protoFormatFilePath);
 
                 var baseModuleZip = Path.Combine(workingDirectory.FullName, BaseModuleZipFileName);
                 ConvertFiles(sourceDirectoryInfo, destinationDirectoryInfo);
@@ -85,6 +80,10 @@ namespace GooglePlayInstant.Editor
                     LogError("Zip creation", zipFileResult);
                     return;
                 }
+
+                // If the .aab file exists, EditorUtility.SaveFilePanel() has already prompted for whether to overwrite.
+                // Therefore, prevent Bundletool from throwing an IllegalArgumentException that "File already exists."
+                File.Delete(aabFilePath);
 
                 DisplayProgress("Running bundletool", 0.6f);
                 var buildBundleResult = Bundletool.BuildBundle(baseModuleZip, aabFilePath);
@@ -104,7 +103,7 @@ namespace GooglePlayInstant.Editor
             }
             finally
             {
-                if (!PlayInstantBuilder.IsHeadlessMode())
+                if (!WindowUtils.IsHeadlessMode())
                 {
                     EditorUtility.ClearProgressBar();
                 }
@@ -116,7 +115,7 @@ namespace GooglePlayInstant.Editor
         private static void DisplayProgress(string info, float progress)
         {
             Debug.LogFormat("{0}...", info);
-            if (!PlayInstantBuilder.IsHeadlessMode())
+            if (!WindowUtils.IsHeadlessMode())
             {
                 EditorUtility.DisplayProgressBar("Building App Bundle", info, progress);
             }
@@ -124,12 +123,12 @@ namespace GooglePlayInstant.Editor
 
         private static void LogError(string errorType, string errorMessage)
         {
-            if (!PlayInstantBuilder.IsHeadlessMode())
+            if (!WindowUtils.IsHeadlessMode())
             {
                 EditorUtility.ClearProgressBar();
             }
 
-            PlayInstantBuilder.LogError(string.Format("{0} failed: {1}", errorType, errorMessage));
+            PlayInstantBuilder.DisplayBuildError(string.Format("{0} failed: {1}", errorType, errorMessage));
         }
 
         private static void ConvertFiles(DirectoryInfo source, DirectoryInfo destination)
@@ -183,10 +182,7 @@ namespace GooglePlayInstant.Editor
 
         private static void CopyDirectory(DirectoryInfo source, DirectoryInfo destination)
         {
-            if (!destination.Exists)
-            {
-                destination.Create();
-            }
+            destination.Create();
 
             foreach (var fileInfo in source.GetFiles())
             {

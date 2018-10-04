@@ -36,7 +36,8 @@ namespace GooglePlayInstant.Editor
                 "On some systems the install process is slow and does not provide feedback, " +
                 "which may lead you to believe that Unity has frozen or crashed.\n\n" +
                 "Click \"OK\" to continue.";
-            if (!EditorUtility.DisplayDialog("Install Note", message, "OK", "Cancel"))
+            if (!EditorUtility.DisplayDialog(
+                "Install Note", message, WindowUtils.OkButtonText, WindowUtils.CancelButtonText))
             {
                 Debug.LogFormat("Cancelled install of {0}", displayName);
                 return;
@@ -81,7 +82,7 @@ namespace GooglePlayInstant.Editor
         private static void ShowMessage(string message)
         {
             Debug.LogFormat("AndroidSdkPackageInstaller: {0}", message);
-            EditorUtility.DisplayDialog("Android SDK Package Installer", message, "OK");
+            EditorUtility.DisplayDialog("Android SDK Package Installer", message, WindowUtils.OkButtonText);
         }
     }
 }
