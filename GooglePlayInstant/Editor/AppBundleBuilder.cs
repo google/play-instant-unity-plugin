@@ -46,7 +46,10 @@ namespace GooglePlayInstant.Editor
             {
                 DisplayProgress("Running aapt2", 0.2f);
                 var workingDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "play-instant-unity"));
-                workingDirectory.Delete(true);
+                if (workingDirectory.Exists)
+                {
+                    workingDirectory.Delete(true);
+                }
 
                 workingDirectory.Create();
                 var sourceDirectoryInfo = workingDirectory.CreateSubdirectory("source");
