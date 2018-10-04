@@ -29,7 +29,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     {
         private const int ToggleWidth = 18;
         private int rowID = 0;
-        private readonly List<SceneItem> _allItems = new List<SceneItem>();
+        private List<SceneItem> _allItems = new List<SceneItem>();
 
         public event Action<State> OnTreeStateChanged = delegate { };
 
@@ -88,12 +88,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             public bool Enabled;
             public bool OldEnabledValue;
             public string SceneBuildIndexString;
-
-            public override bool Equals(object obj)
-            {
-                var that = obj as SceneItem;
-                return that != null && this.displayName.Equals(that.displayName);
-            }
         }
 
         public void AddOpenScenes()
@@ -120,7 +114,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                     Enabled = isSceneEnabled[i]
                 };
 
-                if (!_allItems.Contains(sceneItem))
+                var duplicateItem = _allItems.Find((element) => element.displayName == sceneItem.displayName);
+                if (duplicateItem == null)
                 {
                     _allItems.Add(sceneItem);
                 }
@@ -202,18 +197,27 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (args.rowRect.Contains(current.mousePosition) && current.type == EventType.ContextClick)
             {
                 GenericMenu menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Remove Selection"), false, RemoveScene, item);
+                menu.AddItem(new GUIContent("Remove Selection"), false, RemoveSelectedScenes, item);
                 menu.ShowAsContext();
             }
         }
 
-        private void RemoveScene(object item)
+        private void RemoveSelectedScenes(object clickedItem)
         {
-            _allItems.Remove((SceneItem) item);
+            var selectedIds = GetSelection();
+
+            //If nothing is selected, just remove the item that was right-clicked
+            if (selectedIds.Count <= 0)
+            {
+                _allItems.Remove((SceneItem) clickedItem);
+            }
+            else
+            {
+                _allItems = _allItems.Where((item) => !selectedIds.Contains(item.id)).ToList();
+            }
+
             OnRowsChanged();
             Reload();
         }
-
-        //TODO: implement drag and drop
     }
 }
