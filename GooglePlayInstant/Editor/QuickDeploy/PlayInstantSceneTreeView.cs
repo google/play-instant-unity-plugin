@@ -62,22 +62,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 IsSceneEnabled = new bool[0];
                 ViewState = new TreeViewState();
             }
-
-            public override bool Equals(object obj)
-            {
-                var that = obj as State;
-                if (that == null) return false;
-                if (this.ViewState != that.ViewState) return false;
-                if (this.ScenePaths.Length != that.ScenePaths.Length) return false;
-
-                for (int i = 0; i < this.ScenePaths.Length; i++)
-                {
-                    if (this.ScenePaths[i] != that.ScenePaths[i]) return false;
-                    if (this.IsSceneEnabled[i] != that.IsSceneEnabled[i]) return false;
-                }
-
-                return true;
-            }
         }
 
         /// <summary>
