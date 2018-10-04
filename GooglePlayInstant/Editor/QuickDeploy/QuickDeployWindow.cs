@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -79,6 +78,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _playInstantSceneTreeTreeView.OnTreeStateChanged += (treeState) =>
             {
                 Config.AssetBundleScenes = treeState;
+                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
             };
         }
 
@@ -194,7 +194,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 HandleBuildAssetBundleButton();
                 HandleDialogExit();
             }
-
             EditorGUILayout.EndHorizontal();
         }
 
@@ -244,6 +243,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var descriptionTextStyle = CreateDescriptionTextStyle();
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Configure Loading Scene", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
             EditorGUILayout.Space();
@@ -270,7 +270,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Config.LoadingBackgroundImage = (Texture2D) EditorGUILayout.ObjectField(Config.LoadingBackgroundImage,
                 typeof(Texture2D), false,
                 GUILayout.MinWidth(FieldMinWidth));
-
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.EndVertical();
@@ -279,6 +278,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (GUILayout.Button("Create Loading Scene..."))
             {
                 HandleCreateLoadingSceneButton();
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
             }
         }
 
