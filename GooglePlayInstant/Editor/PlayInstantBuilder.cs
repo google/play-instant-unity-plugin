@@ -82,8 +82,8 @@ namespace GooglePlayInstant.Editor
             // ApkSigner is fast so we call it synchronously rather than wait for the post build AppDomain reset.
             if (!ApkSigner.IsAvailable())
             {
-                LogError("Unable to locate apksigner. Check that a recent version of Android SDK Build-Tools " +
-                         "is installed and check the Console log for more details on the error.");
+                DisplayBuildError("Unable to locate apksigner. Check that a recent version of Android SDK " +
+                         "Build-Tools is installed and check the Console log for more details on the error.");
                 return false;
             }
 
@@ -102,7 +102,7 @@ namespace GooglePlayInstant.Editor
                 return true;
             }
 
-            LogError(string.Format("Failed to re-sign the APK using apksigner:\n\n{0}", signingResult));
+            DisplayBuildError(string.Format("Failed to re-sign the APK using apksigner:\n\n{0}", signingResult));
             return false;
 #endif
         }
@@ -184,7 +184,7 @@ namespace GooglePlayInstant.Editor
             }
             else
             {
-                LogError(buildReport);
+                DisplayBuildError(buildReport);
             }
 
             return false;

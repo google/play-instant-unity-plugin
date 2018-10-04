@@ -60,7 +60,7 @@ namespace GooglePlayInstant.Editor
                 var aaptResult = AndroidAssetPackagingTool.Convert(binaryFormatFilePath, protoFormatFilePath);
                 if (aaptResult != null)
                 {
-                    LogError("aapt2", aaptResult);
+                    DisplayBuildError("aapt2", aaptResult);
                     return;
                 }
 
@@ -68,7 +68,7 @@ namespace GooglePlayInstant.Editor
                 var unzipFileResult = ZipUtils.UnzipFile(protoFormatFileName, sourceDirectoryInfo.FullName);
                 if (unzipFileResult != null)
                 {
-                    LogError("Unzip", unzipFileResult);
+                    DisplayBuildError("Unzip", unzipFileResult);
                     return;
                 }
 
@@ -80,7 +80,7 @@ namespace GooglePlayInstant.Editor
                 var zipFileResult = ZipUtils.CreateZipFile(baseModuleZip, destinationDirectoryInfo.FullName, ".");
                 if (zipFileResult != null)
                 {
-                    LogError("Zip creation", zipFileResult);
+                    DisplayBuildError("Zip creation", zipFileResult);
                     return;
                 }
 
@@ -92,7 +92,7 @@ namespace GooglePlayInstant.Editor
                 var buildBundleResult = Bundletool.BuildBundle(baseModuleZip, aabFilePath);
                 if (buildBundleResult != null)
                 {
-                    LogError("bundletool", buildBundleResult);
+                    DisplayBuildError("bundletool", buildBundleResult);
                     return;
                 }
 
@@ -100,7 +100,7 @@ namespace GooglePlayInstant.Editor
                 var signingResult = ApkSigner.SignZip(aabFilePath);
                 if (signingResult != null)
                 {
-                    LogError("Signing", signingResult);
+                    DisplayBuildError("Signing", signingResult);
                     return;
                 }
             }
@@ -124,7 +124,7 @@ namespace GooglePlayInstant.Editor
             }
         }
 
-        private static void LogError(string errorType, string errorMessage)
+        private static void DisplayBuildError(string errorType, string errorMessage)
         {
             if (!WindowUtils.IsHeadlessMode())
             {
