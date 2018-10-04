@@ -52,7 +52,7 @@ namespace GooglePlayInstant.LoadingScreen
             }
 
             var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
-            yield return LoadingBar.FillUntilDone(sceneLoadOperation, LoadingBar.AssetBundleDownloadMaxProportion, 1f);
+            yield return LoadingBar.FillUntilDone(sceneLoadOperation, LoadingBar.AssetBundleDownloadToInstallRatio, 1f);
         }
 
         private IEnumerator GetAssetBundle(string assetBundleUrl)
@@ -61,7 +61,7 @@ namespace GooglePlayInstant.LoadingScreen
             var downloadOperation = StartAssetBundleDownload(assetBundleUrl, out webRequest);
 
             yield return LoadingBar.FillUntilDone(downloadOperation,
-                0f, LoadingBar.AssetBundleDownloadMaxProportion);
+                0f, LoadingBar.AssetBundleDownloadToInstallRatio);
 
             if (IsFailedRequest(webRequest))
             {

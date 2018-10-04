@@ -39,7 +39,7 @@ namespace GooglePlayInstant.LoadingScreen
 
         [Tooltip("Proportion of the loading bar allocated to the asset bundle downloading process. " +
                  "The rest is allocated to installing.")]
-        [Range(0f, 1f)] public float AssetBundleDownloadMaxProportion = .8f;
+        [Range(0f, 1f)] public float AssetBundleDownloadToInstallRatio = 0.8f;
 
         private RectTransform _rectTransform;
 
