@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
 
 public class BaseGame : MonoBehaviour
 {
-    public Transform Crate;
+    public GameObject Crate;
     public Camera ThirdPersonCamera;
     public Camera OverheadCamera;
     private const int MAX_SCORE_PER_LEVEL = 5;
