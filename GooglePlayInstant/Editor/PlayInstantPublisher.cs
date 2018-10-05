@@ -59,7 +59,7 @@ namespace GooglePlayInstant.Editor
             }
             else
             {
-                PlayInstantBuilder.LogError(string.Format("Zip creation failed: {0}", zipFileResult));
+                PlayInstantBuilder.DisplayBuildError(string.Format("Zip creation failed: {0}", zipFileResult));
             }
         }
     }

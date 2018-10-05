@@ -28,8 +28,6 @@ namespace GooglePlayInstant.Editor
     public static class PlayInstantBuilder
     {
         private const string BuildErrorTitle = "Build Error";
-        private const string OkButtonText = "OK";
-        private const string CancelButtonText = "Cancel";
 
         /// <summary>
         /// Returns an array of enabled scenes from the "Scenes In Build" section of Unity's Build Settings window.
@@ -84,8 +82,8 @@ namespace GooglePlayInstant.Editor
             // ApkSigner is fast so we call it synchronously rather than wait for the post build AppDomain reset.
             if (!ApkSigner.IsAvailable())
             {
-                LogError("Unable to locate apksigner. Check that a recent version of Android SDK Build-Tools " +
-                         "is installed and check the Console log for more details on the error.");
+                DisplayBuildError("Unable to locate apksigner. Check that a recent version of Android SDK " +
+                         "Build-Tools is installed and check the Console log for more details on the error.");
                 return false;
             }
 
@@ -104,7 +102,7 @@ namespace GooglePlayInstant.Editor
                 return true;
             }
 
-            LogError(string.Format("Failed to re-sign the APK using apksigner:\n\n{0}", signingResult));
+            DisplayBuildError(string.Format("Failed to re-sign the APK using apksigner:\n\n{0}", signingResult));
             return false;
 #endif
         }
@@ -121,8 +119,8 @@ namespace GooglePlayInstant.Editor
                 Debug.LogError("Build halted since selected build type is \"Installed\"");
                 var message = string.Format(
                     "The currently selected Android build type is \"Installed\".\n\n" +
-                    "Click \"OK\" to open the \"{0}\" window where the build type can be changed to \"Instant\".",
-                    BuildSettingsWindow.WindowTitle);
+                    "Click \"{0}\" to open the \"{1}\" window where the build type can be changed to \"Instant\".",
+                    WindowUtils.OkButtonText, BuildSettingsWindow.WindowTitle);
                 if (DisplayBuildErrorDialog(message))
                 {
                     BuildSettingsWindow.ShowWindow();
@@ -139,8 +137,8 @@ namespace GooglePlayInstant.Editor
                 Debug.LogErrorFormat("Build halted due to incompatible settings: {0}",
                     string.Join(", ", failedPolicies.ToArray()));
                 var message = string.Format(
-                    "{0}\n\nClick \"OK\" to open the settings window and make required changes.",
-                    string.Join("\n\n", failedPolicies.ToArray()));
+                    "{0}\n\nClick \"{1}\" to open the settings window and make required changes.",
+                    string.Join("\n\n", failedPolicies.ToArray()), WindowUtils.OkButtonText);
                 if (DisplayBuildErrorDialog(message))
                 {
                     PlayerSettingsWindow.ShowWindow();
@@ -167,10 +165,10 @@ namespace GooglePlayInstant.Editor
                     // Actual success.
                     return true;
                 case BuildResult.Failed:
-                    LogError(string.Format("Build failed with {0} error(s)", buildReport.summary.totalErrors));
+                    DisplayBuildError(string.Format("Build failed with {0} error(s)", buildReport.summary.totalErrors));
                     return false;
                 default:
-                    LogError("Build failed with unknown error");
+                    DisplayBuildError("Build failed with unknown error");
                     return false;
             }
 #else
@@ -186,7 +184,7 @@ namespace GooglePlayInstant.Editor
             }
             else
             {
-                LogError(buildReport);
+                DisplayBuildError(buildReport);
             }
 
             return false;
@@ -200,31 +198,27 @@ namespace GooglePlayInstant.Editor
         /// <returns>True if the user clicks "OK", otherwise false.</returns>
         public static bool DisplayBuildErrorDialog(string message)
         {
-            if (IsHeadlessMode())
+            if (WindowUtils.IsHeadlessMode())
             {
                 // During a headless build it isn't possible to prompt to fix the issue, so always return false.
                 Debug.LogErrorFormat("Build error in headless mode: {0}", message);
                 return false;
             }
-            return EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText, CancelButtonText);
+            return EditorUtility.DisplayDialog(
+                BuildErrorTitle, message, WindowUtils.OkButtonText, WindowUtils.CancelButtonText);
         }
 
         /// <summary>
         /// Displays the specified message indicating that a build error occurred.
         /// </summary>
-        public static void LogError(string message)
+        public static void DisplayBuildError(string message)
         {
             Debug.LogErrorFormat("Build error: {0}", message);
 
-            if (!IsHeadlessMode())
+            if (!WindowUtils.IsHeadlessMode())
             {
-                EditorUtility.DisplayDialog(BuildErrorTitle, message, OkButtonText);
+                EditorUtility.DisplayDialog(BuildErrorTitle, message, WindowUtils.OkButtonText);
             }
-        }
-
-        private static bool IsHeadlessMode()
-        {
-            return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
         }
     }
 }

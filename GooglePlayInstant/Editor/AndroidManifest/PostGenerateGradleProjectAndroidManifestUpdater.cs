@@ -16,7 +16,6 @@
 using System;
 using System.IO;
 using System.Xml.Linq;
-using UnityEditor;
 using UnityEditor.Android;
 using UnityEngine;
 
@@ -56,9 +55,8 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             var errorMessage = AndroidManifestHelper.ConvertManifestToInstant(doc, uri);
             if (errorMessage != null)
             {
-                var message = string.Format("Error updating AndroidManifest.xml: {0}", errorMessage);
-                Debug.LogError(message);
-                EditorUtility.DisplayDialog("Build Error", message, "OK");
+                PlayInstantBuilder.DisplayBuildError(
+                    string.Format("Error updating AndroidManifest.xml: {0}", errorMessage));
                 return;
             }
 

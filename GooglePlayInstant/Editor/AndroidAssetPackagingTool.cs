@@ -45,7 +45,7 @@ namespace GooglePlayInstant.Editor
             var newestBuildToolsVersion = AndroidBuildTools.GetNewestBuildToolsVersion();
             if (newestBuildToolsVersion == null)
             {
-                PlayInstantBuilder.LogError(string.Format("Failed to locate {0}", BuildToolsDisplayName));
+                PlayInstantBuilder.DisplayBuildError(string.Format("Failed to locate {0}", BuildToolsDisplayName));
                 return false;
             }
 

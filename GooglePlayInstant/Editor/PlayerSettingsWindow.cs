@@ -72,7 +72,8 @@ namespace GooglePlayInstant.Editor
                         else
                         {
                             Debug.LogErrorFormat("Failed to update setting: {0}", policy.Name);
-                            EditorUtility.DisplayDialog("Error updating", "Failed to update setting", "OK");
+                            EditorUtility.DisplayDialog(
+                                "Error updating", "Failed to update setting", WindowUtils.OkButtonText);
                         }
 
                         Repaint();
