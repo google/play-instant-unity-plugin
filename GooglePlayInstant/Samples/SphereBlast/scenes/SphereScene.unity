@@ -525,7 +525,7 @@ ParticleSystemRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_RenderMode: 4
+  m_RenderMode: 0
   m_SortMode: 1
   m_MinParticleSize: 0
   m_MaxParticleSize: 0.5
@@ -534,7 +534,7 @@ ParticleSystemRenderer:
   m_LengthScale: 2
   m_SortingFudge: 1
   m_NormalDirection: 1
-  m_RenderAlignment: 2
+  m_RenderAlignment: 0
   m_Pivot: {x: 0, y: 0, z: 0}
   m_UseCustomVertexStreams: 0
   m_VertexStreams: 00010304
@@ -599,7 +599,7 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: -680749813
+  randomSeed: -1891598974
   InitialModule:
     serializedVersion: 3
     enabled: 1
@@ -995,7 +995,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     randomizeRotationDirection: 0
-    maxNumParticles: 500
+    maxNumParticles: 100
     size3D: 0
     rotation3D: 0
     gravityModifier:
@@ -1147,7 +1147,7 @@ ParticleSystem:
     m_MeshScale: 1
     m_UseMeshMaterialIndex: 0
     m_UseMeshColors: 1
-    alignToDirection: 1
+    alignToDirection: 0
     randomDirectionAmount: 0
     sphericalDirectionAmount: 0
   EmissionModule:
@@ -1156,7 +1156,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 50
+      scalar: 0
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -1197,7 +1197,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 0.8333335
       minScalar: 0
       maxCurve:
         serializedVersion: 2

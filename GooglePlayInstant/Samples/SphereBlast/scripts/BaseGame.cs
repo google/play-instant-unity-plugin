@@ -65,6 +65,10 @@ public class BaseGame : MonoBehaviour
     // Use this for initialization
     public void Start()
     {
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
+        Screen.autorotateToPortrait = false;
+        Screen.autorotateToPortraitUpsideDown = false;
+        
         _timer = _maxTime;
         _gameOver = GameObject.Find("GameOverPanel").gameObject;
         _timeLeftText = GameObject.Find("TimeLeftText").GetComponent<Text>();

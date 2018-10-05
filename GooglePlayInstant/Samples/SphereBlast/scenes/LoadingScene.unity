@@ -120,7 +120,6 @@ GameObject:
   - component: {fileID: 165839274}
   - component: {fileID: 165839278}
   - component: {fileID: 165839277}
-  - component: {fileID: 165839276}
   - component: {fileID: 165839275}
   m_Layer: 5
   m_Name: LoadingText
@@ -161,17 +160,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_AspectMode: 1
   m_AspectRatio: 5.322148
---- !u!114 &165839276
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 165839273}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f99cacc2fc6484eda8cbe3b32826f64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &165839277
 MonoBehaviour:
   m_ObjectHideFlags: 0
