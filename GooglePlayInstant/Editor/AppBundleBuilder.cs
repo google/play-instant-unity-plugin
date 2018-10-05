@@ -74,9 +74,8 @@ namespace GooglePlayInstant.Editor
 
                 File.Delete(protoFormatFilePath);
 
+                ArrangeFiles(sourceDirectoryInfo, destinationDirectoryInfo);
                 var baseModuleZip = Path.Combine(workingDirectory.FullName, BaseModuleZipFileName);
-                ConvertFiles(sourceDirectoryInfo, destinationDirectoryInfo);
-
                 var zipFileResult = ZipUtils.CreateZipFile(baseModuleZip, destinationDirectoryInfo.FullName, ".");
                 if (zipFileResult != null)
                 {
@@ -115,6 +114,57 @@ namespace GooglePlayInstant.Editor
             Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
         }
 
+        /// <summary>
+        /// Arrange files according to the <a href="https://developer.android.com/guide/app-bundle/#aab_format">
+        /// Android App Bundle format</a>.
+        /// </summary>
+        private static void ArrangeFiles(DirectoryInfo source, DirectoryInfo destination)
+        {
+            foreach (var sourceFileInfo in source.GetFiles())
+            {
+                DirectoryInfo destinationSubdirectory;
+                var fileName = sourceFileInfo.Name;
+                if (fileName == "AndroidManifest.xml")
+                {
+                    destinationSubdirectory = destination.CreateSubdirectory("manifest");
+                }
+                else if (fileName == "resources.pb")
+                {
+                    destinationSubdirectory = destination;
+                }
+                else if (fileName.EndsWith("dex"))
+                {
+                    destinationSubdirectory = destination.CreateSubdirectory("dex");
+                }
+                else
+                {
+                    destinationSubdirectory = destination.CreateSubdirectory("root");
+                }
+
+                sourceFileInfo.MoveTo(Path.Combine(destinationSubdirectory.FullName, fileName));
+            }
+
+            foreach (var sourceDirectoryInfo in source.GetDirectories())
+            {
+                var directoryName = sourceDirectoryInfo.Name;
+                switch (directoryName)
+                {
+                    case "META-INF":
+                        // Skip files like MANIFEST.MF
+                        break;
+                    case "assets":
+                    case "lib":
+                    case "res":
+                        sourceDirectoryInfo.MoveTo(Path.Combine(destination.FullName, directoryName));
+                        break;
+                    default:
+                        var subdirectory = destination.CreateSubdirectory("root");
+                        sourceDirectoryInfo.MoveTo(Path.Combine(subdirectory.FullName, directoryName));
+                        break;
+                }
+            }
+        }
+
         private static void DisplayProgress(string info, float progress)
         {
             Debug.LogFormat("{0}...", info);
@@ -132,70 +182,6 @@ namespace GooglePlayInstant.Editor
             }
 
             PlayInstantBuilder.DisplayBuildError(string.Format("{0} failed: {1}", errorType, errorMessage));
-        }
-
-        private static void ConvertFiles(DirectoryInfo source, DirectoryInfo destination)
-        {
-            // Copy files in the root directory.
-            foreach (var fileInfo in source.GetFiles())
-            {
-                var fileName = fileInfo.Name;
-                if (fileName == "AndroidManifest.xml")
-                {
-                    var subdirectory = destination.CreateSubdirectory("manifest");
-                    fileInfo.CopyTo(Path.Combine(subdirectory.FullName, fileName));
-                }
-                else if (fileName == "resources.pb")
-                {
-                    fileInfo.CopyTo(Path.Combine(destination.FullName, fileName));
-                }
-                else if (fileName.EndsWith("dex"))
-                {
-                    var subdirectory = destination.CreateSubdirectory("dex");
-                    fileInfo.CopyTo(Path.Combine(subdirectory.FullName, fileName));
-                }
-                else
-                {
-                    var subdirectory = destination.CreateSubdirectory("root");
-                    fileInfo.CopyTo(Path.Combine(subdirectory.FullName, fileName));
-                }
-            }
-
-            // Copy all other files.
-            foreach (var directoryInfo in source.GetDirectories())
-            {
-                var directoryName = directoryInfo.Name;
-                switch (directoryName)
-                {
-                    case "META-INF":
-                        // Skip files like MANIFEST.MF
-                        break;
-                    case "assets":
-                    case "lib":
-                    case "res":
-                        CopyDirectory(directoryInfo, destination.CreateSubdirectory(directoryName));
-                        break;
-                    default:
-                        var subdirectory = destination.CreateSubdirectory("root");
-                        CopyDirectory(directoryInfo, subdirectory.CreateSubdirectory(directoryName));
-                        break;
-                }
-            }
-        }
-
-        private static void CopyDirectory(DirectoryInfo source, DirectoryInfo destination)
-        {
-            destination.Create();
-
-            foreach (var fileInfo in source.GetFiles())
-            {
-                fileInfo.CopyTo(Path.Combine(destination.FullName, fileInfo.Name));
-            }
-
-            foreach (var subdirectoryInfo in source.GetDirectories())
-            {
-                CopyDirectory(subdirectoryInfo, destination.CreateSubdirectory(subdirectoryInfo.Name));
-            }
         }
     }
 }
