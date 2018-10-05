@@ -31,11 +31,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
     /// </summary>
     public class LoadingScreenGenerator
     {
-        public const string SceneName = "PlayInstantLoadingScreen.unity";
-
-        public static readonly string SceneDirectoryPath =
-            Path.Combine("Assets", "PlayInstantLoadingScreen");
-
         public static LoadingScreen.LoadingScreen CurrentLoadingScreen { get; private set; }
 
         private const string CanvasName = "Loading Screen Canvas";
@@ -44,8 +39,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         private const int ReferenceWidth = 1080;
         private const int ReferenceHeight = 1920;
-
-        private static readonly string DefaultSceneFilePath = Path.Combine(SceneDirectoryPath, SceneName);
 
         /// <summary>
         /// Creates a scene in the current project that acts as a loading scene until assetbundles are downloaded from the CDN.
@@ -67,11 +60,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (!saveOk)
             {
                 // Not a fatal issue. User can attempt to resave this scene.
-                var warningMessage = string.Format("Issue while saving scene {0}.",
-                    SceneName);
-
+                var warningMessage = string.Format("Issue while saving scene {0}.", sceneFilePath);
                 Debug.LogWarning(warningMessage);
-
                 DialogHelper.DisplayMessage(SaveErrorTitle, warningMessage);
             }
             else
@@ -112,7 +102,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         }
 
         // Visible for testing
-        internal static void PopulateScene(Texture backgroundTexture, string assetBundleUrl)
+        internal static void PopulateScene(Texture2D backgroundTexture, string assetBundleUrl)
         {
             var loadingScreenGameObject = new GameObject("Loading Screen");
 
@@ -163,7 +153,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return canvasObject;
         }
 
-        private static RawImage GenerateBackground(Texture backgroundTexture)
+        private static RawImage GenerateBackground(Texture2D backgroundTexture)
         {
             var backgroundObject = new GameObject("Background");
 
@@ -183,11 +173,32 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
             else
             {
-                backgroundAspectRatioFitter.aspectRatio =
-                    backgroundImage.texture.width / (float) backgroundImage.texture.height;
+                var textureDimensions = GetPreImportTextureDimensions(backgroundTexture);
+                backgroundAspectRatioFitter.aspectRatio = textureDimensions.x / textureDimensions.y;
             }
 
             return backgroundImage;
+        }
+
+        /// <summary>
+        /// This returns a texture's size before its import settings are applied.
+        /// This is useful in cases, for example, where the TextureImporter
+        /// rounds an image's size to the nearest power of 2.
+        /// </summary>
+        /// <exception cref="ArgumentException">If a texture is provided that isn't associated with an asset. </exception>
+        private static Vector2 GetPreImportTextureDimensions(Texture2D texture)
+        {
+            var texturePath = AssetDatabase.GetAssetPath(texture);
+            if (string.IsNullOrEmpty(texturePath))
+            {
+                throw new ArgumentException("The provided texture must be associated with an asset");
+            }
+
+            // Load the image from disk then return its width and height.
+            var imageBytes = File.ReadAllBytes(texturePath);
+            var tempTexture = new Texture2D(1, 1);
+            tempTexture.LoadImage(imageBytes);
+            return new Vector2(tempTexture.width, tempTexture.height);
         }
     }
 }

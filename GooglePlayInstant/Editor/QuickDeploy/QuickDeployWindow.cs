@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -56,7 +55,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const int FieldMinWidth = 100;
         private const int ToolbarHeight = 25;
 
-        // Titles for errors that occur
+        // Titles for errors that occur.
         private const string AssetBundleBuildErrorTitle = "AssetBundle Build Error";
         private const string LoadingScreenCreationErrorTitle = "Loading Screen Creation Error";
 
@@ -79,7 +78,14 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             _playInstantSceneTreeTreeView.OnTreeStateChanged += (treeState) =>
             {
                 Config.AssetBundleScenes = treeState;
+                Config.SaveConfiguration(true);
             };
+        }
+
+
+        private void Update()
+        {
+            Config.PollForChanges();
         }
 
         private void OnGUI()
@@ -194,7 +200,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 HandleBuildAssetBundleButton();
                 HandleDialogExit();
             }
-
             EditorGUILayout.EndHorizontal();
         }
 
@@ -214,7 +219,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             try
             {
-                Config.SaveConfiguration(ToolBarSelectedButton.CreateBundle);
+                Config.SaveConfiguration(true);
                 AssetBundleBuilder.BuildQuickDeployAssetBundle(GetEnabledSceneItemPaths());
             }
             catch (Exception ex)
@@ -244,6 +249,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         {
             var descriptionTextStyle = CreateDescriptionTextStyle();
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Configure Loading Scene", EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical(UserInputGuiStyle);
             EditorGUILayout.Space();
@@ -270,7 +276,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             Config.LoadingBackgroundImage = (Texture2D) EditorGUILayout.ObjectField(Config.LoadingBackgroundImage,
                 typeof(Texture2D), false,
                 GUILayout.MinWidth(FieldMinWidth));
-
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.EndVertical();
@@ -279,6 +284,11 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             if (GUILayout.Button("Create Loading Scene..."))
             {
                 HandleCreateLoadingSceneButton();
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Config.SaveConfiguration(false);
             }
         }
 
@@ -301,11 +311,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 // Assume cancelled.
                 return;
             }
+
             Config.LoadingSceneFileName = saveFilePath;
 
             try
             {
-                Config.SaveConfiguration(ToolBarSelectedButton.LoadingScreen);
+                Config.SaveConfiguration(true);
                 LoadingScreenGenerator.GenerateScene(Config.AssetBundleUrl, Config.LoadingBackgroundImage,
                     saveFilePath);
 
