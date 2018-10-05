@@ -50,7 +50,11 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             var requiredPolicies = PlayInstantSettingPolicy.GetRequiredPolicies();
             foreach (var policy in requiredPolicies)
             {
-                policy.ChangeState();
+                var policyChangeCompleted = policy.ChangeState();
+                if (!policyChangeCompleted)
+                {
+                    throw new Exception(string.Format("Failed to change policy: {0}", policy.Name));
+                }
             }
 
             SetTargetArchitectures();
