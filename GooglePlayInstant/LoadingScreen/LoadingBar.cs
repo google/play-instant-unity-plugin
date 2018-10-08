@@ -26,7 +26,8 @@ namespace GooglePlayInstant.LoadingScreen
         public float OutlineWidth = 6f;
         public float InnerBorderWidth = 6f;
 
-        [Tooltip("If true, this object's RectTransform will update to adjust the outline and border width")]
+        [Tooltip("If true, " +
+                 "the Outline and Background RectTransforms will update to match the outline and border width")]
         public bool ResizeAutomatically = true;
 
         [Tooltip("Asset Bundle download and install progress. The value set in the Editor is ignored at runtime.")]
@@ -41,13 +42,6 @@ namespace GooglePlayInstant.LoadingScreen
                  "The rest is allocated to installing.")]
         [Range(0f, 1f)] public float AssetBundleDownloadToInstallRatio = 0.8f;
 
-        private RectTransform _rectTransform;
-
-        private void Start()
-        {
-            _rectTransform = GetComponent<RectTransform>();
-        }
-
         private void Update()
         {
             if (ResizeAutomatically)
@@ -57,14 +51,8 @@ namespace GooglePlayInstant.LoadingScreen
             }
         }
 
-        // TODO: Make sure this scales correctly in landscape
         public void ApplyBorderWidth()
         {
-            if (_rectTransform == null)
-            {
-                _rectTransform = GetComponent<RectTransform>();
-            }
-
             Outline.anchorMin = Vector3.zero;
             Outline.anchorMax = Vector3.one;
             Outline.sizeDelta = Vector2.one * (OutlineWidth + InnerBorderWidth);
@@ -86,25 +74,35 @@ namespace GooglePlayInstant.LoadingScreen
         /// Updates a loading bar by the progress made by an asynchronous operation.
         /// The bar will interpolate between startingFillProportion and endingFillProportion as the operation progresses.
         /// </summary>
+        /// <param name="skipFinalUpdate">
+        /// If true, the bar will only fill before the operation has finished.
+        /// This is useful in cases where an async operation will set its progress to 1, even when it has failed.
+        /// </param>
         public IEnumerator FillUntilDone(AsyncOperation operation, float startingFillProportion,
-            float endingFillProportion)
+            float endingFillProportion, bool skipFinalUpdate)
         {
             var isDone = false;
             while (!isDone)
             {
-                var fillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
-                SetProgress(fillProportion);
 
                 if (operation.isDone)
                 {
                     isDone = true;
                 }
+                else
+                {
+                    var fillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+                    SetProgress(fillProportion);
+                }
 
                 yield return null;
             }
-            
-            var finalFillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
-            SetProgress(finalFillProportion);
+
+            if (!skipFinalUpdate)
+            {
+                var finalFillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+                SetProgress(finalFillProportion);
+            }
         }
     }
 }

@@ -36,6 +36,7 @@ namespace GooglePlayInstant.LoadingScreen
         private const int MaxAttemptCount = 3;
         private AssetBundle _bundle;
         private int _assetBundleRetrievalAttemptCount;
+        private float _maxLoadingBarProgress;
 
         private IEnumerator Start()
         {
@@ -52,7 +53,8 @@ namespace GooglePlayInstant.LoadingScreen
             }
 
             var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
-            yield return LoadingBar.FillUntilDone(sceneLoadOperation, LoadingBar.AssetBundleDownloadToInstallRatio, 1f);
+            var installStartFill = Mathf.Max(LoadingBar.AssetBundleDownloadToInstallRatio, _maxLoadingBarProgress);
+            yield return LoadingBar.FillUntilDone(sceneLoadOperation, installStartFill, 1f, false);
         }
 
         private IEnumerator GetAssetBundle(string assetBundleUrl)
@@ -61,7 +63,7 @@ namespace GooglePlayInstant.LoadingScreen
             var downloadOperation = StartAssetBundleDownload(assetBundleUrl, out webRequest);
 
             yield return LoadingBar.FillUntilDone(downloadOperation,
-                0f, LoadingBar.AssetBundleDownloadToInstallRatio);
+                _maxLoadingBarProgress, LoadingBar.AssetBundleDownloadToInstallRatio, true);
 
             if (IsFailedRequest(webRequest))
             {
@@ -78,18 +80,20 @@ namespace GooglePlayInstant.LoadingScreen
             if (_assetBundleRetrievalAttemptCount < MaxAttemptCount)
             {
                 _assetBundleRetrievalAttemptCount++;
+                _maxLoadingBarProgress = LoadingBar.Progress;
                 Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
                 yield return new WaitForSeconds(2);
-
-                //TODO: revisit this methodology of setting the loading bar
-                LoadingBar.SetProgress(0f);
-
                 yield return GetAssetBundle(assetBundleUrl);
             }
             else
             {
                 Debug.LogErrorFormat("Error downloading asset bundle: {0}", webRequest.error);
             }
+        }
+
+        private void SetLoadingBarProgress()
+        {
+            LoadingBar.SetProgress(_maxLoadingBarProgress);
         }
 
         private static bool IsFailedRequest(UnityWebRequest webRequest)
@@ -114,7 +118,6 @@ namespace GooglePlayInstant.LoadingScreen
 #else
             var assetBundleDownloadOperation = webRequest.Send();
 #endif
-
             return assetBundleDownloadOperation;
         }
     }
