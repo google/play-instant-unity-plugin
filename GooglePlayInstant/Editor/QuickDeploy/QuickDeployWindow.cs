@@ -112,7 +112,6 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Unfocus the window if the user has just moved to a different quick deploy tab.
         /// </summary>
         /// <param name="currentTab">A ToolBarSelectedButton instance representing the current quick deploy tab.</param>
-        /// <see cref="b/112536394"/>
         private static void UpdateGuiFocus(ToolBarSelectedButton currentTab)
         {
             if (currentTab != _previousTab)
