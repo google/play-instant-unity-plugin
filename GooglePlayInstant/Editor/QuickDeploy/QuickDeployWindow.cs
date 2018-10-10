@@ -61,11 +61,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
         private PlayInstantSceneTreeView _playInstantSceneTreeTreeView;
 
-        public static void ShowWindow(ToolBarSelectedButton select)
+        public static void ShowWindow()
         {
             var window = GetWindow<QuickDeployWindow>(true, "Quick Deploy");
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
-            _toolbarSelectedButtonIndex = (int) select;
         }
 
         private void OnEnable()

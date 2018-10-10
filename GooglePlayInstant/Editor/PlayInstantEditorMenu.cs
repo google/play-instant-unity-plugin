@@ -69,22 +69,10 @@ namespace GooglePlayInstant.Editor
             PlayInstantSdkInstaller.SetUp();
         }
 
-        [MenuItem("PlayInstant/Quick Deploy/Overview...", false, 203)]
+        [MenuItem("PlayInstant/Quick Deploy...", false, 203)]
         private static void QuickDeployOverview()
         {
-            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.Overview);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/AssetBundle Creation...", false, 204)]
-        private static void AssetBundleCreationSettings()
-        {
-            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.CreateBundle);
-        }
-
-        [MenuItem("PlayInstant/Quick Deploy/Loading Screen...", false, 205)]
-        private static void LoadingScreenSettings()
-        {
-            QuickDeployWindow.ShowWindow(QuickDeployWindow.ToolBarSelectedButton.LoadingScreen);
+            QuickDeployWindow.ShowWindow();
         }
         
 #if UNITY_2018_3_OR_NEWER
