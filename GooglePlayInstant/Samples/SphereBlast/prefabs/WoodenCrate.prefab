@@ -3450,5 +3450,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 965cede63bd4e4f07b15ccb72fc0b68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explodingVersion: {fileID: 1293517348203956, guid: ef2cea3d524b4436aab753c9f2fb6474,
+  ExplodingVersion: {fileID: 1293517348203956, guid: ef2cea3d524b4436aab753c9f2fb6474,
     type: 2}

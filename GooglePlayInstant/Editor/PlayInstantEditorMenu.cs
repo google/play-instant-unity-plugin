@@ -14,6 +14,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using GooglePlayInstant.Editor.QuickDeploy;
 
 namespace GooglePlayInstant.Editor
 {
@@ -71,6 +72,12 @@ namespace GooglePlayInstant.Editor
             PlayInstantRunner.InstallPlayInstantSdk();
         }
 
+        [MenuItem("PlayInstant/Quick Deploy...", false, 203)]
+        private static void QuickDeployOverview()
+        {
+            QuickDeployWindow.ShowWindow();
+        }
+        
 #if UNITY_2018_3_OR_NEWER
         [MenuItem("PlayInstant/Build Android App Bundle...", false, 300)]
         private static void BuildAndroidAppBundle()

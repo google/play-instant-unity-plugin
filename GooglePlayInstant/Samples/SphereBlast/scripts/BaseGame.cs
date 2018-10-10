@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
 
 public class BaseGame : MonoBehaviour
 {
-    public Transform Crate;
+    public GameObject Crate;
     public Camera ThirdPersonCamera;
     public Camera OverheadCamera;
     private const int MAX_SCORE_PER_LEVEL = 5;
@@ -65,6 +65,10 @@ public class BaseGame : MonoBehaviour
     // Use this for initialization
     public void Start()
     {
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
+        Screen.autorotateToPortrait = false;
+        Screen.autorotateToPortraitUpsideDown = false;
+        
         _timer = _maxTime;
         _gameOver = GameObject.Find("GameOverPanel").gameObject;
         _timeLeftText = GameObject.Find("TimeLeftText").GetComponent<Text>();

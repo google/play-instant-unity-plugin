@@ -47,6 +47,15 @@ Opens a window that lists Android Player Settings that should be changed to make
 ### Set up Play Instant SDK...
 Installs or updates the "Google Play Instant Development SDK" (formerly the "Instant Apps Development SDK") using [sdkmanager](https://developer.android.com/studio/command-line/sdkmanager). The plugin requires SDK version 1.2 or higher. If there is a license that needs to be accepted, the plugin will prompt for acceptance.
 
+### Quick Deploy
+Quick Deploy can significantly reduce the size of a Unity-based instant app by packaging some assets in an [AssetBundle](https://docs.unity3d.com/Manual/AssetBundlesIntro.html). The Unity game engine and a loading screen are packaged into an instant app APK, and after the instant app starts it retrieves the AssetBundle from a server.
+
+#### AssetBundle Creation
+Use the "Bundle Creation" tab to select the game's main scene and package it into an AssetBundle. (This is similar to selecting a scene using [Build Settings' Scenes in Build](https://docs.unity3d.com/Manual/BuildSettings.html).) Then upload the newly created AssetBundle to a server and make the URL endpoint public.
+
+#### Loading Screen
+Use the "Loading Screen" tab to create a scene consisting of a 2D loading screen. Select an image to display on the loading screen, and input the URL that points to the uploaded AssetBundle. When you build the instant app, make sure that the loading screen scene is the only scene included in the build.
+
 ### Build for Play Console...
 [Google Play Console](https://play.google.com/apps/publish/) requires that the APKs for an instant app are published together in a ZIP file. Although most Unity instant apps will consist of a single APK, the requirement holds. This menu option performs a build and stores the resulting APK in a ZIP file suitable for publishing.
 
