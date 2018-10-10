@@ -19,6 +19,7 @@ using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -115,12 +116,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var backgroundImage = GenerateBackground(backgroundTexture);
             backgroundImage.transform.SetParent(canvasObject.transform, false);
 
+            var retryButton = GenerateRetryButton();
+            retryButton.transform.SetParent(canvasObject.transform, false);
+            
             var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
             loadingScreen.AssetBundleUrl = assetBundleUrl;
-            loadingScreen.Background = backgroundImage;
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
+            loadingScreen.RetryButton = retryButton;
             loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
-
+            
             CurrentLoadingScreen = loadingScreen;
         }
 
@@ -149,6 +153,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
             canvasScaler.matchWidthOrHeight = 0.5f;
+
+            canvasObject.AddComponent<EventSystem>();
+            canvasObject.AddComponent<StandaloneInputModule>();
+            canvasObject.AddComponent<GraphicRaycaster>();
 
             return canvasObject;
         }
@@ -180,6 +188,21 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return backgroundImage;
         }
 
+        private static Button GenerateRetryButton()
+        {
+            var retryObject = new GameObject("Retry Button");
+
+            var retryImage = retryObject.AddComponent<Image>();
+            retryImage.sprite = FindReplayButtonSprite();
+
+            var retryRect = retryObject.GetComponent<RectTransform>();
+            retryRect.sizeDelta = retryImage.sprite.rect.size;
+
+            var retryButton = retryObject.AddComponent<Button>();
+            
+            return retryButton;
+        }
+
         /// <summary>
         /// This returns a texture's size before its import settings are applied.
         /// This is useful in cases, for example, where the TextureImporter
@@ -199,6 +222,22 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var tempTexture = new Texture2D(1, 1);
             tempTexture.LoadImage(imageBytes);
             return new Vector2(tempTexture.width, tempTexture.height);
+        }
+
+        // Visible for testing.
+        internal static Sprite FindReplayButtonSprite()
+        {
+            string searchFilter = "GooglePlayInstantRetryButton t:sprite";
+            string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
+
+            if (foundGuids.Length <= 0)
+            {
+                Debug.LogError("Failed to obtain retry button texture.");
+                return null;
+            }
+            
+            string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
     }
 }
