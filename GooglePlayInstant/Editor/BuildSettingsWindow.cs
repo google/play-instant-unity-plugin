@@ -26,6 +26,7 @@ namespace GooglePlayInstant.Editor
     public class BuildSettingsWindow : EditorWindow
     {
         public const string WindowTitle = "Play Instant Build Settings";
+        private const string InstantAppsHostName = "instant.apps";
         private const int FieldWidth = 175;
         private static readonly string[] PlatformOptions = {"Installed", "Instant"};
 
@@ -113,7 +114,7 @@ namespace GooglePlayInstant.Editor
                 EditorGUILayout.LabelField(string.Format(
                     "Instant apps are launched from web search, advertisements, etc via a URL. Specify the URL here " +
                     "and configure Digital Asset Links. Or, leave the URL blank and one will automatically be " +
-                    "provided at https://instant.apps/{0}", packageName), descriptionTextStyle);
+                    "provided at https://{0}/{1}", InstantAppsHostName, packageName), descriptionTextStyle);
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
 
@@ -201,33 +202,17 @@ namespace GooglePlayInstant.Editor
 
         private void SelectPlatformInstant()
         {
-            Uri uri = null;
-            _instantUrl = _instantUrl == null ? string.Empty : _instantUrl.Trim();
-            if (_instantUrl.Length > 0)
+            string instantUrlError;
+            var uri = GetInstantUri(_instantUrl, out instantUrlError);
+            if (instantUrlError != null)
             {
-                try
-                {
-                    // TODO: allow port numbers? allow query parameters?
-                    uri = new Uri(_instantUrl);
-                }
-                catch (Exception ex)
-                {
-                    DisplayUrlError(string.Format("The URL is invalid: {0}", ex.Message));
-                    return;
-                }
-
-                if (uri.Scheme.ToLower() != "https")
-                {
-                    DisplayUrlError("The URL scheme should be \"https\"");
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(uri.Host))
-                {
-                    DisplayUrlError("If a URL is provided, the host must be specified");
-                    return;
-                }
+                Debug.LogErrorFormat("Invalid URL: {0}", instantUrlError);
+                EditorUtility.DisplayDialog("Invalid URL", instantUrlError, WindowUtils.OkButtonText);
+                return;
             }
+
+            // The URL is valid, so save any clean-ups performed by conversion through Uri, e.g. HTTPS->https.
+            _instantUrl = uri == null ? string.Empty : uri.ToString();
 
             var errorMessage = _androidManifestUpdater.SwitchToInstant(uri);
             if (errorMessage != null)
@@ -263,10 +248,49 @@ namespace GooglePlayInstant.Editor
             Debug.Log("Switched to Android Build Type \"Installed\".");
         }
 
-        private static void DisplayUrlError(string message)
+        // Visible for testing.
+        /// <summary>
+        /// Checks whether the specified URL is valid, and if so returns it as a <see cref="Uri"/>. If the specified
+        /// URL is null or a blank string, this method returns null and doesn't set an error message. If the
+        /// specified URL is invalid, this method returns null and sets the reason as an out parameter.
+        /// </summary>
+        internal static Uri GetInstantUri(string instantUrl, out string instantUrlError)
         {
-            Debug.LogError(message);
-            EditorUtility.DisplayDialog("Invalid Default URL", message, WindowUtils.OkButtonText);
+            instantUrl = instantUrl == null ? string.Empty : instantUrl.Trim();
+            if (instantUrl.Length == 0)
+            {
+                instantUrlError = null;
+                return null;
+            }
+
+            Uri uri;
+            try
+            {
+                uri = new Uri(instantUrl);
+            }
+            catch (Exception ex)
+            {
+                instantUrlError = string.Format("The URL is invalid: {0}", ex.Message);
+                return null;
+            }
+
+            if (uri.Scheme.ToLower() != "https")
+            {
+                instantUrlError = "The URL scheme should be \"https\"";
+                return null;
+            }
+
+            if (uri.Host.ToLower() == InstantAppsHostName)
+            {
+                instantUrlError =
+                    string.Format(
+                        "Leave \"Instant Apps URL\" blank to get the automatic URL https://{0}/package",
+                        InstantAppsHostName);
+                return null;
+            }
+
+            instantUrlError = null;
+            return uri;
         }
     }
 }
