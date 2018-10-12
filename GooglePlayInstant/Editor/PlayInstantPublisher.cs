@@ -30,6 +30,11 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void Build()
         {
+            if (!PlayInstantBuilder.CheckBuildAndPublishPrerequisites())
+            {
+                return;
+            }
+
             var zipFilePath = EditorUtility.SaveFilePanel("Create APK in ZIP File", null, null, "zip");
             if (string.IsNullOrEmpty(zipFilePath))
             {

@@ -40,6 +40,11 @@ namespace GooglePlayInstant.Editor
             }
 #endif
 
+            if (!PlayInstantBuilder.CheckBuildAndPublishPrerequisites())
+            {
+                return;
+            }
+
             // TODO: add checks for preferred Scripting Backend and Target Architectures.
 
             var aabFilePath = EditorUtility.SaveFilePanel("Create Android App Bundle", null, null, "aab");
@@ -53,8 +58,8 @@ namespace GooglePlayInstant.Editor
         }
 
         /// <summary>
-        /// Builds an Android App Bundle at the specified location. Assumes that all dependencies (e.g. aapt)
-        /// are already in-place.
+        /// Builds an Android App Bundle at the specified location. Assumes that all dependencies are already in-place,
+        /// e.g. aapt2 and bundletool.
         /// </summary>
         public static void Build(string aabFilePath)
         {
