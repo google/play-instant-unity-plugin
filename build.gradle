@@ -42,8 +42,6 @@ project.ext {
         rootPath = assetsPath.getParentFile()
     }
     playInstantBuildPath = "${rootPath}/play-instant-build"
-
-    pluginVersion = '0.9'
 }
 
 def copyFiles(projectPath, exclusions) {
@@ -58,6 +56,12 @@ def copyFiles(projectPath, exclusions) {
 
 def exportUnityPackage(projectPath, packageFilePrefix) {
     description 'Creates a .unitypackage file with the specified prefix'
+
+    // Extract the plugin version from a constant defined in code.
+    def utilsFilePath = "${projectPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
+    def utilsFileContents = new File(utilsFilePath).text
+    def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
+
     def packageFileName = "${packageFilePrefix}-${pluginVersion}.unitypackage"
     def exportFileName = file(packageFileName).getPath()
     def logFile = file("${packageFileName}.log").getPath()

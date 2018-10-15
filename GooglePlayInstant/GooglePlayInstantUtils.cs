@@ -12,25 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using UnityEngine;
-
 namespace GooglePlayInstant
 {
     /// <summary>
-    /// Helper methods related to the UnityPlayer Java class.
+    /// Methods and constants that are specific to Google Play Instant and/or the plugin.
     /// </summary>
-    public static class UnityPlayerHelper
+    public static class GooglePlayInstantUtils
     {
         /// <summary>
-        /// Gets the current activity running in Unity. This object should be disposed after use.
+        /// The version of the Google Play Instant Unity Plugin.
         /// </summary>
-        /// <returns>A wrapped activity object. The AndroidJavaObject should be disposed.</returns>
-        public static AndroidJavaObject GetCurrentActivity()
+        public const string PluginVersion = "0.9";
+
+        /// <summary>
+        /// Return true if this is an instant app build, false if an installed app build.
+        /// This is an alternative to checking "#if PLAY_INSTANT" directly.
+        /// </summary>
+        public static bool IsInstantApp()
         {
-            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            {
-                return unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
-            }
+#if PLAY_INSTANT
+            return true;
+#else
+            return false;
+#endif
         }
     }
 }
