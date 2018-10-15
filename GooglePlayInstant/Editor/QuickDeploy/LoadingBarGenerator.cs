@@ -14,8 +14,9 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using GooglePlayInstant.LoadingScreen;
 
-namespace GooglePlayInstant.LoadingScreen
+namespace GooglePlayInstant.Editor.QuickDeploy
 {
     /// <summary>
     /// Class that encapsulates the creation of the LoadingBar component
