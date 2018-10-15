@@ -116,15 +116,19 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var backgroundImage = GenerateBackground(backgroundTexture);
             backgroundImage.transform.SetParent(canvasObject.transform, false);
 
+            var loadingContainer = LoadingBarGenerator.GenerateLoadingContainer();
+            loadingContainer.SetParent(canvasObject.transform, false);
+
             var retryButton = GenerateRetryButton();
-            retryButton.transform.SetParent(canvasObject.transform, false);
-            
+            retryButton.transform.SetParent(loadingContainer.transform, false);
+
             var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
             loadingScreen.AssetBundleUrl = assetBundleUrl;
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
             loadingScreen.RetryButton = retryButton;
-            loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
-            
+            loadingScreen.LoadingBar.transform.SetParent(loadingContainer.transform, false);
+            loadingScreen.LoadingBar.transform.SetAsFirstSibling(); // Places loading bar behind the retry button.
+
             CurrentLoadingScreen = loadingScreen;
         }
 
@@ -199,7 +203,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             retryRect.sizeDelta = retryImage.sprite.rect.size;
 
             var retryButton = retryObject.AddComponent<Button>();
-            
+
             return retryButton;
         }
 
@@ -235,7 +239,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 Debug.LogError("Failed to obtain retry button texture.");
                 return null;
             }
-            
+
             string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }

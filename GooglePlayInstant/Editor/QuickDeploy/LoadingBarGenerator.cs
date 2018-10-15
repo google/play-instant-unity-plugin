@@ -32,7 +32,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const float LoadingBarPositionY = 0.3984375f; // Corresponds to a position of 765 on 1080x1920 devices.
 
         // Names for the gameobject components.
-        private const string RootName = "Loading Bar";
+        private const string ContainerName = "Loading Elements";
+        private const string BarName = "Loading Bar";
         private const string OutlineName = "Outline";
         private const string BackgroundName = "Background";
         private const string FillName = "Fill";
@@ -41,11 +42,23 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         // Color of the inner fill and outline of the loading bar.
         private static readonly Color DarkGrey = new Color32(74, 74, 74, 255);
 
+        public static RectTransform GenerateLoadingContainer()
+        {
+            var containerObject = GenerateUiObject(ContainerName);
+
+            var containerRectTransform = containerObject.GetComponent<RectTransform>();
+            containerRectTransform.anchorMin = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
+            containerRectTransform.anchorMax = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
+            containerRectTransform.sizeDelta = new Vector2(LoadingBarWidth, LoadingBarHeight);
+
+            return containerRectTransform;
+        }
+
         public static LoadingBar GenerateLoadingBar()
         {
             var progressHolderObject = GenerateUiObject(ProgressName);
 
-            var loadingBarObject = GenerateUiObject(RootName);
+            var loadingBarObject = GenerateUiObject(BarName);
 
             var loadingBar = loadingBarObject.AddComponent<LoadingBar>();
             loadingBar.Outline = GenerateImage(loadingBarObject, OutlineName, DarkGrey);
@@ -57,9 +70,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             SetAnchorsToScaleWithParent(loadingBar.ProgressHolder);
 
             var loadingBarRectTransform = loadingBarObject.GetComponent<RectTransform>();
-            loadingBarRectTransform.anchorMin = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
-            loadingBarRectTransform.anchorMax = new Vector2(LoadingBarPositionX, LoadingBarPositionY);
-            loadingBarRectTransform.sizeDelta = new Vector2(LoadingBarWidth, LoadingBarHeight);
+            SetAnchorsToScaleWithParent(loadingBarRectTransform);
 
             return loadingBar;
         }
