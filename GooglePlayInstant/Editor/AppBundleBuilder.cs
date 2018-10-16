@@ -25,10 +25,12 @@ namespace GooglePlayInstant.Editor
     {
         private const string BaseModuleZipFileName = "base.zip";
 
+
         /// <summary>
         /// Build an app bundle at the specified path, overwriting an existing file if one exists.
         /// </summary>
-        public static void Build(string aabFilePath)
+        /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
+        public static bool Build(string aabFilePath)
         {
             var binaryFormatFilePath = Path.GetTempFileName();
             Debug.LogFormat("Building Package: {0}", binaryFormatFilePath);
@@ -38,7 +40,7 @@ namespace GooglePlayInstant.Editor
                 PlayInstantBuilder.CreateBuildPlayerOptions(binaryFormatFilePath, BuildOptions.None)))
             {
                 // Do not log here. The method we called was responsible for logging.
-                return;
+                return false;
             }
 
             // TODO: currently all processing is synchronous; consider moving to a separate thread
@@ -61,7 +63,7 @@ namespace GooglePlayInstant.Editor
                 if (aaptResult != null)
                 {
                     DisplayBuildError("aapt2", aaptResult);
-                    return;
+                    return false;
                 }
 
                 DisplayProgress("Creating base module", 0.4f);
@@ -69,7 +71,7 @@ namespace GooglePlayInstant.Editor
                 if (unzipFileResult != null)
                 {
                     DisplayBuildError("Unzip", unzipFileResult);
-                    return;
+                    return false;
                 }
 
                 File.Delete(protoFormatFilePath);
@@ -80,7 +82,7 @@ namespace GooglePlayInstant.Editor
                 if (zipFileResult != null)
                 {
                     DisplayBuildError("Zip creation", zipFileResult);
-                    return;
+                    return false;
                 }
 
                 // If the .aab file exists, EditorUtility.SaveFilePanel() has already prompted for whether to overwrite.
@@ -92,7 +94,7 @@ namespace GooglePlayInstant.Editor
                 if (buildBundleResult != null)
                 {
                     DisplayBuildError("bundletool", buildBundleResult);
-                    return;
+                    return false;
                 }
 
                 DisplayProgress("Signing bundle", 0.8f);
@@ -100,7 +102,7 @@ namespace GooglePlayInstant.Editor
                 if (signingResult != null)
                 {
                     DisplayBuildError("Signing", signingResult);
-                    return;
+                    return false;
                 }
             }
             finally
@@ -111,7 +113,7 @@ namespace GooglePlayInstant.Editor
                 }
             }
 
-            Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
+            return true;
         }
 
         /// <summary>

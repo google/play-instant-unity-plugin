@@ -2,5 +2,7 @@
 *.meta
 # Except for the sample projects
 !GooglePlayInstant/Samples/**/*.meta
+
 .DS_Store
 .gradle
+*.log

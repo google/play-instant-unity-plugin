@@ -61,20 +61,24 @@ namespace GooglePlayInstant.Editor
         /// Builds an Android App Bundle at the specified location. Assumes that all dependencies are already in-place,
         /// e.g. aapt2 and bundletool.
         /// </summary>
-        public static void Build(string aabFilePath)
+        /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
+        public static bool Build(string aabFilePath)
         {
+            bool buildResult;
             Debug.LogFormat("Building app bundle: {0}", aabFilePath);
 #if UNITY_2018_3_OR_NEWER
             EditorUserBuildSettings.buildAppBundle = true;
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(aabFilePath, BuildOptions.None);
-            if (PlayInstantBuilder.Build(buildPlayerOptions))
+            buildResult = PlayInstantBuilder.Build(buildPlayerOptions))
+#else
+            buildResult = AppBundleBuilder.Build(aabFilePath);
+#endif
+            if (!buildResult)
             {
                 // Do not log in case of failure. The method we called was responsible for logging.
                 Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
             }
-#else
-            AppBundleBuilder.Build(aabFilePath);
-#endif
+            return buildResult;
         }
     }
 }
