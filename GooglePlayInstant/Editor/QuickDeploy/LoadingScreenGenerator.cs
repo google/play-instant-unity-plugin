@@ -201,6 +201,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             var retryRect = retryObject.GetComponent<RectTransform>();
             retryRect.sizeDelta = retryImage.sprite.rect.size;
+            retryRect.anchorMin = new Vector2(retryRect.anchorMin.x, 0f);
+            retryRect.anchorMax = new Vector2(retryRect.anchorMax.x, 0f);
+            retryRect.pivot = new Vector2(0.5f, 0f);
 
             var retryButton = retryObject.AddComponent<Button>();
 
