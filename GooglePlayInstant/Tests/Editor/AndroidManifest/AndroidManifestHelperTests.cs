@@ -35,6 +35,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string PlayInstantUnityPluginVersion = "play-instant-unity-plugin.version";
         private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
@@ -65,6 +66,11 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private static readonly XAttribute TargetSandboxVersion2Attribute =
             new XAttribute(XName.Get("targetSandboxVersion", AndroidNamespaceUrl), "2");
 
+        private static readonly XElement PluginVersion =
+            new XElement(MetaData,
+                new XAttribute(AndroidNameXName, PlayInstantUnityPluginVersion),
+                new XAttribute(AndroidValueXName, GooglePlayInstantUtils.PluginVersion));
+
         private static readonly XElement MainLauncherIntentFilter =
             new XElement(
                 IntentFilter,
@@ -94,7 +100,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                     AndroidNamespaceAttribute,
                     DistributionNamespaceAttribute,
                     TargetSandboxVersion2Attribute,
-                    new XElement(Application, OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent),
+                    new XElement(Application,
+                        OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent, PluginVersion),
                     CreateDistributionModuleInstant(ValueTrue)));
 
         private static readonly XDocument InstalledManifestWithUrl =
@@ -122,7 +129,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                             MainLauncherIntentFilter,
                             CreateViewIntentFilter("example.com", null),
                             CreateDefaultUrl("https://example.com/")),
-                        OtherActivityWithViewIntent),
+                        OtherActivityWithViewIntent,
+                        PluginVersion),
                     CreateDistributionModuleInstant(ValueTrue)));
 
         [Test]
