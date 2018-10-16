@@ -15,8 +15,8 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -128,6 +128,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingScreen.RetryButton = retryButton;
             loadingScreen.LoadingBar.transform.SetParent(loadingContainer.transform, false);
             loadingScreen.LoadingBar.transform.SetAsFirstSibling(); // Places loading bar behind the retry button.
+
+            // Hook up the retry button here so that the AttemptAssetBundleDownload function shows up in its inspector.
+            UnityEventTools.AddPersistentListener(retryButton.onClick, loadingScreen.ButtonEventRetryDownload);
 
             CurrentLoadingScreen = loadingScreen;
         }

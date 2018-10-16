@@ -31,7 +31,8 @@ namespace GooglePlayInstant.LoadingScreen
         [Tooltip("The LoadingBar used to indicated download and install progress")]
         public LoadingBar LoadingBar;
 
-        [Tooltip("The button displayed when a download error occurs. Restarts the download when clicked.")]
+        [Tooltip("The button displayed when a download error occurs. " +
+                 "Should call ButtonEventRetryDownload in its onClick() event")]
         public Button RetryButton;
 
         // Number of attempts before we show the user a retry button.
@@ -43,15 +44,19 @@ namespace GooglePlayInstant.LoadingScreen
 
         private void Start()
         {
-            RetryButton.onClick.AddListener(() => AttemptAssetBundleDownload(1));
             AttemptAssetBundleDownload(InitialAttemptCount);
+        }
+
+        public void ButtonEventRetryDownload()
+        {
+            AttemptAssetBundleDownload(1);
         }
 
         /// <summary>
         /// Attempts to download the AssetBundle available at AssetBundleUrl.
         /// If it fails numberOfAttempts times, then it will display a retry button.
         /// </summary>
-        public void AttemptAssetBundleDownload(int numberOfAttempts)
+        private void AttemptAssetBundleDownload(int numberOfAttempts)
         {
             if (_downloading)
             {
