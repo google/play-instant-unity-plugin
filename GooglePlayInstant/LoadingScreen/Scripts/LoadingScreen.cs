@@ -107,7 +107,7 @@ namespace GooglePlayInstant.LoadingScreen
                 _assetBundleRetrievalAttemptCount++;
                 _maxLoadingBarProgress = LoadingBar.Progress;
                 Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
-                yield return new WaitForSeconds(2);
+                yield return new WaitForSeconds(0.5f);
                 yield return GetAssetBundle(assetBundleUrl);
             }
         }
