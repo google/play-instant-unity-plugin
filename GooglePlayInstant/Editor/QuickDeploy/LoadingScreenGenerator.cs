@@ -237,6 +237,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         // Visible for testing.
         internal static Sprite FindReplayButtonSprite()
         {
+            // We search for the sprite by name instead of by its path, because we don't require developers to keep the
+            // play-instant-unity-plugin folder directly inside the Assets folder.
             string searchFilter = "GooglePlayInstantRetryButton t:sprite";
             string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
 
