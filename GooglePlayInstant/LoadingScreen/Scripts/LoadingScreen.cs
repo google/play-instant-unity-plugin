@@ -21,7 +21,7 @@ using UnityEngine.UI;
 namespace GooglePlayInstant.LoadingScreen
 {
     /// <summary>
-    /// Downloads the AssetBundle available at AssetBundleUrl and updates LoadingBar with its progress
+    /// Downloads the AssetBundle available at AssetBundleUrl and updates LoadingBar with its progress.
     /// </summary>
     public class LoadingScreen : MonoBehaviour
     {
@@ -34,7 +34,8 @@ namespace GooglePlayInstant.LoadingScreen
         [Tooltip("The button displayed when a download error occurs. Restarts the download when clicked.")]
         public Button RetryButton;
 
-        private const int MaxAttemptCount = 3;
+        // Number of attempts before we show the user a retry button.
+        private const int InitialAttemptCount = 3;
         private AssetBundle _bundle;
         private int _assetBundleRetrievalAttemptCount;
         private float _maxLoadingBarProgress;
@@ -42,30 +43,47 @@ namespace GooglePlayInstant.LoadingScreen
 
         private void Start()
         {
-            RetryButton.onClick.AddListener(AttemptAssetBundleDownload);
-            AttemptAssetBundleDownload();
+            RetryButton.onClick.AddListener(() => AttemptAssetBundleDownload(1));
+            AttemptAssetBundleDownload(InitialAttemptCount);
         }
 
-        public void AttemptAssetBundleDownload()
+        /// <summary>
+        /// Attempts to download the AssetBundle available at AssetBundleUrl.
+        /// If it fails numberOfAttempts times, then it will display a retry button.
+        /// </summary>
+        public void AttemptAssetBundleDownload(int numberOfAttempts)
         {
             if (_downloading)
             {
+                Debug.Log("Download attempt ignored because a download is already in progress.");
                 return;
             }
 
             HideRetryButton();
-            _assetBundleRetrievalAttemptCount = 0;
             _maxLoadingBarProgress = 0f;
-            StartCoroutine(AttemptAssetBundleDownloadCo());
+            StartCoroutine(AttemptAssetBundleDownloadsCo(numberOfAttempts));
         }
 
-        private IEnumerator AttemptAssetBundleDownloadCo()
+        private IEnumerator AttemptAssetBundleDownloadsCo(int numberOfAttempts)
         {
             _downloading = true;
 
-            while (_bundle == null && _assetBundleRetrievalAttemptCount < MaxAttemptCount)
+            for (int i = 0; i < numberOfAttempts; i++)
             {
-                yield return GetAssetBundle(AssetBundleUrl);
+                _assetBundleRetrievalAttemptCount++;
+                Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
+
+                while (_bundle == null)
+                {
+                    yield return GetAssetBundle(AssetBundleUrl);
+                }
+
+                if (_bundle != null)
+                {
+                    break;
+                }
+
+                yield return new WaitForSeconds(0.5f);
             }
 
             if (_bundle == null)
@@ -92,23 +110,12 @@ namespace GooglePlayInstant.LoadingScreen
 
             if (IsFailedRequest(webRequest))
             {
-                yield return HandleRequestFailed(assetBundleUrl, webRequest);
+                _maxLoadingBarProgress = LoadingBar.Progress;
+                Debug.LogFormat("Failed to download AssetBundle: {0}", webRequest.error);
             }
             else
             {
                 _bundle = DownloadHandlerAssetBundle.GetContent(webRequest);
-            }
-        }
-
-        private IEnumerator HandleRequestFailed(string assetBundleUrl, UnityWebRequest webRequest)
-        {
-            if (_assetBundleRetrievalAttemptCount < MaxAttemptCount)
-            {
-                _assetBundleRetrievalAttemptCount++;
-                _maxLoadingBarProgress = LoadingBar.Progress;
-                Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
-                yield return new WaitForSeconds(0.5f);
-                yield return GetAssetBundle(assetBundleUrl);
             }
         }
 
