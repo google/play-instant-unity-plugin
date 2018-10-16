@@ -33,7 +33,7 @@ namespace GooglePlayInstant.LoadingScreen
 
         [Tooltip("The button displayed when a download error occurs. Restarts the download when clicked.")]
         public Button RetryButton;
-        
+
         private const int MaxAttemptCount = 3;
         private AssetBundle _bundle;
         private int _assetBundleRetrievalAttemptCount;
@@ -58,11 +58,11 @@ namespace GooglePlayInstant.LoadingScreen
             _maxLoadingBarProgress = 0f;
             StartCoroutine(AttemptAssetBundleDownloadCo());
         }
-        
+
         private IEnumerator AttemptAssetBundleDownloadCo()
         {
             _downloading = true;
-           
+
             while (_bundle == null && _assetBundleRetrievalAttemptCount < MaxAttemptCount)
             {
                 yield return GetAssetBundle(AssetBundleUrl);
@@ -78,7 +78,7 @@ namespace GooglePlayInstant.LoadingScreen
             var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
             var installStartFill = Mathf.Max(LoadingBar.AssetBundleDownloadToInstallRatio, _maxLoadingBarProgress);
             yield return LoadingBar.FillUntilDone(sceneLoadOperation, installStartFill, 1f, false);
-            
+
             _downloading = false;
         }
 
@@ -117,7 +117,7 @@ namespace GooglePlayInstant.LoadingScreen
             LoadingBar.gameObject.SetActive(false);
             RetryButton.gameObject.SetActive(true);
         }
-        
+
         private void HideRetryButton()
         {
             LoadingBar.gameObject.SetActive(true);
