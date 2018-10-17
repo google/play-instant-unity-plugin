@@ -1,6 +1,9 @@
 # Ignoring Unity meta files since this is a code only plugin
 *.meta
-# Except for the sample projects
+# Except for the sample projects and loading screen textures
+# Make sure these are copied over in build.gradle's copyFiles function,
+# if they are required for tests.
 !GooglePlayInstant/Samples/**/*.meta
+!GooglePlayInstant/LoadingScreen/Textures/**/*.meta
 .DS_Store
 .gradle

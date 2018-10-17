@@ -21,7 +21,7 @@ using UnityEngine.UI;
 namespace GooglePlayInstant.LoadingScreen
 {
     /// <summary>
-    /// Downloads the AssetBundle available at AssetBundleUrl and updates LoadingBar with its progress
+    /// Downloads the AssetBundle available at AssetBundleUrl and updates LoadingBar with its progress.
     /// </summary>
     public class LoadingScreen : MonoBehaviour
     {
@@ -31,30 +31,78 @@ namespace GooglePlayInstant.LoadingScreen
         [Tooltip("The LoadingBar used to indicated download and install progress")]
         public LoadingBar LoadingBar;
 
-        public RawImage Background;
+        [Tooltip("The button displayed when a download error occurs. " +
+                 "Should call ButtonEventRetryDownload in its onClick() event")]
+        public Button RetryButton;
 
-        private const int MaxAttemptCount = 3;
+        // Number of attempts before we show the user a retry button.
+        private const int InitialAttemptCount = 3;
         private AssetBundle _bundle;
         private int _assetBundleRetrievalAttemptCount;
         private float _maxLoadingBarProgress;
+        private bool _downloading;
 
-        private IEnumerator Start()
+        private void Start()
         {
-            while (_bundle == null && _assetBundleRetrievalAttemptCount < MaxAttemptCount)
+            AttemptAssetBundleDownload(InitialAttemptCount);
+        }
+
+        public void ButtonEventRetryDownload()
+        {
+            AttemptAssetBundleDownload(1);
+        }
+
+        /// <summary>
+        /// Attempts to download the AssetBundle available at AssetBundleUrl.
+        /// If it fails numberOfAttempts times, then it will display a retry button.
+        /// </summary>
+        private void AttemptAssetBundleDownload(int numberOfAttempts)
+        {
+            if (_downloading)
             {
-                yield return GetAssetBundle(AssetBundleUrl);
+                Debug.Log("Download attempt ignored because a download is already in progress.");
+                return;
+            }
+
+            HideRetryButton();
+            _maxLoadingBarProgress = 0f;
+            StartCoroutine(AttemptAssetBundleDownloadsCo(numberOfAttempts));
+        }
+
+        private IEnumerator AttemptAssetBundleDownloadsCo(int numberOfAttempts)
+        {
+            _downloading = true;
+
+            for (int i = 0; i < numberOfAttempts; i++)
+            {
+                _assetBundleRetrievalAttemptCount++;
+                Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
+
+                while (_bundle == null)
+                {
+                    yield return GetAssetBundle(AssetBundleUrl);
+                }
+
+                if (_bundle != null)
+                {
+                    break;
+                }
+
+                yield return new WaitForSeconds(0.5f);
             }
 
             if (_bundle == null)
             {
-                // TODO: Develop UI for when AssetBundle download fails, e.g. a user prompt with a retry button.
-                Debug.LogErrorFormat("Failed to download AssetBundle after {0} attempts.", MaxAttemptCount);
+                ShowRetryButton();
+                _downloading = false;
                 yield break;
             }
 
             var sceneLoadOperation = SceneManager.LoadSceneAsync(_bundle.GetAllScenePaths()[0]);
             var installStartFill = Mathf.Max(LoadingBar.AssetBundleDownloadToInstallRatio, _maxLoadingBarProgress);
             yield return LoadingBar.FillUntilDone(sceneLoadOperation, installStartFill, 1f, false);
+
+            _downloading = false;
         }
 
         private IEnumerator GetAssetBundle(string assetBundleUrl)
@@ -67,7 +115,8 @@ namespace GooglePlayInstant.LoadingScreen
 
             if (IsFailedRequest(webRequest))
             {
-                yield return HandleRequestFailed(assetBundleUrl, webRequest);
+                _maxLoadingBarProgress = LoadingBar.Progress;
+                Debug.LogFormat("Failed to download AssetBundle: {0}", webRequest.error);
             }
             else
             {
@@ -75,25 +124,16 @@ namespace GooglePlayInstant.LoadingScreen
             }
         }
 
-        private IEnumerator HandleRequestFailed(string assetBundleUrl, UnityWebRequest webRequest)
+        private void ShowRetryButton()
         {
-            if (_assetBundleRetrievalAttemptCount < MaxAttemptCount)
-            {
-                _assetBundleRetrievalAttemptCount++;
-                _maxLoadingBarProgress = LoadingBar.Progress;
-                Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
-                yield return new WaitForSeconds(2);
-                yield return GetAssetBundle(assetBundleUrl);
-            }
-            else
-            {
-                Debug.LogErrorFormat("Error downloading asset bundle: {0}", webRequest.error);
-            }
+            LoadingBar.gameObject.SetActive(false);
+            RetryButton.gameObject.SetActive(true);
         }
 
-        private void SetLoadingBarProgress()
+        private void HideRetryButton()
         {
-            LoadingBar.SetProgress(_maxLoadingBarProgress);
+            LoadingBar.gameObject.SetActive(true);
+            RetryButton.gameObject.SetActive(false);
         }
 
         private static bool IsFailedRequest(UnityWebRequest webRequest)

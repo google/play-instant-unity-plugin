@@ -47,9 +47,17 @@ project.ext {
 def copyFiles(projectPath, exclusions) {
     description 'Copies files into specified build staging location except for noted exclusions'
     copy {
-        from 'GooglePlayInstant', 'LICENSE', 'README.md', 'CONTRIBUTING.md'
+        from 'LICENSE', 'README.md', 'CONTRIBUTING.md'
+        from('GooglePlayInstant')
+        {
+            exclude 'Samples', '**/*.meta'
+        }
+        from('GooglePlayInstant/LoadingScreen/Textures') // Add meta files that we want to include.
+        {
+            include '**/*.meta'
+            into "/LoadingScreen/Textures"
+        }
         into "${projectPath}/Assets/GooglePlayInstant"
-        exclude 'Samples', '**/*.meta'
         exclude exclusions
     }
 }

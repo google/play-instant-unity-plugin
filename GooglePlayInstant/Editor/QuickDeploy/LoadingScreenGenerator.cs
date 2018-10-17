@@ -15,10 +15,11 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using GooglePlayInstant.LoadingScreen;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -115,11 +116,21 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var backgroundImage = GenerateBackground(backgroundTexture);
             backgroundImage.transform.SetParent(canvasObject.transform, false);
 
+            var loadingContainer = LoadingBarGenerator.GenerateLoadingContainer();
+            loadingContainer.SetParent(canvasObject.transform, false);
+
+            var retryButton = GenerateRetryButton();
+            retryButton.transform.SetParent(loadingContainer.transform, false);
+
             var loadingScreen = loadingScreenGameObject.AddComponent<LoadingScreen.LoadingScreen>();
             loadingScreen.AssetBundleUrl = assetBundleUrl;
-            loadingScreen.Background = backgroundImage;
             loadingScreen.LoadingBar = LoadingBarGenerator.GenerateLoadingBar();
-            loadingScreen.LoadingBar.transform.SetParent(canvasObject.transform, false);
+            loadingScreen.RetryButton = retryButton;
+            loadingScreen.LoadingBar.transform.SetParent(loadingContainer.transform, false);
+            loadingScreen.LoadingBar.transform.SetAsFirstSibling(); // Places loading bar behind the retry button.
+
+            // Hook up the retry button here so that the AttemptAssetBundleDownload function shows up in its inspector.
+            UnityEventTools.AddPersistentListener(retryButton.onClick, loadingScreen.ButtonEventRetryDownload);
 
             CurrentLoadingScreen = loadingScreen;
         }
@@ -149,6 +160,10 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasScaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
             canvasScaler.matchWidthOrHeight = 0.5f;
+
+            canvasObject.AddComponent<EventSystem>();
+            canvasObject.AddComponent<StandaloneInputModule>();
+            canvasObject.AddComponent<GraphicRaycaster>();
 
             return canvasObject;
         }
@@ -180,6 +195,24 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return backgroundImage;
         }
 
+        private static Button GenerateRetryButton()
+        {
+            var retryObject = new GameObject("Retry Button");
+
+            var retryImage = retryObject.AddComponent<Image>();
+            retryImage.sprite = FindReplayButtonSprite();
+
+            var retryRect = retryObject.GetComponent<RectTransform>();
+            retryRect.sizeDelta = retryImage.sprite.rect.size;
+            retryRect.anchorMin = new Vector2(retryRect.anchorMin.x, 0f);
+            retryRect.anchorMax = new Vector2(retryRect.anchorMax.x, 0f);
+            retryRect.pivot = new Vector2(0.5f, 0f);
+
+            var retryButton = retryObject.AddComponent<Button>();
+
+            return retryButton;
+        }
+
         /// <summary>
         /// This returns a texture's size before its import settings are applied.
         /// This is useful in cases, for example, where the TextureImporter
@@ -199,6 +232,24 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             var tempTexture = new Texture2D(1, 1);
             tempTexture.LoadImage(imageBytes);
             return new Vector2(tempTexture.width, tempTexture.height);
+        }
+
+        // Visible for testing.
+        internal static Sprite FindReplayButtonSprite()
+        {
+            // We search for the sprite by name instead of by its path, because we don't require developers to keep the
+            // play-instant-unity-plugin folder directly inside the Assets folder.
+            string searchFilter = "GooglePlayInstantRetryButton t:sprite";
+            string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
+
+            if (foundGuids.Length <= 0)
+            {
+                Debug.LogError("Failed to obtain retry button texture.");
+                return null;
+            }
+
+            string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
     }
 }
