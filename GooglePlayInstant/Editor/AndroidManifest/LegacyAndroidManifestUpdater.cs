@@ -28,6 +28,30 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string AndroidManifestAssetsDirectory = "Assets/Plugins/Android/";
         private const string AndroidManifestAssetsPath = AndroidManifestAssetsDirectory + "AndroidManifest.xml";
 
+        public string CheckInstantManifest()
+        {
+            if (!File.Exists(AndroidManifestAssetsPath))
+            {
+                return string.Format("Failed to locate file {0}", AndroidManifestAssetsPath);
+            }
+
+            string errorMessage;
+            var doc = XDocument.Load(AndroidManifestAssetsPath);
+            var hasCurrentPluginVersion = AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage);
+            if (errorMessage != null)
+            {
+                return errorMessage;
+            }
+
+            if (!hasCurrentPluginVersion)
+            {
+                doc.Save(AndroidManifestAssetsPath);
+                Debug.LogFormat("Successfully updated {0}", AndroidManifestAssetsPath);
+            }
+
+            return null;
+        }
+
         public string SwitchToInstant(Uri uri)
         {
             XDocument doc;

@@ -15,9 +15,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GooglePlayInstant.Editor.AndroidManifest;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
+
 #if UNITY_2018_1_OR_NEWER
 using UnityEditor.Build.Reporting;
 #endif
@@ -212,6 +214,13 @@ namespace GooglePlayInstant.Editor
         /// <returns>True if the build succeeded, false if it failed or was cancelled.</returns>
         public static bool Build(BuildPlayerOptions buildPlayerOptions)
         {
+            var checkInstantManifestResult = AndroidManifestHelper.GetAndroidManifestUpdater().CheckInstantManifest();
+            if (checkInstantManifestResult != null)
+            {
+                DisplayBuildError(string.Format("Failed to update manifest: {0}", checkInstantManifestResult));
+                return false;
+            }
+
             var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
 #if UNITY_2018_1_OR_NEWER
             switch (buildReport.summary.result)
