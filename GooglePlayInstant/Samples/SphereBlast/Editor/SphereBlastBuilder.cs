@@ -24,11 +24,7 @@ namespace GooglePlayInstant.Samples.SphereBlast.Editor
     public static class SphereBlastBuilder
     {
         // TODO: currently including both scenes in the app for coverage, but prefer to build SphereScene separately.
-        private static readonly string[] ScenesInBuild =
-        {
-            "Assets/SphereBlast/scenes/LoadingScene.unity",
-            "Assets/SphereBlast/scenes/SphereScene.unity",
-        };
+        private static readonly string[] ScenesInBuild = {"Assets/SphereBlast/scenes/LoadingScene.unity"};
 
         public static void Build()
         {
