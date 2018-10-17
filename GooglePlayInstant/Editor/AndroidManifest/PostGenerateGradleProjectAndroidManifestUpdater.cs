@@ -63,6 +63,12 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             doc.Save(manifestPath);
         }
 
+        public string CheckInstantManifest()
+        {
+            // Unused on 2018+
+            return null;
+        }
+
         public string SwitchToInstant(Uri uri)
         {
             // Unused on 2018+

@@ -162,6 +162,66 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         }
 
         [Test]
+        public void TestHasCurrentPluginVersion_NoManifestElement()
+        {
+            string errorMessage;
+            var doc = new XDocument();
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneManifestElement, errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_NoApplicationElement()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneApplicationElement, errorMessage);
+        }
+
+        [Test]
+        public void TestHasCurrentPluginVersion_NoPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute, new XElement(Application)));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
+        }
+
+        [Test]
+        public void TestHasCurrentPluginVersion_IncorrectPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application,
+                    new XElement(MetaData,
+                        new XAttribute(AndroidNameXName, PlayInstantUnityPluginVersion),
+                        new XAttribute(AndroidValueXName, "Incorrect Version")))));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_TwoPluginVersions()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion, PluginVersion)));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOnePluginVersion, errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_CorrectPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion)));
+            Assert.IsTrue(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
+        }
+
+        [Test]
         public void TestConvertManifestToInstant_WithoutUrl()
         {
             var doc = new XDocument(InstalledManifestWithoutUrl);
@@ -237,6 +297,15 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute));
             var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
             Assert.AreEqual(AndroidManifestHelper.PreconditionOneApplicationElement, result);
+        }
+
+        [Test]
+        public void TestConvertManifestToInstant_TwoPluginVersions()
+        {
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion, PluginVersion)));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOnePluginVersion, result);
         }
 
         [Test]

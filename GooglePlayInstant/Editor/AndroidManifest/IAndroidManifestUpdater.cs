@@ -22,6 +22,12 @@ namespace GooglePlayInstant.Editor.AndroidManifest
     public interface IAndroidManifestUpdater
     {
         /// <summary>
+        /// Checks the AndroidManifest prior to building an instant app.
+        /// </summary>
+        /// <returns>An error message if there was a problem checking the manifest, or null if successful.</returns>
+        string CheckInstantManifest();
+
+        /// <summary>
         /// Update the AndroidManifest for building an instant app.
         /// </summary>
         /// <param name="uri">The Default URL to use, or null for a URL-less instant app.</param>

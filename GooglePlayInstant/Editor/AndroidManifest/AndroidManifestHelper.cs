@@ -69,6 +69,18 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private delegate IEnumerable<XElement> ElementFinder(XElement element);
 
         /// <summary>
+        /// Returns the <see cref="IAndroidManifestUpdater"/> appropriate for the version of Unity.
+        /// </summary>
+        public static IAndroidManifestUpdater GetAndroidManifestUpdater()
+        {
+#if UNITY_2018_1_OR_NEWER
+            return new PostGenerateGradleProjectAndroidManifestUpdater();
+#else
+            return new LegacyAndroidManifestUpdater();
+#endif
+        }
+
+        /// <summary>
         /// Creates a new XDocument representing a basic Unity AndroidManifest XML file.
         /// </summary>
         public static XDocument CreateManifestXDocument()
@@ -83,6 +95,33 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                             new XElement(Action, new XAttribute(AndroidNameXName, Android.IntentActionMain)),
                             new XElement(Category, new XAttribute(AndroidNameXName, Android.IntentCategoryLauncher))
                         )))));
+        }
+
+        /// <summary>
+        /// Returns true if the specified XDocument representing an AndroidManifest has the correct plugin version.
+        /// </summary>
+        public static bool HasCurrentPluginVersion(XDocument doc, out string errorMessage)
+        {
+            var manifestElement = GetExactlyOne(doc.Elements(Manifest));
+            if (manifestElement == null)
+            {
+                errorMessage = PreconditionOneManifestElement;
+                return false;
+            }
+
+            var applicationElement = GetExactlyOne(manifestElement.Elements(Application));
+            if (applicationElement == null)
+            {
+                errorMessage = PreconditionOneApplicationElement;
+                return false;
+            }
+
+            var elements = FindPluginVersionElements(applicationElement);
+            var hasCurrentPluginVersion = elements.Count() == 1 &&
+                                          (string) elements.First().Attribute(AndroidValueXName) ==
+                                          GooglePlayInstantUtils.PluginVersion;
+            errorMessage = hasCurrentPluginVersion ? null : UpdatePluginVersion(applicationElement);
+            return hasCurrentPluginVersion;
         }
 
         /// <summary>
@@ -161,9 +200,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return PreconditionOneApplicationElement;
             }
 
-            var updatePluginVersionResult =
-                UpdateMetaDataElement(FindPluginVersionElements, applicationElement, PreconditionOnePluginVersion,
-                    PlayInstantUnityPluginVersion, GooglePlayInstantUtils.PluginVersion);
+            var updatePluginVersionResult = UpdatePluginVersion(applicationElement);
             if (updatePluginVersionResult != null)
             {
                 return updatePluginVersionResult;
@@ -229,7 +266,17 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         }
 
         /// <summary>
-        /// Updates the specified MetaData element to the specified value.
+        /// Updates the specified application element to include meta-data with the current version of the plugin.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
+        private static string UpdatePluginVersion(XElement applicationElement)
+        {
+            return UpdateMetaDataElement(FindPluginVersionElements, applicationElement, PreconditionOnePluginVersion,
+                PlayInstantUnityPluginVersion, GooglePlayInstantUtils.PluginVersion);
+        }
+
+        /// <summary>
+        /// Updates the specified meta-data element to the specified value.
         /// </summary>
         /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
         private static string UpdateMetaDataElement(
