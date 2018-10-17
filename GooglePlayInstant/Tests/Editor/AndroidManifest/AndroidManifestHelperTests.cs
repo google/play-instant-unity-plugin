@@ -35,6 +35,7 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string PlayInstantUnityPluginVersion = "play-instant-unity-plugin.version";
         private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
@@ -65,6 +66,11 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
         private static readonly XAttribute TargetSandboxVersion2Attribute =
             new XAttribute(XName.Get("targetSandboxVersion", AndroidNamespaceUrl), "2");
 
+        private static readonly XElement PluginVersion =
+            new XElement(MetaData,
+                new XAttribute(AndroidNameXName, PlayInstantUnityPluginVersion),
+                new XAttribute(AndroidValueXName, GooglePlayInstantUtils.PluginVersion));
+
         private static readonly XElement MainLauncherIntentFilter =
             new XElement(
                 IntentFilter,
@@ -94,7 +100,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                     AndroidNamespaceAttribute,
                     DistributionNamespaceAttribute,
                     TargetSandboxVersion2Attribute,
-                    new XElement(Application, OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent),
+                    new XElement(Application,
+                        OtherBasicActivity, MainActivityNoUrls, OtherActivityWithViewIntent, PluginVersion),
                     CreateDistributionModuleInstant(ValueTrue)));
 
         private static readonly XDocument InstalledManifestWithUrl =
@@ -122,7 +129,8 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
                             MainLauncherIntentFilter,
                             CreateViewIntentFilter("example.com", null),
                             CreateDefaultUrl("https://example.com/")),
-                        OtherActivityWithViewIntent),
+                        OtherActivityWithViewIntent,
+                        PluginVersion),
                     CreateDistributionModuleInstant(ValueTrue)));
 
         [Test]
@@ -151,6 +159,66 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             }
 
             Assert.AreEqual(expected, stringBuilder.ToString());
+        }
+
+        [Test]
+        public void TestHasCurrentPluginVersion_NoManifestElement()
+        {
+            string errorMessage;
+            var doc = new XDocument();
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneManifestElement, errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_NoApplicationElement()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOneApplicationElement, errorMessage);
+        }
+
+        [Test]
+        public void TestHasCurrentPluginVersion_NoPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute, new XElement(Application)));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
+        }
+
+        [Test]
+        public void TestHasCurrentPluginVersion_IncorrectPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application,
+                    new XElement(MetaData,
+                        new XAttribute(AndroidNameXName, PlayInstantUnityPluginVersion),
+                        new XAttribute(AndroidValueXName, "Incorrect Version")))));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_TwoPluginVersions()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion, PluginVersion)));
+            Assert.IsFalse(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOnePluginVersion, errorMessage);
+        }
+
+        [Test]
+        public void TestTestHasCurrentPluginVersion_CorrectPluginVersion()
+        {
+            string errorMessage;
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion)));
+            Assert.IsTrue(AndroidManifestHelper.HasCurrentPluginVersion(doc, out errorMessage));
+            Assert.IsNull(errorMessage);
         }
 
         [Test]
@@ -229,6 +297,15 @@ namespace GooglePlayInstant.Tests.Editor.AndroidManifest
             var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute));
             var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
             Assert.AreEqual(AndroidManifestHelper.PreconditionOneApplicationElement, result);
+        }
+
+        [Test]
+        public void TestConvertManifestToInstant_TwoPluginVersions()
+        {
+            var doc = new XDocument(new XElement(Manifest, AndroidNamespaceAttribute,
+                new XElement(Application, PluginVersion, PluginVersion)));
+            var result = AndroidManifestHelper.ConvertManifestToInstant(doc, TestUri);
+            Assert.AreEqual(AndroidManifestHelper.PreconditionOnePluginVersion, result);
         }
 
         [Test]

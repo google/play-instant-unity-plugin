@@ -33,6 +33,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         private const string IntentFilter = "intent-filter";
         private const string Manifest = "manifest";
         private const string MetaData = "meta-data";
+        private const string PlayInstantUnityPluginVersion = "play-instant-unity-plugin.version";
         private const string ValueTrue = "true";
         private const string AndroidNamespaceAlias = "android";
         private const string AndroidNamespaceUrl = "http://schemas.android.com/apk/res/android";
@@ -63,8 +64,21 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         internal const string PreconditionOneViewIntentFilter = "more than one VIEW intent-filter";
         internal const string PreconditionOneMetaDataDefaultUrl = "more than one meta-data element for default-url";
         internal const string PreconditionOneModuleInstant = "more than one dist:module element with dist:instant";
+        internal const string PreconditionOnePluginVersion = "more than one meta-data element for plugin version";
 
         private delegate IEnumerable<XElement> ElementFinder(XElement element);
+
+        /// <summary>
+        /// Returns the <see cref="IAndroidManifestUpdater"/> appropriate for the version of Unity.
+        /// </summary>
+        public static IAndroidManifestUpdater GetAndroidManifestUpdater()
+        {
+#if UNITY_2018_1_OR_NEWER
+            return new PostGenerateGradleProjectAndroidManifestUpdater();
+#else
+            return new LegacyAndroidManifestUpdater();
+#endif
+        }
 
         /// <summary>
         /// Creates a new XDocument representing a basic Unity AndroidManifest XML file.
@@ -84,6 +98,33 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         }
 
         /// <summary>
+        /// Returns true if the specified XDocument representing an AndroidManifest has the correct plugin version.
+        /// </summary>
+        public static bool HasCurrentPluginVersion(XDocument doc, out string errorMessage)
+        {
+            var manifestElement = GetExactlyOne(doc.Elements(Manifest));
+            if (manifestElement == null)
+            {
+                errorMessage = PreconditionOneManifestElement;
+                return false;
+            }
+
+            var applicationElement = GetExactlyOne(manifestElement.Elements(Application));
+            if (applicationElement == null)
+            {
+                errorMessage = PreconditionOneApplicationElement;
+                return false;
+            }
+
+            var elements = FindPluginVersionElements(applicationElement);
+            var hasCurrentPluginVersion = elements.Count() == 1 &&
+                                          (string) elements.First().Attribute(AndroidValueXName) ==
+                                          GooglePlayInstantUtils.PluginVersion;
+            errorMessage = hasCurrentPluginVersion ? null : UpdatePluginVersion(applicationElement);
+            return hasCurrentPluginVersion;
+        }
+
+        /// <summary>
         /// Converts the specified XDocument representing an AndroidManifest to support an installed app build.
         /// </summary>
         public static void ConvertManifestToInstalled(XDocument doc)
@@ -96,6 +137,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 manifestElement.Attributes(DistributionXmlns).Remove();
                 foreach (var applicationElement in manifestElement.Elements(Application))
                 {
+                    FindPluginVersionElements(applicationElement).Remove();
                     foreach (var mainActivity in FindMainActivities(applicationElement))
                     {
                         // TODO: also remove view intent filters?
@@ -152,21 +194,27 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             // TSV2 is required for instant apps starting with Android Oreo.
             manifestElement.SetAttributeValue(AndroidTargetSandboxVersionXName, "2");
 
-            return uri == null ? null : AddDefaultUrl(manifestElement, uri);
-        }
-
-        /// <summary>
-        /// Adds the specified default URL to manifest's main activity.
-        /// </summary>
-        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
-        private static string AddDefaultUrl(XElement manifestElement, Uri uri)
-        {
             var applicationElement = GetExactlyOne(manifestElement.Elements(Application));
             if (applicationElement == null)
             {
                 return PreconditionOneApplicationElement;
             }
 
+            var updatePluginVersionResult = UpdatePluginVersion(applicationElement);
+            if (updatePluginVersionResult != null)
+            {
+                return updatePluginVersionResult;
+            }
+
+            return uri == null ? null : AddDefaultUrl(applicationElement, uri);
+        }
+
+        /// <summary>
+        /// Adds the specified default URL to manifest's main activity.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
+        private static string AddDefaultUrl(XContainer applicationElement, Uri uri)
+        {
             var mainActivity = GetExactlyOne(FindMainActivities(applicationElement));
             if (mainActivity == null)
             {
@@ -179,7 +227,8 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                 return updateViewIntentFilterResult;
             }
 
-            return UpdateDefaultUrlElement(mainActivity, uri);
+            return UpdateMetaDataElement(
+                FindDefaultUrlMetaDataElements, mainActivity, PreconditionOneMetaDataDefaultUrl, DefaultUrl, uri);
         }
 
         /// <summary>
@@ -217,19 +266,30 @@ namespace GooglePlayInstant.Editor.AndroidManifest
         }
 
         /// <summary>
-        /// Updates the specified main activity to contain the specified default URL.
+        /// Updates the specified application element to include meta-data with the current version of the plugin.
         /// </summary>
         /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
-        private static string UpdateDefaultUrlElement(XElement mainActivity, Uri uri)
+        private static string UpdatePluginVersion(XElement applicationElement)
         {
-            var defaultUrlMetaData = GetElement(FindDefaultUrlMetaDataElements, mainActivity, MetaData);
-            if (defaultUrlMetaData == null)
+            return UpdateMetaDataElement(FindPluginVersionElements, applicationElement, PreconditionOnePluginVersion,
+                PlayInstantUnityPluginVersion, GooglePlayInstantUtils.PluginVersion);
+        }
+
+        /// <summary>
+        /// Updates the specified meta-data element to the specified value.
+        /// </summary>
+        /// <returns>An error message if there was a problem updating the manifest, or null if successful.</returns>
+        private static string UpdateMetaDataElement(
+            ElementFinder finder, XElement parentElement, string errorMessage, string name, object value)
+        {
+            var metaDataElement = GetElement(finder, parentElement, MetaData);
+            if (metaDataElement == null)
             {
-                return PreconditionOneMetaDataDefaultUrl;
+                return errorMessage;
             }
 
-            defaultUrlMetaData.SetAttributeValue(AndroidNameXName, DefaultUrl);
-            defaultUrlMetaData.SetAttributeValue(AndroidValueXName, uri);
+            metaDataElement.SetAttributeValue(AndroidNameXName, name);
+            metaDataElement.SetAttributeValue(AndroidValueXName, value);
 
             return null;
         }
@@ -294,6 +354,15 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             return from moduleElement in manifestElement.Elements(DistributionModuleXName)
                 where moduleElement.Attribute(DistributionInstantXName) != null
                 select moduleElement;
+        }
+
+        private static IEnumerable<XElement> FindPluginVersionElements(XContainer applicationElement)
+        {
+            // Find all elements of the form
+            //   <meta-data android:name="play-instant-unity-plugin.version" android:value="1.0"/>
+            return from metaData in applicationElement.Elements(MetaData)
+                where (string) metaData.Attribute(AndroidNameXName) == PlayInstantUnityPluginVersion
+                select metaData;
         }
 
         private static XElement CreateElementWithAttribute(
