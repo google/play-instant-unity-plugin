@@ -56,5 +56,11 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
             Assert.IsNotNull(Object.FindObjectOfType<LoadingScreen.LoadingScreen>(),
                 "A LoadingScreen component should be present in the populated scene");
         }
+
+        [Test]
+        public void TestFindReplayButtonSprite()
+        {
+            Assert.IsNotNull(LoadingScreenGenerator.FindReplayButtonSprite());
+        }
     }
 }
