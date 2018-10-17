@@ -5,5 +5,7 @@
 # if they are required for tests.
 !GooglePlayInstant/Samples/**/*.meta
 !GooglePlayInstant/LoadingScreen/Textures/**/*.meta
+
 .DS_Store
 .gradle
+*.log

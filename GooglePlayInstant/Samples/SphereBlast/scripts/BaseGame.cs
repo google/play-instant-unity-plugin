@@ -217,7 +217,7 @@ public class BaseGame : MonoBehaviour
     {
         _score = newScore;
 #if !UNITY_EDITOR
-       Debug.Log("Is instant app: " + UnityPlayerHelper.IsInstantApp());
+       Debug.Log("Is instant app: " + GooglePlayInstantUtils.IsInstantApp());
 #endif
         Debug.Log("before setting level " + (_score % MAX_SCORE_PER_LEVEL > 0));
         if (_score != 0 &&

@@ -44,7 +44,7 @@ project.ext {
     playInstantBuildPath = "${rootPath}/play-instant-build"
 }
 
-def copyFiles(projectPath, exclusions) {
+def copyFiles(def projectPath, def exclusions) {
     description 'Copies files into specified build staging location except for noted exclusions'
     copy {
         from 'LICENSE', 'README.md', 'CONTRIBUTING.md'
@@ -62,7 +62,31 @@ def copyFiles(projectPath, exclusions) {
     }
 }
 
-def exportUnityPackage(projectPath, packageFilePrefix) {
+def buildApp(def projectPath, def buildMethod, def logFile, def outputFile) {
+    description 'Calls Unity on the command line to build the specified app'
+    println "Building app: ${outputFile}"
+    def argv = [
+        '-batchmode',
+        '-nographics',
+        '-buildTarget',
+        'Android',
+        '-projectPath',
+        projectPath,
+        '-executeMethod',
+        buildMethod,
+        '-logFile',
+        logFile,
+        '-outputFile',
+        outputFile,
+        '-quit'
+    ]
+    exec {
+        executable unityExe
+        args argv
+    }
+}
+
+def exportUnityPackage(def projectPath, def packageFilePrefix) {
     description 'Creates a .unitypackage file with the specified prefix'
 
     // Extract the plugin version from a constant defined in code.
@@ -75,6 +99,7 @@ def exportUnityPackage(projectPath, packageFilePrefix) {
     def logFile = file("${packageFileName}.log").getPath()
     def argv = [
             '-batchmode',
+            '-nographics',
             '-projectPath',
             projectPath,
             '-logFile',
@@ -137,26 +162,26 @@ task buildTestApp {
         }
     }
     doLast {
-        println "Building to ${outputFile}"
-        def argv = [
-            '-batchmode',
-            '-noGraphics',
-            '-projectPath',
-            buildPath,
-            '-logFile',
-            logFile,
-            '-buildTarget',
-            'Android',
-            '-outputFile',
-            outputFile,
-            '-executeMethod',
-            buildFunction,
-            '-quit'
-        ]
-        exec {
-            executable unityExe
-            args argv
+        buildApp(buildPath, buildFunction, logFile, outputFile)
+    }
+}
+
+task buildSphereBlastApp {
+    description 'Builds the SphereBlast sample as an instant app'
+    def buildFunction = 'GooglePlayInstant.Samples.SphereBlast.Editor.SphereBlastBuilder.Build'
+    def buildPath = "${playInstantBuildPath}/sphereblastapp"
+    def logFile = file("sphereblastapp.log").getPath()
+    def outputFile = file("${playInstantBuildPath}/sphereblast.apk");
+
+    doFirst {
+        copyFiles(buildPath, ['Tests'])
+        copy {
+            from 'GooglePlayInstant/Samples/SphereBlast'
+            into "${buildPath}/Assets/SphereBlast"
         }
+    }
+    doLast {
+        buildApp(buildPath, buildFunction, logFile, outputFile)
     }
 }
 
@@ -198,6 +223,7 @@ task automatedTests {
     dependsOn 'tests'
     dependsOn 'buildTestApp'
     dependsOn 'zipTestApp'
+    dependsOn 'buildSphereBlastApp'
 }
 
 project.defaultTasks = ['tests', 'exportPlugin']

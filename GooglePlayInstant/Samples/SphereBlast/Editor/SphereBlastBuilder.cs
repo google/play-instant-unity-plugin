@@ -16,36 +16,29 @@ using System;
 using GooglePlayInstant.Editor;
 using UnityEditor;
 
-namespace GooglePlayInstant.Samples.TestApp.Editor
+namespace GooglePlayInstant.Samples.SphereBlast.Editor
 {
     /// <summary>
-    /// Provides a method to build the plugin TestApp from the command line.
+    /// Provides a method to build the SphereBlast sample from the command line.
     /// </summary>
-    public static class TestAppBuilder
+    public static class SphereBlastBuilder
     {
-        private static readonly string[] TestScenePaths = {"Assets/TestApp/Scenes/TestScene.unity"};
+        // TODO: currently including both scenes in the app for coverage, but prefer to build SphereScene separately.
+        private static readonly string[] ScenesInBuild = {"Assets/SphereBlast/scenes/LoadingScene.unity"};
 
         public static void Build()
         {
-            PlayerSettings.applicationIdentifier = "com.google.android.instantapps.samples.unity.testapp";
+            PlayerSettings.applicationIdentifier = "com.google.android.instantapps.samples.unity.sphereblast";
             PlayerSettings.companyName = "Google";
-            PlayerSettings.productName = "testapp";
+            PlayerSettings.productName = "Sphere Blast";
 
-            CommandLineBuilder.ConfigureProject(TestScenePaths);
+            CommandLineBuilder.ConfigureProject(ScenesInBuild);
 
-            // Build APK.
             var apkPath = CommandLineBuilder.GetApkPath();
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             if (!PlayInstantBuilder.BuildAndSign(buildPlayerOptions))
             {
                 throw new Exception("APK build failed");
-            }
-
-            // Also Build an AAB to test Android App Bundle build.
-            var aabPath = apkPath.Substring(0, apkPath.Length - 3) + "aab";
-            if (!AppBundlePublisher.Build(aabPath))
-            {
-                throw new Exception("AAB build failed");
             }
         }
     }
