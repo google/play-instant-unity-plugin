@@ -42,7 +42,7 @@ namespace GooglePlayInstant.Editor
 
             SetTargetArchitectures();
 
-            var manifestUpdater = GetAndroidManifestUpdater();
+            var manifestUpdater = AndroidManifestHelper.GetAndroidManifestUpdater();
             var errorMessage = manifestUpdater.SwitchToInstant(null);
             if (errorMessage != null)
             {
@@ -78,15 +78,6 @@ namespace GooglePlayInstant.Editor
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.X86 | AndroidArchitecture.ARMv7;
 #else
             PlayerSettings.Android.targetDevice = AndroidTargetDevice.FAT;
-#endif
-        }
-
-        private static IAndroidManifestUpdater GetAndroidManifestUpdater()
-        {
-#if UNITY_2018_1_OR_NEWER
-            return new PostGenerateGradleProjectAndroidManifestUpdater();
-#else
-            return new LegacyAndroidManifestUpdater();
 #endif
         }
     }
