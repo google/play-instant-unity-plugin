@@ -78,10 +78,7 @@ namespace GooglePlayInstant.LoadingScreen
                 _assetBundleRetrievalAttemptCount++;
                 Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
 
-                while (_bundle == null)
-                {
-                    yield return GetAssetBundle(AssetBundleUrl);
-                }
+                yield return GetAssetBundle(AssetBundleUrl);
 
                 if (_bundle != null)
                 {
