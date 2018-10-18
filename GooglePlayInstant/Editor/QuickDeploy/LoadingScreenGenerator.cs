@@ -239,7 +239,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// See https://docs.unity3d.com/ScriptReference/AssetDatabase.FindAssets.html for what can be included in that
         /// string.
         /// </summary>
-        /// <returns>The first found asset or null if no assets are found.</returns>
+        /// <exception cref="Exception">Thrown if an asset cannot be found, or if multiple assets are found.</exception>
         public static T FindAssetByFilter<T>(string searchFilter) where T : UnityEngine.Object
         {
             // We search for the asset by name instead of by its path, because we don't require developers to keep the
@@ -248,13 +248,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (foundGuids.Length == 0)
             {
-                Debug.LogErrorFormat("Failed to obtain asset from filter: {0}", searchFilter);
-                return null;
+                throw new Exception("Failed to find any assets that match: "+searchFilter);
             }
 
             if (foundGuids.Length > 1)
             {
-                Debug.LogErrorFormat("Found multiple assets that match: {0}", searchFilter);
+                throw new Exception("Found multiple assets that match: "+searchFilter);
             }
 
             string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);

@@ -127,7 +127,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         // Visible for testing.
         internal static Texture2D FindLoadingTileTexture()
         {
-            return LoadingScreenGenerator.FindAssetByFilter<Texture2D>("GooglePlayInstantLoadingTile t:texture2D");
+            return LoadingScreenGenerator.FindAssetByFilter<Texture2D>("GooglePlayInstantLoadingTile t:texture2d");
         }
     }
 }
