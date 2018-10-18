@@ -102,14 +102,18 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// </summary>
         private static string AbsoluteToAssetsRelativePath(string absolutePath)
         {
-            var parentPath = Application.dataPath + Path.DirectorySeparatorChar;
-            var index = absolutePath.IndexOf(parentPath, StringComparison.Ordinal);
-            if (index != 0)
+            var parentPath = Application.dataPath;
+            if (!absolutePath.StartsWith(parentPath, StringComparison.Ordinal))
             {
                 return null;
             }
 
-            var relativePath = absolutePath.Remove(index, parentPath.Length);
+            if (absolutePath.Length == parentPath.Length)
+            {
+                return "Assets";
+            }
+
+            var relativePath = absolutePath.Remove(0, parentPath.Length + 1);
             return Path.Combine("Assets", relativePath);
         }
     }
