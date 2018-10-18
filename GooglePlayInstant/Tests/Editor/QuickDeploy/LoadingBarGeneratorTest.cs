@@ -14,10 +14,6 @@
 
 using GooglePlayInstant.Editor.QuickDeploy;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using System;
-using Object = UnityEngine.Object;
 
 namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 {
