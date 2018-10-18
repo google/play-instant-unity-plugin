@@ -83,7 +83,7 @@ namespace GooglePlayInstant.LoadingScreen
         public IEnumerator FillUntilDone(AsyncOperation operation, float startingFillProportion,
             float endingFillProportion, bool skipFinalUpdate)
         {
-            var prevFillProportion = startingFillProportion;
+            var previousFillProportion = startingFillProportion;
             var isDone = false;
             while (!isDone)
             {
@@ -94,9 +94,9 @@ namespace GooglePlayInstant.LoadingScreen
                 else
                 {
                     var fillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
-                    fillProportion = Mathf.Max(prevFillProportion, fillProportion); // Progress can only increase.
+                    fillProportion = Mathf.Max(previousFillProportion, fillProportion); // Progress can only increase.
                     SetProgress(fillProportion);
-                    prevFillProportion = fillProportion;
+                    previousFillProportion = fillProportion;
                 }
 
                 yield return null;
@@ -105,7 +105,7 @@ namespace GooglePlayInstant.LoadingScreen
             if (!skipFinalUpdate)
             {
                 var finalFillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
-                finalFillProportion = Mathf.Max(prevFillProportion, finalFillProportion);
+                finalFillProportion = Mathf.Max(previousFillProportion, finalFillProportion);
                 SetProgress(finalFillProportion);
             }
         }
