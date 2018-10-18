@@ -31,7 +31,8 @@ namespace GooglePlayInstant.LoadingScreen
         public bool ResizeAutomatically = true;
 
         [Tooltip("Asset Bundle download and install progress. The value set in the Editor is ignored at runtime.")]
-        [Range(0f, 1f)] public float Progress = 0.25f;
+        [Range(0f, 1f)]
+        public float Progress = 0.25f;
 
         public RectTransform Background;
         public RectTransform Outline;
@@ -40,7 +41,8 @@ namespace GooglePlayInstant.LoadingScreen
 
         [Tooltip("Proportion of the loading bar allocated to the asset bundle downloading process. " +
                  "The rest is allocated to installing.")]
-        [Range(0f, 1f)] public float AssetBundleDownloadToInstallRatio = 0.8f;
+        [Range(0f, 1f)]
+        public float AssetBundleDownloadToInstallRatio = 0.8f;
 
         private void Update()
         {
@@ -81,10 +83,10 @@ namespace GooglePlayInstant.LoadingScreen
         public IEnumerator FillUntilDone(AsyncOperation operation, float startingFillProportion,
             float endingFillProportion, bool skipFinalUpdate)
         {
+            var prevFillProportion = startingFillProportion;
             var isDone = false;
             while (!isDone)
             {
-
                 if (operation.isDone)
                 {
                     isDone = true;
@@ -92,7 +94,9 @@ namespace GooglePlayInstant.LoadingScreen
                 else
                 {
                     var fillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+                    fillProportion = Mathf.Max(prevFillProportion, fillProportion); // Progress can only increase.
                     SetProgress(fillProportion);
+                    prevFillProportion = fillProportion;
                 }
 
                 yield return null;
@@ -101,6 +105,7 @@ namespace GooglePlayInstant.LoadingScreen
             if (!skipFinalUpdate)
             {
                 var finalFillProportion = Mathf.Lerp(startingFillProportion, endingFillProportion, operation.progress);
+                finalFillProportion = Mathf.Max(prevFillProportion, finalFillProportion);
                 SetProgress(finalFillProportion);
             }
         }
