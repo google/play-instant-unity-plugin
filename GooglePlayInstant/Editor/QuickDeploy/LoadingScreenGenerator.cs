@@ -233,7 +233,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             tempTexture.LoadImage(imageBytes);
             return new Vector2(tempTexture.width, tempTexture.height);
         }
-        
+
         /// <summary>
         /// Searches the AssetDatabase for an Asset of type T using the searchFilter string.
         /// See https://docs.unity3d.com/ScriptReference/AssetDatabase.FindAssets.html for what can be included in that
@@ -246,10 +246,15 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             // play-instant-unity-plugin folder directly inside the Assets folder.
             string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
 
-            if (foundGuids.Length <= 0)
+            if (foundGuids.Length == 0)
             {
                 Debug.LogErrorFormat("Failed to obtain asset from filter: {0}", searchFilter);
                 return null;
+            }
+
+            if (foundGuids.Length > 1)
+            {
+                Debug.LogErrorFormat("Found multiple assets that match: {0}", searchFilter);
             }
 
             string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
