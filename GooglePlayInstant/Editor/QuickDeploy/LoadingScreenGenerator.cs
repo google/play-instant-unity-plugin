@@ -234,22 +234,36 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             return new Vector2(tempTexture.width, tempTexture.height);
         }
 
-        // Visible for testing.
-        internal static Sprite FindReplayButtonSprite()
+        /// <summary>
+        /// Searches the AssetDatabase for an Asset of type T using the searchFilter string.
+        /// See https://docs.unity3d.com/ScriptReference/AssetDatabase.FindAssets.html for what can be included in that
+        /// string.
+        /// </summary>
+        /// <exception cref="Exception">Thrown if an asset cannot be found, or if multiple assets are found.</exception>
+        public static T FindAssetByFilter<T>(string searchFilter) where T : UnityEngine.Object
         {
-            // We search for the sprite by name instead of by its path, because we don't require developers to keep the
+            // We search for the asset by name instead of by its path, because we don't require developers to keep the
             // play-instant-unity-plugin folder directly inside the Assets folder.
-            string searchFilter = "GooglePlayInstantRetryButton t:sprite";
             string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
 
-            if (foundGuids.Length <= 0)
+            if (foundGuids.Length == 0)
             {
-                Debug.LogError("Failed to obtain retry button texture.");
-                return null;
+                throw new Exception("Failed to find any assets that match: "+searchFilter);
+            }
+
+            if (foundGuids.Length > 1)
+            {
+                throw new Exception("Found multiple assets that match: "+searchFilter);
             }
 
             string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            return AssetDatabase.LoadAssetAtPath<T>(path);
+        }
+
+        // Visible for testing.
+        internal static Sprite FindReplayButtonSprite()
+        {
+            return FindAssetByFilter<Sprite>("GooglePlayInstantRetryButton t:sprite");
         }
     }
 }

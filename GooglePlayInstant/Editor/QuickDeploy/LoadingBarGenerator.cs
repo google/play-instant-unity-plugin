@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using GooglePlayInstant.LoadingScreen;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
-using GooglePlayInstant.LoadingScreen;
+
+[assembly: InternalsVisibleTo("GooglePlayInstant.Tests.Editor.QuickDeploy")]
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
@@ -37,6 +40,7 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         private const string OutlineName = "Outline";
         private const string BackgroundName = "Background";
         private const string FillName = "Fill";
+        private const string ScrollingFillName = "Scrolling Fill";
         private const string ProgressName = "Progress";
 
         // Color of the inner fill and outline of the loading bar.
@@ -69,10 +73,25 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             loadingBar.ProgressHolder.transform.SetParent(loadingBar.transform, false);
             SetAnchorsToScaleWithParent(loadingBar.ProgressHolder);
 
+            var scrollingFillRectTransform = GenerateScrollingFill();
+            scrollingFillRectTransform.transform.SetParent(loadingBar.ProgressHolder, false);
+            scrollingFillRectTransform.SetAsFirstSibling(); // The scrolling fill should be behind the progress fill.
+
             var loadingBarRectTransform = loadingBarObject.GetComponent<RectTransform>();
             SetAnchorsToScaleWithParent(loadingBarRectTransform);
 
             return loadingBar;
+        }
+
+        private static RectTransform GenerateScrollingFill()
+        {
+            var scrollingFillObject = GenerateUiObject(ScrollingFillName);
+            var scrollingFillImage = scrollingFillObject.AddComponent<RawImage>();
+            scrollingFillImage.texture = FindLoadingTileTexture();
+
+            scrollingFillObject.AddComponent<ScrollingFillAnimator>();
+
+            return scrollingFillImage.GetComponent<RectTransform>();
         }
 
         private static RectTransform GenerateImage(GameObject parent, string name, Color color)
@@ -103,6 +122,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             rectTransform.anchorMin = Vector2.zero;
             rectTransform.anchorMax = Vector2.one;
             rectTransform.sizeDelta = Vector2.zero;
+        }
+
+        // Visible for testing.
+        internal static Texture2D FindLoadingTileTexture()
+        {
+            return LoadingScreenGenerator.FindAssetByFilter<Texture2D>("GooglePlayInstantLoadingTile t:texture2d");
         }
     }
 }
