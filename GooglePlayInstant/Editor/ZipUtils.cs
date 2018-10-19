@@ -34,11 +34,22 @@ namespace GooglePlayInstant.Editor
                 throw new ArgumentException("Spaces are not supported for inputFileName.", "inputFileName");
             }
 
+            // On windows, we can't support a directory with spaces, because jar does not support quotes around the
+            // inputDirectoryName.
+#if UNITY_EDITOR_WIN
+            if (inputDirectoryName.Contains(" "))
+            {
+                throw new ArgumentException("Spaces are not supported for inputDirectoryName.", "inputDirectoryName");
+            }
+#else
+            inputDirectoryName = CommandLine.QuotePath(inputDirectoryName);
+#endif
+
             // Create zip file with options "0" (no per-file compression) and "M" (no JAR manifest file).
             var arguments = string.Format(
                 "c0Mf {0} -C {1} {2}",
                 CommandLine.QuotePath(zipFilePath),
-                CommandLine.QuotePath(inputDirectoryName),
+                inputDirectoryName,
                 inputFileName);
             var result = CommandLine.Run(JavaUtilities.JarBinaryPath, arguments);
             return result.exitCode == 0 ? null : result.message;
