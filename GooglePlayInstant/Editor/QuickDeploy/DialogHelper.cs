@@ -129,8 +129,8 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 return null;
             }
 
-            char[] pathSeparator = {'/'};
-            string lastSharedDirectoryName = parentPath.Split(pathSeparator).Last();
+            // In general this directory will be "Assets".
+            var lastSharedDirectoryName = parentPath.Split('/').Last();
 
             if (absolutePath.Length == parentPath.Length)
             {

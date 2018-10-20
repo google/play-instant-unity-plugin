@@ -19,9 +19,6 @@ using UnityEngine;
 
 namespace GooglePlayInstant.Tests.Editor.QuickDeploy
 {
-    /// <summary>
-    /// Contains unit tests for LoadingScreenGenerator methods.
-    /// </summary>
     [TestFixture]
     public class DialogHelperTest
     {
