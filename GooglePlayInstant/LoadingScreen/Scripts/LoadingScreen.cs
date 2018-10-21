@@ -73,7 +73,7 @@ namespace GooglePlayInstant.LoadingScreen
         {
             _downloading = true;
 
-            for (int i = 0; i < numberOfAttempts; i++)
+            for (var i = 0; i < numberOfAttempts; i++)
             {
                 _assetBundleRetrievalAttemptCount++;
                 Debug.LogFormat("Attempt #{0} at downloading AssetBundle...", _assetBundleRetrievalAttemptCount);
@@ -110,7 +110,7 @@ namespace GooglePlayInstant.LoadingScreen
             yield return LoadingBar.FillUntilDone(downloadOperation,
                 _maxLoadingBarProgress, LoadingBar.AssetBundleDownloadToInstallRatio, true);
 
-            if (IsFailedRequest(webRequest))
+            if (GooglePlayInstantUtils.IsNetworkError(webRequest))
             {
                 _maxLoadingBarProgress = LoadingBar.Progress;
                 Debug.LogFormat("Failed to download AssetBundle: {0}", webRequest.error);
@@ -133,15 +133,6 @@ namespace GooglePlayInstant.LoadingScreen
             RetryButton.gameObject.SetActive(false);
         }
 
-        private static bool IsFailedRequest(UnityWebRequest webRequest)
-        {
-#if UNITY_2017_1_OR_NEWER
-            return webRequest.isHttpError || webRequest.isNetworkError;
-#else
-            return webRequest.isError;
-#endif
-        }
-
         private static AsyncOperation StartAssetBundleDownload(string assetBundleUrl, out UnityWebRequest webRequest)
         {
 #if UNITY_2018_1_OR_NEWER
@@ -149,13 +140,7 @@ namespace GooglePlayInstant.LoadingScreen
 #else
             webRequest = UnityWebRequest.GetAssetBundle(assetBundleUrl);
 #endif
-
-#if UNITY_2017_2_OR_NEWER
-            var assetBundleDownloadOperation = webRequest.SendWebRequest();
-#else
-            var assetBundleDownloadOperation = webRequest.Send();
-#endif
-            return assetBundleDownloadOperation;
+            return GooglePlayInstantUtils.SendWebRequest(webRequest);
         }
     }
 }

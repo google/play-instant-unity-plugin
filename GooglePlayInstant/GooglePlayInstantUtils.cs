@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using UnityEngine;
+using UnityEngine.Networking;
+
+#if !UNITY_2017_2_OR_NEWER
+using System.IO;
+#endif
+
 namespace GooglePlayInstant
 {
     /// <summary>
@@ -34,6 +41,47 @@ namespace GooglePlayInstant
             return true;
 #else
             return false;
+#endif
+        }
+
+        public static AsyncOperation SendWebRequest(UnityWebRequest request)
+        {
+#if UNITY_2017_2_OR_NEWER
+            return request.SendWebRequest();
+#else
+            return request.Send();
+#endif
+        }
+
+        public static UnityWebRequest StartFileDownload(string url, string fileSavePath)
+        {
+#if UNITY_2017_2_OR_NEWER
+            var downloadHandler = new DownloadHandlerFile(fileSavePath)
+            {
+                removeFileOnAbort = true
+            };
+            var request = new UnityWebRequest(url, UnityWebRequest.kHttpVerbGET, downloadHandler, null);
+            request.SendWebRequest();
+#else
+            var request = UnityWebRequest.Get(url);
+            request.Send();
+#endif
+            return request;
+        }
+
+        public static void FinishFileDownload(UnityWebRequest request, string fileSavePath)
+        {
+#if !UNITY_2017_2_OR_NEWER
+            File.WriteAllBytes(fileSavePath, request.downloadHandler.data);
+#endif
+        }
+
+        public static bool IsNetworkError(UnityWebRequest request)
+        {
+#if UNITY_2017_1_OR_NEWER
+            return request.isHttpError || request.isNetworkError;
+#else
+            return request.isError;
 #endif
         }
     }
