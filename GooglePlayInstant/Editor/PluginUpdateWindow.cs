@@ -151,7 +151,6 @@ namespace GooglePlayInstant.Editor
                 GooglePlayInstantUtils.StartFileDownload(_latestReleaseDownloadUrl, _latestReleaseSavePath);
         }
 
-
         private void StartPluginDownloadAndSave()
         {
             _shouldInstallPlugin = false;
