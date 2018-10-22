@@ -50,12 +50,7 @@ def copyFiles(def projectPath, def exclusions) {
         from 'LICENSE', 'README.md', 'CONTRIBUTING.md'
         from('GooglePlayInstant')
         {
-            exclude 'Samples', '**/*.meta'
-        }
-        from('GooglePlayInstant/LoadingScreen/Textures') // Add meta files that we want to include.
-        {
-            include '**/*.meta'
-            into "/LoadingScreen/Textures"
+            exclude 'Samples'
         }
         into "${projectPath}/Assets/GooglePlayInstant"
         exclude exclusions
