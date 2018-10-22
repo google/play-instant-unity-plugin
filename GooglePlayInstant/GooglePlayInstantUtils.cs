@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using UnityEngine;
+using UnityEngine.Networking;
+
+#if !UNITY_2017_2_OR_NEWER
+using System.IO;
+#endif
+
 namespace GooglePlayInstant
 {
     /// <summary>
@@ -34,6 +41,59 @@ namespace GooglePlayInstant
             return true;
 #else
             return false;
+#endif
+        }
+
+        /// <summary>
+        /// Initiates the specified UnityWebRequest and returns an AsyncOperation.
+        /// </summary>
+        public static AsyncOperation SendWebRequest(UnityWebRequest request)
+        {
+#if UNITY_2017_2_OR_NEWER
+            return request.SendWebRequest();
+#else
+            return request.Send();
+#endif
+        }
+
+        /// <summary>
+        /// Starts a file download from the specified URL to the specified file path, returning a
+        /// UnityWebRequest representing the in-flight request.
+        /// </summary>
+        public static UnityWebRequest StartFileDownload(string url, string fileSavePath)
+        {
+#if UNITY_2017_2_OR_NEWER
+            var downloadHandler = new DownloadHandlerFile(fileSavePath)
+            {
+                removeFileOnAbort = true
+            };
+            var request = new UnityWebRequest(url, UnityWebRequest.kHttpVerbGET, downloadHandler, null);
+#else
+            var request = UnityWebRequest.Get(url);
+#endif
+            SendWebRequest(request);
+            return request;
+        }
+
+        /// <summary>
+        /// Finishes saving the file whose download was initiated with <see cref="StartFileDownload"/>.
+        /// </summary>
+        public static void FinishFileDownload(UnityWebRequest request, string fileSavePath)
+        {
+#if !UNITY_2017_2_OR_NEWER
+            File.WriteAllBytes(fileSavePath, request.downloadHandler.data);
+#endif
+        }
+
+        /// <summary>
+        /// Returns true if the specified request has encountered an error, and false otherwise.
+        /// </summary>
+        public static bool IsNetworkError(UnityWebRequest request)
+        {
+#if UNITY_2017_1_OR_NEWER
+            return request.isHttpError || request.isNetworkError;
+#else
+            return request.isError;
 #endif
         }
     }

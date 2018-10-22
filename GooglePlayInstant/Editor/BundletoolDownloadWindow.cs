@@ -16,10 +16,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
-#if !UNITY_2017_2_OR_NEWER
-using System.IO;
-#endif
-
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
@@ -64,11 +60,7 @@ namespace GooglePlayInstant.Editor
             {
                 EditorUtility.ClearProgressBar();
 
-#if UNITY_2017_1_OR_NEWER
-                if (_downloadRequest.isHttpError || _downloadRequest.isNetworkError)
-#else
-                if (_downloadRequest.isError)
-#endif
+                if (GooglePlayInstantUtils.IsNetworkError(_downloadRequest))
                 {
                     var downloadRequestError = _downloadRequest.error;
                     _downloadRequest.Dispose();
@@ -84,17 +76,15 @@ namespace GooglePlayInstant.Editor
                     }
                     else
                     {
-                        Close();
+                        EditorApplication.delayCall += Close;
                     }
 
                     return;
                 }
 
-                // Download succeeded. Copy the bytes if this version of Unity doesn't support DownloadHandlerFile.
+                // Download succeeded.
                 var bundletoolJarPath = Bundletool.GetBundletoolJarPath();
-#if !UNITY_2017_2_OR_NEWER
-                File.WriteAllBytes(bundletoolJarPath, _downloadRequest.downloadHandler.data);
-#endif
+                GooglePlayInstantUtils.FinishFileDownload(_downloadRequest, bundletoolJarPath);
                 _downloadRequest.Dispose();
                 _downloadRequest = null;
 
@@ -103,7 +93,7 @@ namespace GooglePlayInstant.Editor
                     "Bundletool has been downloaded to your project's \"Library\" directory: {0}", bundletoolJarPath);
                 if (EditorUtility.DisplayDialog("Download Complete", message, WindowUtils.OkButtonText))
                 {
-                    Close();
+                    EditorApplication.delayCall += Close;
                 }
 
                 return;
@@ -136,17 +126,8 @@ namespace GooglePlayInstant.Editor
             var bundletoolUri = string.Format(
                 "https://github.com/google/bundletool/releases/download/{0}/bundletool-all-{0}.jar",
                 Bundletool.BundletoolVersion);
-#if UNITY_2017_2_OR_NEWER
-            var downloadHandler = new DownloadHandlerFile(Bundletool.GetBundletoolJarPath())
-            {
-                removeFileOnAbort = true
-            };
-            _downloadRequest = new UnityWebRequest(bundletoolUri, UnityWebRequest.kHttpVerbGET, downloadHandler, null);
-            _downloadRequest.SendWebRequest();
-#else
-            _downloadRequest = UnityWebRequest.Get(bundletoolUri);
-            _downloadRequest.Send();
-#endif
+            _downloadRequest =
+                GooglePlayInstantUtils.StartFileDownload(bundletoolUri, Bundletool.GetBundletoolJarPath());
         }
 
         /// <summary>
