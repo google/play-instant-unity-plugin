@@ -13,9 +13,13 @@
 // limitations under the License.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+
+[assembly: InternalsVisibleTo("GooglePlayInstant.Tests.Editor.QuickDeploy")]
 
 namespace GooglePlayInstant.Editor.QuickDeploy
 {
@@ -100,17 +104,41 @@ namespace GooglePlayInstant.Editor.QuickDeploy
         /// Converts the specified absolute path to a path relative to the Assets folder.
         /// Returns null if the path does not contains the Assets folder.
         /// </summary>
-        private static string AbsoluteToAssetsRelativePath(string absolutePath)
+        internal static string AbsoluteToAssetsRelativePath(string absolutePath)
         {
-            var parentPath = Application.dataPath + Path.DirectorySeparatorChar;
-            var index = absolutePath.IndexOf(parentPath, StringComparison.Ordinal);
-            if (index != 0)
+            return AbsoluteToRelativePath(absolutePath, Application.dataPath);
+        }
+
+        // Assumes the paths are separated with forward slashes.
+        // Visible for testing.
+        internal static string AbsoluteToRelativePath(string absolutePath, string parentPath)
+        {
+            if (string.IsNullOrEmpty(absolutePath) || string.IsNullOrEmpty(parentPath))
             {
                 return null;
             }
 
-            var relativePath = absolutePath.Remove(index, parentPath.Length);
-            return Path.Combine("Assets", relativePath);
+            // Strip trailing slash.
+            if (parentPath.Last() == '/')
+            {
+                parentPath = parentPath.Remove(parentPath.Length - 1);
+            }
+
+            if (!absolutePath.StartsWith(parentPath, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            // In general this directory will be "Assets".
+            var lastSharedDirectoryName = parentPath.Split('/').Last();
+
+            if (absolutePath.Length == parentPath.Length)
+            {
+                return lastSharedDirectoryName;
+            }
+
+            var relativePath = absolutePath.Remove(0, parentPath.Length + 1);
+            return Path.Combine(lastSharedDirectoryName, relativePath);
         }
     }
 }
