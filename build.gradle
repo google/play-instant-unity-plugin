@@ -57,6 +57,11 @@ def copyFiles(def projectPath, def exclusions) {
             include '**/*.meta'
             into "/LoadingScreen/Textures"
         }
+        from('GooglePlayInstant/LoadingScreen/Scripts')
+        {
+            include '**/*cs.meta'
+            into "/LoadingScreen/Scripts"
+	}
         into "${projectPath}/Assets/GooglePlayInstant"
         exclude exclusions
     }
