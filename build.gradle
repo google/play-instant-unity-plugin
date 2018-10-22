@@ -84,11 +84,11 @@ def buildApp(def projectPath, def buildMethod, def logFile, def outputFile) {
 task exportPlugin {
     description 'Creates and exports the Plugin as a .unitypackage'
     def buildPath = "${playInstantBuildPath}/plugin"
-    doFirst{
+    doFirst {
         copyFiles(buildPath, ['Tests'])
     }
 
-    doLast{
+    doLast {
         def utilsFilePath = "${buildPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
         def utilsFileContents = new File(utilsFilePath).text
         def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
