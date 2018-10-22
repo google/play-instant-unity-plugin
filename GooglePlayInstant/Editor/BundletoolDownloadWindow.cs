@@ -76,7 +76,7 @@ namespace GooglePlayInstant.Editor
                     }
                     else
                     {
-                        Close();
+                        EditorApplication.delayCall += Close;
                     }
 
                     return;
@@ -93,7 +93,7 @@ namespace GooglePlayInstant.Editor
                     "Bundletool has been downloaded to your project's \"Library\" directory: {0}", bundletoolJarPath);
                 if (EditorUtility.DisplayDialog("Download Complete", message, WindowUtils.OkButtonText))
                 {
-                    Close();
+                    EditorApplication.delayCall += Close;
                 }
 
                 return;

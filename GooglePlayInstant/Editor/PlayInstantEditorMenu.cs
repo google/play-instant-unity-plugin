@@ -57,6 +57,12 @@ namespace GooglePlayInstant.Editor
             Application.OpenURL("https://github.com/google/play-instant-unity-plugin/issues");
         }
 
+        [MenuItem(PlayInstant + "Check for Plugin Updates...", false, 111)]
+        private static void OpenPluginUpdateWindow()
+        {
+            PluginUpdateWindow.ShowWindow();
+        }
+
         [MenuItem(PlayInstant + "Build Settings...", false, 200)]
         private static void OpenEditorSettings()
         {
@@ -79,12 +85,6 @@ namespace GooglePlayInstant.Editor
         private static void QuickDeployOverview()
         {
             QuickDeployWindow.ShowWindow();
-        }
-
-        [MenuItem(PlayInstant + "Check for Plugin Updates...", false, 204)]
-        private static void OpenPluginUpdateWindow()
-        {
-            PluginUpdateWindow.ShowWindow();
         }
 
 #if UNITY_2018_3_OR_NEWER

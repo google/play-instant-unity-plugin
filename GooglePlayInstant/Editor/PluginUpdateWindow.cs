@@ -26,6 +26,9 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public class PluginUpdateWindow : EditorWindow
     {
+        private const int WindowMinWidth = 425;
+        private const int WindowMinHeight = 350;
+
         private const string LatestReleaseQueryUrl =
             "https://api.github.com/repos/google/play-instant-unity-plugin/releases/latest";
 
@@ -103,6 +106,7 @@ namespace GooglePlayInstant.Editor
                 HandleVersionCheckRequestIsDone();
                 _versionCheckRequest.Dispose();
                 _versionCheckRequest = null;
+                Repaint();
                 return;
             }
 
@@ -112,6 +116,7 @@ namespace GooglePlayInstant.Editor
                 HandlePluginDownloadRequestIsDone();
                 _pluginDownloadRequest.Dispose();
                 _pluginDownloadRequest = null;
+                Repaint();
                 return;
             }
 
@@ -278,11 +283,17 @@ namespace GooglePlayInstant.Editor
             }
             else
             {
-                var message = string.Format("The plugin has been downloaded: {0}", _latestReleaseSavePath);
-                if (EditorUtility.DisplayDialog("Download Complete", message, WindowUtils.OkButtonText))
+                var message = string.Format(
+                    "The plugin has been downloaded: {0}\n\nClick \"{1}\" to locate the file in the {2}.",
+                    _latestReleaseSavePath, WindowUtils.OkButtonText,
+                    Application.platform == RuntimePlatform.WindowsEditor ? "file explorer" : "finder");
+                if (EditorUtility.DisplayDialog(
+                    "Download Complete", message, WindowUtils.OkButtonText, WindowUtils.CancelButtonText))
                 {
-                    Close();
+                    EditorUtility.RevealInFinder(_latestReleaseSavePath);
                 }
+
+                EditorApplication.delayCall += Close;
             }
         }
 
@@ -318,7 +329,8 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void ShowWindow()
         {
-            GetWindow(typeof(PluginUpdateWindow), true, "Plugin Update Check");
+            var window = GetWindow(typeof(PluginUpdateWindow), true, "Plugin Update Check");
+            window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
         }
 
         // Classes used for deserializing a JSON response based on https://developer.github.com/v3/repos/releases/
