@@ -81,56 +81,36 @@ def buildApp(def projectPath, def buildMethod, def logFile, def outputFile) {
     }
 }
 
-def exportUnityPackage(def projectPath, def packageFilePrefix) {
-    description 'Creates a .unitypackage file with the specified prefix'
-
-    // Extract the plugin version from a constant defined in code.
-    def utilsFilePath = "${projectPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
-    def utilsFileContents = new File(utilsFilePath).text
-    def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
-
-    def packageFileName = "${packageFilePrefix}-${pluginVersion}.unitypackage"
-    def exportFileName = file(packageFileName).getPath()
-    def logFile = file("${packageFileName}.log").getPath()
-    def argv = [
-            '-batchmode',
-            '-nographics',
-            '-projectPath',
-            projectPath,
-            '-logFile',
-            logFile,
-            '-exportPackage',
-            'Assets',
-            exportFileName,
-            '-quit'
-    ]
-    exec {
-        executable unityExe
-        args argv
-    }
-}
-
 task exportPlugin {
     description 'Creates and exports the Plugin as a .unitypackage'
     def buildPath = "${playInstantBuildPath}/plugin"
-    doLast {
-        copyFiles(buildPath, ['Tests'])
-        exportUnityPackage(buildPath, 'google-play-instant-plugin')
-    }
-}
-
-task exportSampleSphereBlast {
-    description 'Creates and exports the Plugin unity package'
-    def buildPath = "${playInstantBuildPath}/sphereblast"
     doFirst {
         copyFiles(buildPath, ['Tests'])
-        copy {
-            from 'GooglePlayInstant/Samples/SphereBlast'
-            into "${buildPath}/Assets/SphereBlast"
-        }
     }
+
     doLast {
-        exportUnityPackage(buildPath, 'google-play-instant-sphereblast')
+        def utilsFilePath = "${buildPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
+        def utilsFileContents = new File(utilsFilePath).text
+        def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
+        def packageFileName = "google-play-instant-plugin-${pluginVersion}.unitypackage"
+        def exportFileName = file(packageFileName).getPath()
+        def logFile = file("${packageFileName}.log").getPath()
+        def argv = [
+                '-batchmode',
+                '-nographics',
+                '-projectPath',
+                buildPath,
+                '-logFile',
+                logFile,
+                '-exportPackage',
+                'Assets/GooglePlayInstant',
+                exportFileName,
+                '-quit'
+        ]
+        exec {
+            executable unityExe
+            args argv
+        }
     }
 }
 
