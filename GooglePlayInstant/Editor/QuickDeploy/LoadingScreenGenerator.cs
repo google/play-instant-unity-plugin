@@ -227,6 +227,13 @@ namespace GooglePlayInstant.Editor.QuickDeploy
                 throw new ArgumentException("The provided texture must be associated with an asset");
             }
 
+            // If the asset path isn't accessible, we default to using the texture's dimensions
+            // This occurs if the provided texture is included with the Unity Editor.
+            if (!File.Exists(texturePath))
+            {
+                return new Vector2(texture.width, texture.height);
+            }
+
             // Load the image from disk then return its width and height.
             var imageBytes = File.ReadAllBytes(texturePath);
             var tempTexture = new Texture2D(1, 1);
@@ -248,12 +255,12 @@ namespace GooglePlayInstant.Editor.QuickDeploy
 
             if (foundGuids.Length == 0)
             {
-                throw new Exception("Failed to find any assets that match: "+searchFilter);
+                throw new Exception("Failed to find any assets that match: " + searchFilter);
             }
 
             if (foundGuids.Length > 1)
             {
-                throw new Exception("Found multiple assets that match: "+searchFilter);
+                throw new Exception("Found multiple assets that match: " + searchFilter);
             }
 
             string path = AssetDatabase.GUIDToAssetPath(foundGuids[0]);
