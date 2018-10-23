@@ -28,7 +28,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void Build()
         {
-#if !UNITY_2018_3_OR_NEWER
+#if !UNITY_2018_4_OR_NEWER
             if (!AndroidAssetPackagingTool.CheckConvert())
             {
                 return;
@@ -66,10 +66,13 @@ namespace GooglePlayInstant.Editor
         {
             bool buildResult;
             Debug.LogFormat("Building app bundle: {0}", aabFilePath);
-#if UNITY_2018_3_OR_NEWER
+#if UNITY_2018_4_OR_NEWER
             EditorUserBuildSettings.buildAppBundle = true;
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(aabFilePath, BuildOptions.None);
-            buildResult = PlayInstantBuilder.Build(buildPlayerOptions))
+            buildResult = PlayInstantBuilder.Build(buildPlayerOptions);
+#elif UNITY_2018_3_OR_NEWER
+            EditorUserBuildSettings.buildAppBundle = false;
+            buildResult = AppBundleBuilder.Build(aabFilePath);
 #else
             buildResult = AppBundleBuilder.Build(aabFilePath);
 #endif
@@ -78,6 +81,7 @@ namespace GooglePlayInstant.Editor
                 // Do not log in case of failure. The method we called was responsible for logging.
                 Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
             }
+
             return buildResult;
         }
     }
