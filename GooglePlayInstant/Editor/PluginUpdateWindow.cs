@@ -334,6 +334,8 @@ namespace GooglePlayInstant.Editor
         }
 
         // Classes used for deserializing a JSON response based on https://developer.github.com/v3/repos/releases/
+        // Since these fields are only set by JsonUtility.FromJson(), we need to explicitly disable warning CS0649.
+#pragma warning disable CS0649
         [Serializable]
         private class LatestReleaseResponse
         {
@@ -347,5 +349,6 @@ namespace GooglePlayInstant.Editor
         {
             public string browser_download_url;
         }
+#pragma warning restore CS0649
     }
 }

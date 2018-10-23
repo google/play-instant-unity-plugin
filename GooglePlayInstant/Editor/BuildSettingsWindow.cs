@@ -27,6 +27,8 @@ namespace GooglePlayInstant.Editor
     {
         public const string WindowTitle = "Play Instant Build Settings";
         private const string InstantAppsHostName = "instant.apps";
+        private const int WindowMinWidth = 475;
+        private const int WindowMinHeight = 400;
         private const int FieldWidth = 175;
         private static readonly string[] PlatformOptions = {"Installed", "Instant"};
 
@@ -48,7 +50,8 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void ShowWindow()
         {
-            _windowInstance = GetWindow(typeof(BuildSettingsWindow), true, WindowTitle) as BuildSettingsWindow;
+            _windowInstance = (BuildSettingsWindow) GetWindow(typeof(BuildSettingsWindow), true, WindowTitle);
+            _windowInstance.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
         }
 
         private void OnDestroy()
