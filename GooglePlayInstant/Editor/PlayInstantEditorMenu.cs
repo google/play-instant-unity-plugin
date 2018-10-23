@@ -87,7 +87,7 @@ namespace GooglePlayInstant.Editor
             QuickDeployWindow.ShowWindow();
         }
 
-#if UNITY_2018_3_OR_NEWER
+#if UNITY_2018_4_OR_NEWER
         [MenuItem(PlayInstant + "Build Android App Bundle...", false, 300)]
         private static void BuildAndroidAppBundle()
         {
