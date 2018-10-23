@@ -333,6 +333,22 @@ namespace GooglePlayInstant.Editor
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
         }
 
+        // Returns a new LatestReleaseResponse. This is primarily here to set fields and avoid Unity warning CS0649.
+        private static LatestReleaseResponse CreateLatestReleaseResponse(string version, string downloadUrl)
+        {
+            return new LatestReleaseResponse
+            {
+                tag_name = version,
+                assets = new[]
+                {
+                    new LatestReleaseAssets
+                    {
+                        browser_download_url = downloadUrl
+                    }
+                }
+            };
+        }
+
         // Classes used for deserializing a JSON response based on https://developer.github.com/v3/repos/releases/
         [Serializable]
         private class LatestReleaseResponse

@@ -23,12 +23,16 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public class PlayerSettingsWindow : EditorWindow
     {
+        private const int WindowMinWidth = 475;
+        private const int WindowMinHeight = 400;
+
         /// <summary>
         /// Displays this window, creating it if necessary.
         /// </summary>
         public static void ShowWindow()
         {
-            GetWindow(typeof(PlayerSettingsWindow), true, "Play Instant Player Settings");
+            var window =GetWindow(typeof(PlayerSettingsWindow), true, "Play Instant Player Settings");
+            window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
         }
 
         private void OnGUI()
