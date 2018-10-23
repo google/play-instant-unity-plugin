@@ -31,7 +31,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void ShowWindow()
         {
-            var window =GetWindow(typeof(PlayerSettingsWindow), true, "Play Instant Player Settings");
+            var window = GetWindow(typeof(PlayerSettingsWindow), true, "Play Instant Player Settings");
             window.minSize = new Vector2(WindowMinWidth, WindowMinHeight);
         }
 
