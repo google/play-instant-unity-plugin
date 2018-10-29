@@ -138,7 +138,9 @@ namespace GooglePlayInstant.Editor.QuickDeploy
             }
 
             var relativePath = absolutePath.Remove(0, parentPath.Length + 1);
-            return Path.Combine(lastSharedDirectoryName, relativePath);
+
+            // Combine paths manually because Path.Combine will use backslashes on windows.
+            return string.Format("{0}/{1}", lastSharedDirectoryName, relativePath);
         }
     }
 }

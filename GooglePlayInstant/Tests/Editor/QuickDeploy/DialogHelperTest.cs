@@ -43,7 +43,7 @@ namespace GooglePlayInstant.Tests.Editor.QuickDeploy
         public void TestAbsoluteToRelativePath_EqualPaths()
         {
             var assetsPath = "C:/Documents/Project/Assets/";
-            Assert.AreEqual("Assets", DialogHelper.AbsoluteToRelativePath(assetsPath, assetsPath));
+            Assert.AreEqual("Assets/", DialogHelper.AbsoluteToRelativePath(assetsPath, assetsPath));
         }
 
         [Test]
