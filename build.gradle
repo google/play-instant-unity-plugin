@@ -48,13 +48,19 @@ project.ext {
 def copyFiles(def projectPath, def exclusions) {
     description 'Copies files into specified build staging location except for noted exclusions'
     copy {
-        from 'LICENSE', 'README.md', 'CONTRIBUTING.md'
+        from 'LICENSE', 'LICENSE.meta'
+        from 'README.md', 'README.md.meta'
+        from 'CONTRIBUTING.md', 'CONTRIBUTING.md.meta'
         from('GooglePlayInstant')
         {
             exclude 'Samples'
         }
         into "${projectPath}/Assets/GooglePlayInstant"
         exclude exclusions
+    }
+    copy {
+        from 'GooglePlayInstant.meta'
+        into "${projectPath}/Assets"
     }
 }
 
