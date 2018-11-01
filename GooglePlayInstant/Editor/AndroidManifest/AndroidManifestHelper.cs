@@ -97,6 +97,30 @@ namespace GooglePlayInstant.Editor.AndroidManifest
                         )))));
         }
 
+        public static XDocument CreateFeatureModule(string packageName, string featureName)
+        {
+            return new XDocument(new XElement(
+                Manifest,
+                new XAttribute(AndroidXmlns, XNamespace.Get(AndroidNamespaceUrl)),
+                new XAttribute(DistributionXmlns, XNamespace.Get(DistributionNamespaceUrl)),
+                new XAttribute("package", packageName),
+                new XAttribute("split", featureName),
+                new XAttribute(XName.Get("isFeatureSplit", AndroidNamespaceUrl), true),
+                new XAttribute(AndroidTargetSandboxVersionXName, "2"),
+                new XElement(DistributionModuleXName,
+                    // TODO: possible to have onDemand as true while instant? does it matter?
+                    new XAttribute(DistributionInstantXName, true),
+                    new XAttribute(XName.Get("onDemand", DistributionNamespaceUrl), false),
+                    new XAttribute(XName.Get("title", DistributionNamespaceUrl), "Assets"),
+                    new XElement(XName.Get("fusing", DistributionNamespaceUrl),
+                        new XAttribute(XName.Get("include", DistributionNamespaceUrl), false))),
+                // TODO: is this the more "modern" way to do it?
+//                new XElement(DistributionModuleXName, new XAttribute(DistributionInstantXName, true),
+//                    new XElement(XName.Get("delivery", DistributionNamespaceUrl),
+//                        new XElement(XName.Get("on-demand", DistributionNamespaceUrl)))),
+                new XElement(Application, new XAttribute(XName.Get("hasCode", AndroidNamespaceUrl), false))));
+        }
+
         /// <summary>
         /// Returns true if the specified XDocument representing an AndroidManifest has the correct plugin version.
         /// </summary>

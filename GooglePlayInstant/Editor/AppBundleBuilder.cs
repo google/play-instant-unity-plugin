@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.IO;
+using GooglePlayInstant.Editor.AndroidManifest;
+using GooglePlayInstant.Editor.GooglePlayServices;
+using GooglePlayInstant.Editor.QuickDeploy;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,7 +28,8 @@ namespace GooglePlayInstant.Editor
     public static class AppBundleBuilder
     {
         private const string BaseModuleZipFileName = "base.zip";
-
+        private const string FeatureModuleName = "feature";
+        private const string FeatureModuleZipFileName = FeatureModuleName + ".zip";
 
         /// <summary>
         /// Build an app bundle at the specified path, overwriting an existing file if one exists.
@@ -43,20 +48,22 @@ namespace GooglePlayInstant.Editor
                 return false;
             }
 
+            var workingDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "play-instant-unity"));
+            if (workingDirectory.Exists)
+            {
+                workingDirectory.Delete(true);
+            }
+
+            workingDirectory.Create();
+            var sourceDirectoryInfo = workingDirectory.CreateSubdirectory("source");
+            var destinationDirectoryInfo = workingDirectory.CreateSubdirectory("destination");
+
+            var featureModuleZip = GetFeatureModuleZip(workingDirectory);
+
             // TODO: currently all processing is synchronous; consider moving to a separate thread
             try
             {
                 DisplayProgress("Running aapt2", 0.2f);
-                var workingDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "play-instant-unity"));
-                if (workingDirectory.Exists)
-                {
-                    workingDirectory.Delete(true);
-                }
-
-                workingDirectory.Create();
-                var sourceDirectoryInfo = workingDirectory.CreateSubdirectory("source");
-                var destinationDirectoryInfo = workingDirectory.CreateSubdirectory("destination");
-
                 var protoFormatFileName = Path.GetRandomFileName();
                 var protoFormatFilePath = Path.Combine(sourceDirectoryInfo.FullName, protoFormatFileName);
                 var aaptResult = AndroidAssetPackagingTool.Convert(binaryFormatFilePath, protoFormatFilePath);
@@ -90,7 +97,9 @@ namespace GooglePlayInstant.Editor
                 File.Delete(aabFilePath);
 
                 DisplayProgress("Running bundletool", 0.6f);
-                var buildBundleResult = Bundletool.BuildBundle(baseModuleZip, aabFilePath);
+                var modules =
+                    featureModuleZip == null ? new[] {baseModuleZip} : new[] {baseModuleZip, featureModuleZip};
+                var buildBundleResult = Bundletool.BuildBundle(modules, aabFilePath);
                 if (buildBundleResult != null)
                 {
                     DisplayBuildError("bundletool", buildBundleResult);
@@ -114,6 +123,77 @@ namespace GooglePlayInstant.Editor
             }
 
             return true;
+        }
+
+        private static string GetFeatureModuleZip(DirectoryInfo workingDirectory)
+        {
+            var featureDirectoryInfo = workingDirectory.CreateSubdirectory("feature");
+            var assetsDirectoryPath = featureDirectoryInfo.CreateSubdirectory("assets").FullName;
+
+//            var config = new QuickDeployConfig();
+//            config.LoadConfiguration();
+//            // TODO: check scene enabled
+//            if (config.AssetBundleScenes.ScenePaths.Length == 0)
+//            {
+//                return null;
+//            }
+
+//            var assetBundleBuild = new AssetBundleBuild
+//            {
+//                assetBundleName = "feature",
+//                assetNames = config.AssetBundleScenes.ScenePaths
+//            };
+//
+//            var builtAssetBundleManifest = BuildPipeline.BuildAssetBundles(
+//                buildDirectory.FullName, new[] {assetBundleBuild}, BuildAssetBundleOptions.None, BuildTarget.Android);
+//            if (builtAssetBundleManifest == null)
+//            {
+//                DisplayBuildError("Asset bundle creation", "TODO");
+//                return null;
+//            }
+
+            // TODO: replace temp file with asset bundle
+            File.WriteAllText(Path.Combine(assetsDirectoryPath, "file.txt"), "Hello!");
+
+            var sourceDirectoryInfo = featureDirectoryInfo.CreateSubdirectory("source");
+            var destinationDirectoryInfo = featureDirectoryInfo.CreateSubdirectory("destination");
+
+            var manifestFileName = Path.Combine(featureDirectoryInfo.FullName, "AndroidManifest.xml");
+            var manifestXmlDocument =
+                AndroidManifestHelper.CreateFeatureModule(PlayerSettings.applicationIdentifier, FeatureModuleName);
+            manifestXmlDocument.Save(manifestFileName);
+
+            // TODO: pick the platform instead of hardcoding
+            var androidJarPath = Path.Combine(AndroidSdkManager.AndroidSdkRoot, "platforms/android-27/android.jar");
+            var protoFormatFileName = Path.GetRandomFileName();
+            var protoFormatFilePath = Path.Combine(sourceDirectoryInfo.FullName, protoFormatFileName);
+            var aaptResult = AndroidAssetPackagingTool.Link(
+                manifestFileName, androidJarPath, assetsDirectoryPath, protoFormatFilePath);
+            if (aaptResult != null)
+            {
+                DisplayBuildError("aapt2 X", aaptResult);
+                throw new Exception();
+            }
+
+            var unzipFileResult = ZipUtils.UnzipFile(protoFormatFileName, sourceDirectoryInfo.FullName);
+            if (unzipFileResult != null)
+            {
+                DisplayBuildError("Unzip X", unzipFileResult);
+                throw new Exception();
+            }
+
+            File.Delete(protoFormatFilePath);
+
+            ArrangeFiles(sourceDirectoryInfo, destinationDirectoryInfo);
+            var featureModuleZip = Path.Combine(workingDirectory.FullName, FeatureModuleZipFileName);
+            var zipFileResult = ZipUtils.CreateZipFile(featureModuleZip, destinationDirectoryInfo.FullName, ".");
+            if (zipFileResult != null)
+            {
+                DisplayBuildError("Zip creation X", zipFileResult);
+                throw new Exception();
+            }
+
+            return featureModuleZip;
         }
 
         /// <summary>

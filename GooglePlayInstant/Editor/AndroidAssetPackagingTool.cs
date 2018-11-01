@@ -14,6 +14,7 @@
 
 using System.IO;
 using GooglePlayInstant.Editor.GooglePlayServices;
+using UnityEditor;
 
 namespace GooglePlayInstant.Editor
 {
@@ -75,6 +76,21 @@ namespace GooglePlayInstant.Editor
                 "convert -o {0} --output-format proto {1}",
                 CommandLine.QuotePath(outputPath),
                 CommandLine.QuotePath(inputPath));
+            var result = CommandLine.Run(GetAapt2Path(), arguments);
+            return result.exitCode == 0 ? null : result.message;
+        }
+
+        public static string Link(string manifestPath, string androidJarPath, string assetsPath, string outputPath)
+        {
+            var arguments = string.Format(
+                "link --proto-format --manifest {0} --min-sdk-version {1} --version-code {2} --version-name {3}  -I {4} -A {5} -o {6}",
+                CommandLine.QuotePath(manifestPath),
+                (int) PlayerSettings.Android.minSdkVersion,
+                PlayerSettings.Android.bundleVersionCode,
+                PlayerSettings.bundleVersion,
+                CommandLine.QuotePath(androidJarPath),
+                CommandLine.QuotePath(assetsPath),
+                CommandLine.QuotePath(outputPath));
             var result = CommandLine.Run(GetAapt2Path(), arguments);
             return result.exitCode == 0 ? null : result.message;
         }

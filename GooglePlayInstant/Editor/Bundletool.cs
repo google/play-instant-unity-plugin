@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.IO;
+using System.Linq;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class Bundletool
     {
-        public const string BundletoolVersion = "0.6.0";
+        public const string BundletoolVersion = "0.6.1";
 
         /// <summary>
         /// BundleTool config optimized for Unity-based instant apps.
@@ -88,16 +89,17 @@ namespace GooglePlayInstant.Editor
         /// Builds an Android App Bundle at the specified location containing the specified base module.
         /// </summary>
         /// <returns>An error message if there was a problem running bundletool, or null if successful.</returns>
-        public static string BuildBundle(string baseModuleZip, string outputFile)
+        public static string BuildBundle(string[] modules, string outputFile)
         {
             var bundleConfigJsonFile = Path.Combine(Path.GetTempPath(), "BundleConfig.json");
             File.WriteAllText(bundleConfigJsonFile, BundleConfigJsonText);
 
+            // TODO: quote path on modules
             var arguments = string.Format(
                 "-jar {0} build-bundle --config={1} --modules={2} --output={3}",
                 CommandLine.QuotePath(GetBundletoolJarPath()),
                 CommandLine.QuotePath(bundleConfigJsonFile),
-                CommandLine.QuotePath(baseModuleZip),
+                string.Join(",", modules),
                 CommandLine.QuotePath(outputFile));
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments);
             return result.exitCode == 0 ? null : result.message;
