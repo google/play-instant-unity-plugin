@@ -16,15 +16,20 @@
 
 namespace GooglePlayInstant.Editor.GooglePlayServices
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading;
-    using System;
 
     public static class CommandLine
     {
+        // Constants used for StreamData's handle field.
+        public const int StandardOutputStreamDataHandle = 0;
+        public const int StandardErrorStreamDataHandle = 1;
+
         /// <summary>
         /// Result from Run().
         /// </summary>
@@ -526,11 +531,26 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
                 Dictionary<string, string> envVars = null,
                 IOHandler ioHandler = null, bool useShellExecution = false,
                 bool stdoutRedirectionInShellMode = true) {
-            System.Text.Encoding inputEncoding = Console.InputEncoding;
-            System.Text.Encoding outputEncoding = Console.OutputEncoding;
-            Console.InputEncoding = System.Text.Encoding.UTF8;
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            var inputEncoding = Console.InputEncoding;
+            var outputEncoding = Console.OutputEncoding;
+            // Set encoderShouldEmitUTF8Identifier to false to prevent writing a Byte Order Marker (BOM).
+            Console.InputEncoding = new UTF8Encoding(false);
+            Console.OutputEncoding = new UTF8Encoding(false);
+            try
+            {
+                return RunViaShellInternal(toolPath, arguments, workingDirectory, envVars,
+                    ioHandler, useShellExecution, stdoutRedirectionInShellMode);
+            }
+            finally
+            {
+                Console.InputEncoding = inputEncoding;
+                Console.OutputEncoding = outputEncoding;
+            }
+        }
 
+        private static Result RunViaShellInternal(
+            string toolPath, string arguments, string workingDirectory, Dictionary<string, string> envVars,
+            IOHandler ioHandler, bool useShellExecution, bool stdoutRedirectionInShellMode) {
             // Mono 3.x on Windows can't execute tools with single quotes (apostrophes) in the path.
             // The following checks for this condition and forces shell execution of tools in these
             // paths which works fine as the shell tool should be in the system PATH.
@@ -591,7 +611,6 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
                 UnityEngine.Debug.LogErrorFormat("Failed to start {0}", process);
                 return new Result {exitCode = -1};
             }
-            UnityEngine.Debug.LogFormat("Started command with PID {0}", process.Id);
 
             // If an I/O handler was specified, call it with no data to provide a process and stdin
             // handle before output data is sent to it.
@@ -629,13 +648,11 @@ namespace GooglePlayInstant.Editor.GooglePlayServices
             }
 
             Result result = new Result();
-            result.stdout = String.Join("", stdouterr[0].ToArray());
-            result.stderr = String.Join("", stdouterr[1].ToArray());
+            result.stdout = String.Join("", stdouterr[StandardOutputStreamDataHandle].ToArray());
+            result.stderr = String.Join("", stdouterr[StandardErrorStreamDataHandle].ToArray());
             result.exitCode = process.ExitCode;
             result.message = FormatResultMessage(toolPath, arguments, result.stdout,
                                                  result.stderr, result.exitCode);
-            Console.InputEncoding = inputEncoding;
-            Console.OutputEncoding = outputEncoding;
             return result;
         }
 
