@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
 using UnityEngine;
@@ -141,7 +142,7 @@ namespace GooglePlayInstant.Editor
                 // Example keystore password prompt: "Keystore password for signer #1: "
                 {"Keystore password for signer", keystorePass},
                 // Example keyalias password prompt: "Key \"androiddebugkey\" password for signer #1: "
-                {"password for signer", keyaliasPass}
+                {"Key .+ password for signer", keyaliasPass}
             };
             var responder = new ApkSignerResponder(promptToPasswordDictionary);
             var result = CommandLine.Run(JavaUtilities.JavaBinaryPath, arguments, ioHandler: responder.AggregateLine);
@@ -174,11 +175,13 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         private class ApkSignerResponder : CommandLine.LineReader
         {
-            private readonly Dictionary<string, string> _promptToPasswordDictionary;
+            private readonly Dictionary<Regex, string> _promptToPasswordDictionary;
 
             public ApkSignerResponder(Dictionary<string, string> promptToPasswordDictionary)
             {
-                _promptToPasswordDictionary = promptToPasswordDictionary;
+                _promptToPasswordDictionary =
+                    promptToPasswordDictionary.ToDictionary(
+                        kvp => new Regex(kvp.Key, RegexOptions.Compiled), kvp => kvp.Value);
                 LineHandler += CheckAndRespond;
             }
 
@@ -190,10 +193,10 @@ namespace GooglePlayInstant.Editor
                 }
 
                 // The password prompt text won't have a trailing newline, so read ahead on stdout to locate it.
-                var stdoutData = GetBufferedData(0);
+                var stdoutData = GetBufferedData(CommandLine.StandardOutputStreamDataHandle);
                 var stdoutText = Aggregate(stdoutData).text;
                 var password = _promptToPasswordDictionary
-                    .Where(kvp => stdoutText.Contains(kvp.Key))
+                    .Where(kvp => kvp.Key.IsMatch(stdoutText))
                     .Select(kvp => kvp.Value)
                     .FirstOrDefault();
                 if (password == null)
@@ -203,11 +206,8 @@ namespace GooglePlayInstant.Editor
 
                 Flush();
                 // UTF8 to match "--pass-encoding utf-8" argument passed to apksigner.
-                foreach (var value in Encoding.UTF8.GetBytes(password + Environment.NewLine))
-                {
-                    stdin.BaseStream.WriteByte(value);
-                }
-
+                var passwordBytes = Encoding.UTF8.GetBytes(password + Environment.NewLine);
+                stdin.BaseStream.Write(passwordBytes, 0, passwordBytes.Length);
                 stdin.BaseStream.Flush();
             }
         }

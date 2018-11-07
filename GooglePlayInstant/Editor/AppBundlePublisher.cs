@@ -76,7 +76,7 @@ namespace GooglePlayInstant.Editor
 #else
             buildResult = AppBundleBuilder.Build(aabFilePath);
 #endif
-            if (!buildResult)
+            if (buildResult)
             {
                 // Do not log in case of failure. The method we called was responsible for logging.
                 Debug.LogFormat("Finished building app bundle: {0}", aabFilePath);
