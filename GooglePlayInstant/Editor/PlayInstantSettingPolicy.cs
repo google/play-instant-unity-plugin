@@ -28,6 +28,8 @@ namespace GooglePlayInstant.Editor
         private const string MultithreadedRenderingDescription =
             "Pre-Oreo devices do not support instant apps using EGL shared contexts.";
 
+        private const string ApkSizeReductionDescription = "This setting reduces APK size.";
+
         public delegate bool IsCorrectStateDelegate();
 
         public delegate bool ChangeStateDelegate();
@@ -151,7 +153,7 @@ namespace GooglePlayInstant.Editor
 
                 new PlayInstantSettingPolicy(
                     ".NET API Compatibility Level should be \".NET 2.0 Subset\"",
-                    "This setting reduces APK size.",
+                    ApkSizeReductionDescription,
                     () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
                           ApiCompatibilityLevel.NET_2_0_Subset,
                     () =>
@@ -178,28 +180,33 @@ namespace GooglePlayInstant.Editor
                         }));
 
                     break;
-
+#if !UNITY_2018_3_OR_NEWER
                 case ScriptingImplementation.Mono2x:
                     policies.Add(new PlayInstantSettingPolicy(
                         "Mono builds should use code stripping",
-                        "This setting reduces APK size.",
-#if UNITY_2018_3_OR_NEWER
-                        () => PlayerSettings.GetManagedStrippingLevel(BuildTargetGroup.Android) ==
-                              ManagedStrippingLevel.Normal,
-                        () =>
-                        {
-                            PlayerSettings.SetManagedStrippingLevel(
-                                BuildTargetGroup.Android, ManagedStrippingLevel.Normal);
-#else
+                        ApkSizeReductionDescription,
                         () => PlayerSettings.strippingLevel == StrippingLevel.UseMicroMSCorlib,
                         () =>
                         {
                             PlayerSettings.strippingLevel = StrippingLevel.UseMicroMSCorlib;
-#endif
                             return true;
                         }));
                     break;
+#endif
             }
+
+#if UNITY_2018_3_OR_NEWER
+            policies.Add(new PlayInstantSettingPolicy(
+                "Release builds should use managed code stripping",
+                ApkSizeReductionDescription,
+                // Note: in some alpha/beta builds of 2018.3 ManagedStrippingLevel.High isn't defined (use "Normal").
+                () => PlayerSettings.GetManagedStrippingLevel(BuildTargetGroup.Android) == ManagedStrippingLevel.High,
+                () =>
+                {
+                    PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.Android, ManagedStrippingLevel.High);
+                    return true;
+                }));
+#endif
 
             return policies;
         }
