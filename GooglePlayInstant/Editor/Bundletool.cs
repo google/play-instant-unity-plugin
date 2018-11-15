@@ -32,10 +32,14 @@ namespace GooglePlayInstant.Editor
         ///  - Split on ABI so only one set of native libraries (armeabi-v7a, arm64-v8a, or x86) is sent to a device.
         ///  - Do not split on LANGUAGE since Unity games don't store localized strings in the typical Android manner.
         ///  - Do not split on SCREEN_DENSITY since Unity games don't have per-density resources other than app icons.
-        /// UncompressNativeLibraries: Instant apps have smaller over-the-wire and on-disk size with this enabled.
-        /// TODO: Consider fully uncompressed, i.e. ""compression"": { ""uncompressedGlob"": [""**/*""] }
+        /// UncompressNativeLibraries: Instant app APK download size is smaller when native libraries are uncompressed.
+        /// This option sets android:extractNativeLibs="false" in the manifest, which also reduces on-disk size on
+        /// Android 8.0+. However, apps built with older Unity versions will crash on Android 8.0+ devices when
+        /// android:extractNativeLibs="false", so we instead mark the "lib" folder as uncompressed to get a download
+        /// size reduction at the expense of slightly increased on-disk size.
         /// </summary>
-        private const string BundleConfigJsonText = @"
+        private const string BundleConfigJsonText =
+            @"
 {
   ""optimizations"": {
         ""splitsConfig"": {
@@ -53,10 +57,19 @@ namespace GooglePlayInstant.Editor
                     ""negate"": true
                 }
             ]
-        },
+        }," +
+#if UNITY_2017_2_OR_NEWER
+            @"
         ""uncompressNativeLibraries"": { ""enabled"": true }
     }
 }";
+#else
+            @"
+        ""uncompressNativeLibraries"": { ""enabled"": false }
+    },
+    ""compression"": { ""uncompressedGlob"": [ ""lib/**"" ] }
+}";
+#endif
 
         /// <summary>
         /// Returns the path to the bundletool jar within the project's Library directory.
