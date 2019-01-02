@@ -20,9 +20,9 @@ namespace GooglePlayInstant.Editor
     /// <summary>
     /// A CommandLineDialog that waits to run the specified command until after an AppDomain reset.
     ///
-    /// Several seconds after a call to BuildPlayer finishes, Unity reloads all Editor scripts and resets the
-    /// AppDomain, causing any running threads to be aborted. This EditorWindow waits to run the specified
-    /// command until after the AppDomain is reset.
+    /// On Unity versions older than 2018.3, Several seconds after a call to BuildPlayer finishes, Unity reloads all
+    /// Editor scripts and resets the AppDomain, causing any running threads to be aborted. This EditorWindow waits to
+    /// run the specified command until after the AppDomain is reset.
     /// </summary>
     public class PostBuildCommandLineDialog : CommandLineDialog
     {
@@ -42,23 +42,37 @@ namespace GooglePlayInstant.Editor
 
         protected override void Update()
         {
+#if UNITY_2018_3_OR_NEWER
+            // On newer versions of Unity, the AppDomain does not reset after building.
+            // In this case, we run the command when the window is first shown.
+            if (!_nonserializedField)
+            {
+                _nonserializedField = true;
+                RunCommandAsync();
+            }
+#else
+            PollForAppDomainReset();
+#endif
+            base.Update();
+        }
+
+        private void PollForAppDomainReset()
+        {
             // This block is entered twice: when the window is initially shown and later after the AppDomain is reset.
             if (!_nonserializedField)
             {
                 _nonserializedField = true;
                 if (_serializedField)
                 {
-                    Debug.Log("The AppDomain has been reset");
+                    Debug.Log("Scripts have been reloaded.");
                     RunCommandAsync();
                 }
                 else
                 {
-                    Debug.Log("Waiting for the AppDomain reset...");
+                    Debug.Log("Waiting for scripts to reload...");
                     _serializedField = true;
                 }
             }
-
-            base.Update();
         }
 
         private void RunCommandAsync()

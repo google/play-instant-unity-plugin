@@ -73,7 +73,7 @@ namespace GooglePlayInstant.Editor
             var window = PostBuildCommandLineDialog.CreateDialog("Install and run app");
             window.modal = false;
             window.summaryText = "Installing app on device";
-            window.bodyText = "The APK built successfully. Waiting for scripts to reload...\n";
+            window.bodyText = "The APK built successfully.\n\n";
             window.autoScrollToBottom = true;
             window.CommandLineParams = new CommandLineParameters
             {
