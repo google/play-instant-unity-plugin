@@ -64,12 +64,13 @@ namespace GooglePlayInstant.Editor
                 _nonserializedField = true;
                 if (_serializedField)
                 {
-                    Debug.Log("Scripts have been reloaded.");
+                    Debug.Log("The AppDomain has been reset.");
                     RunCommandAsync();
                 }
                 else
                 {
-                    Debug.Log("Waiting for scripts to reload...");
+                    bodyText += "Waiting for scripts to reload...\n\n";
+                    Debug.Log("Waiting for the AppDomain reset...");
                     _serializedField = true;
                 }
             }
