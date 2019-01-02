@@ -149,20 +149,38 @@ namespace GooglePlayInstant.Editor
                     {
                         PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
                         return true;
-                    }),
-
-                new PlayInstantSettingPolicy(
-                    ".NET API Compatibility Level should be \".NET 2.0 Subset\"",
-                    ApkSizeReductionDescription,
-                    () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
-                          ApiCompatibilityLevel.NET_2_0_Subset,
-                    () =>
-                    {
-                        PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
-                            ApiCompatibilityLevel.NET_2_0_Subset);
-                        return true;
                     })
             };
+
+#if NET_2_0 || NET_2_0_SUBSET
+            // https://docs.unity3d.com/Manual/dotnetProfileSupport.html
+            policies.Add(new PlayInstantSettingPolicy(
+                "API Compatibility Level should be \".NET 2.0 Subset\"",
+                ApkSizeReductionDescription,
+                () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
+                      ApiCompatibilityLevel.NET_2_0_Subset,
+                () =>
+                {
+                    PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
+                        ApiCompatibilityLevel.NET_2_0_Subset);
+                    return true;
+                }));
+#endif
+
+#if UNITY_2018_1_OR_NEWER && (NET_4_6 || NET_STANDARD_2_0)
+            // https://blogs.unity3d.com/2018/03/28/updated-scripting-runtime-in-unity-2018-1-what-does-the-future-hold/
+            policies.Add(new PlayInstantSettingPolicy(
+                "API Compatibility Level should be \".NET Standard 2.0\"",
+                ApkSizeReductionDescription,
+                () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
+                      ApiCompatibilityLevel.NET_Standard_2_0,
+                () =>
+                {
+                    PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
+                        ApiCompatibilityLevel.NET_Standard_2_0);
+                    return true;
+                }));
+#endif
 
             switch (PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android))
             {
