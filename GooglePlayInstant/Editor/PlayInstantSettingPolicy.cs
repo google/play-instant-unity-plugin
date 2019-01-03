@@ -149,20 +149,43 @@ namespace GooglePlayInstant.Editor
                     {
                         PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel21;
                         return true;
-                    }),
-
-                new PlayInstantSettingPolicy(
-                    ".NET API Compatibility Level should be \".NET 2.0 Subset\"",
-                    ApkSizeReductionDescription,
-                    () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
-                          ApiCompatibilityLevel.NET_2_0_Subset,
-                    () =>
-                    {
-                        PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
-                            ApiCompatibilityLevel.NET_2_0_Subset);
-                        return true;
                     })
             };
+
+            // For the purpose of switching to .NET 2.0 Subset, it's sufficient to check #if NET_2_0. However, it would
+            // be confusing if the option disappeared after clicking the Update button, so we also check NET_2_0_SUBSET.
+            // For background on size reduction benefits see https://docs.unity3d.com/Manual/dotnetProfileSupport.html
+#if NET_2_0 || NET_2_0_SUBSET
+            policies.Add(new PlayInstantSettingPolicy(
+                "API Compatibility Level should be \".NET 2.0 Subset\"",
+                ApkSizeReductionDescription,
+                () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
+                      ApiCompatibilityLevel.NET_2_0_Subset,
+                () =>
+                {
+                    PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
+                        ApiCompatibilityLevel.NET_2_0_Subset);
+                    return true;
+                }));
+#endif
+
+            // Unity 2017.1 added experimental support for .NET 4.6, however .NET Standard 2.0 is unavailable.
+            // Therefore, we only provide this policy option starting with Unity 2018.1.
+            // Our #if check includes NET_STANDARD_2_0 for the reason we check NET_2_0_SUBSET above.
+            // https://blogs.unity3d.com/2018/03/28/updated-scripting-runtime-in-unity-2018-1-what-does-the-future-hold/
+#if UNITY_2018_1_OR_NEWER && (NET_4_6 || NET_STANDARD_2_0)
+            policies.Add(new PlayInstantSettingPolicy(
+                "API Compatibility Level should be \".NET Standard 2.0\"",
+                ApkSizeReductionDescription,
+                () => PlayerSettings.GetApiCompatibilityLevel(BuildTargetGroup.Android) ==
+                      ApiCompatibilityLevel.NET_Standard_2_0,
+                () =>
+                {
+                    PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android,
+                        ApiCompatibilityLevel.NET_Standard_2_0);
+                    return true;
+                }));
+#endif
 
             switch (PlayerSettings.GetScriptingBackend(BuildTargetGroup.Android))
             {
