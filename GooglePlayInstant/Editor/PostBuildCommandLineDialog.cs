@@ -18,11 +18,12 @@ using UnityEngine;
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
-    /// A CommandLineDialog that waits to run the specified command until after an AppDomain reset.
+    /// A CommandLineDialog that potentially waits to run the specified command until after an AppDomain reset.
     ///
-    /// On Unity versions older than 2018.3, Several seconds after a call to BuildPlayer finishes, Unity reloads all
-    /// Editor scripts and resets the AppDomain, causing any running threads to be aborted. This EditorWindow waits to
-    /// run the specified command until after the AppDomain is reset.
+    /// Unity versions prior to 2018.3 reload all Editor scripts a few seconds after a call to BuildPlayer finishes.
+    /// This reload also resets the AppDomain and aborts any actively running threads, including any threads managing a
+    /// child process. This EditorWindow therefore waits to run the specified command until after the AppDomain is
+    /// reset.
     /// </summary>
     public class PostBuildCommandLineDialog : CommandLineDialog
     {
@@ -43,8 +44,9 @@ namespace GooglePlayInstant.Editor
         protected override void Update()
         {
 #if UNITY_2018_3_OR_NEWER
-            // On newer versions of Unity, the AppDomain does not reset after building.
-            // In this case, we run the command when the window is first shown.
+            // Starting with Unity 2018.3 the AppDomain is not reset after building an APK.
+            // In this case we run the command when the window is first shown.
+            // Note: some beta versions of 2018.3 reset the AppDomain as in earlier versions of Unity.
             if (!_nonserializedField)
             {
                 _nonserializedField = true;
