@@ -83,7 +83,7 @@ namespace GooglePlayInstant.Editor
                 }
 
                 // Download succeeded.
-                var bundletoolJarPath = Bundletool.GetBundletoolJarPath();
+                var bundletoolJarPath = Bundletool.BundletoolJarPath;
                 GooglePlayInstantUtils.FinishFileDownload(_downloadRequest, bundletoolJarPath);
                 _downloadRequest.Dispose();
                 _downloadRequest = null;
@@ -123,11 +123,9 @@ namespace GooglePlayInstant.Editor
         private void StartDownload()
         {
             Debug.Log("Downloading bundletool...");
-            var bundletoolUri = string.Format(
-                "https://github.com/google/bundletool/releases/download/{0}/bundletool-all-{0}.jar",
-                Bundletool.BundletoolVersion);
             _downloadRequest =
-                GooglePlayInstantUtils.StartFileDownload(bundletoolUri, Bundletool.GetBundletoolJarPath());
+                GooglePlayInstantUtils.StartFileDownload(
+                    Bundletool.BundletoolDownloadUrl, Bundletool.BundletoolJarPath);
         }
 
         /// <summary>

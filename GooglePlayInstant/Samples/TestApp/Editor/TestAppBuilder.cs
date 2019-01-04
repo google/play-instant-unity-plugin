@@ -13,8 +13,11 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using GooglePlayInstant.Editor;
+using GooglePlayInstant.Editor.GooglePlayServices;
 using UnityEditor;
+using UnityEngine;
 
 namespace GooglePlayInstant.Samples.TestApp.Editor
 {
@@ -42,10 +45,34 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
             }
 
             // Also Build an AAB to test Android App Bundle build.
+            DownloadBundletoolIfNecessary();
             var aabPath = apkPath.Substring(0, apkPath.Length - 3) + "aab";
             if (!AppBundlePublisher.Build(aabPath))
             {
                 throw new Exception("AAB build failed");
+            }
+        }
+
+        private static void DownloadBundletoolIfNecessary()
+        {
+            var bundletoolJarPath = Bundletool.BundletoolJarPath;
+            if (File.Exists(bundletoolJarPath))
+            {
+                Debug.LogFormat("Found existing bundletool: {0}", bundletoolJarPath);
+                return;
+            }
+
+            var arguments =
+                string.Format(
+                    "{0} -O {1}", Bundletool.BundletoolDownloadUrl, CommandLine.QuotePath(bundletoolJarPath));
+            var result = CommandLine.Run("wget", arguments);
+            if (result.exitCode == 0)
+            {
+                Debug.LogFormat("Downloaded bundletool: {0}", bundletoolJarPath);
+            }
+            else
+            {
+                throw new Exception("Failed to download bundletool: " + result.message);
             }
         }
     }
