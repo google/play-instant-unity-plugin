@@ -55,7 +55,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 
         private static void DownloadBundletoolIfNecessary()
         {
-            var bundletoolJarPath = Bundletool.GetBundletoolJarPath();
+            var bundletoolJarPath = Bundletool.BundletoolJarPath;
             if (File.Exists(bundletoolJarPath))
             {
                 Debug.LogFormat("Found existing bundletool: {0}", bundletoolJarPath);
@@ -64,7 +64,7 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 
             var arguments =
                 string.Format(
-                    "{0} -O {1}", Bundletool.GetBundletoolDownloadUrl(), CommandLine.QuotePath(bundletoolJarPath));
+                    "{0} -O {1}", Bundletool.BundletoolDownloadUrl, CommandLine.QuotePath(bundletoolJarPath));
             var result = CommandLine.Run("wget", arguments);
             if (result.exitCode == 0)
             {

@@ -72,21 +72,28 @@ namespace GooglePlayInstant.Editor
 #endif
 
         /// <summary>
-        /// Returns the path to the bundletool jar within the project's Library directory.
+        /// The path to the bundletool jar within the project's Library directory.
         /// </summary>
-        public static string GetBundletoolJarPath()
+        public static string BundletoolJarPath
         {
-            var library = Directory.CreateDirectory("Library");
-            return Path.Combine(library.FullName, string.Format("bundletool-all-{0}.jar", BundletoolVersion));
+            get
+            {
+                var library = Directory.CreateDirectory("Library");
+                return Path.Combine(library.FullName, string.Format("bundletool-all-{0}.jar", BundletoolVersion));
+            }
         }
 
         /// <summary>
-        /// Returns the URL used to download the bundletool jar.
+        /// The URL used to download the bundletool jar.
         /// </summary>
-        public static string GetBundletoolDownloadUrl()
+        public static string BundletoolDownloadUrl
         {
-            return string.Format(
-                "https://github.com/google/bundletool/releases/download/{0}/bundletool-all-{0}.jar", BundletoolVersion);
+            get
+            {
+                return string.Format(
+                    "https://github.com/google/bundletool/releases/download/{0}/bundletool-all-{0}.jar",
+                    BundletoolVersion);
+            }
         }
 
         /// <summary>
@@ -95,7 +102,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static bool CheckBundletool()
         {
-            var bundletoolJarPath = GetBundletoolJarPath();
+            var bundletoolJarPath = BundletoolJarPath;
             if (File.Exists(bundletoolJarPath))
             {
                 return true;
@@ -117,7 +124,7 @@ namespace GooglePlayInstant.Editor
 
             var arguments = string.Format(
                 "-jar {0} build-bundle --config={1} --modules={2} --output={3}",
-                CommandLine.QuotePath(GetBundletoolJarPath()),
+                CommandLine.QuotePath(BundletoolJarPath),
                 CommandLine.QuotePath(bundleConfigJsonFile),
                 CommandLine.QuotePath(baseModuleZip),
                 CommandLine.QuotePath(outputFile));
