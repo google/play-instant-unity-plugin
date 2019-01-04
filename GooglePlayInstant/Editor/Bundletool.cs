@@ -23,7 +23,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class Bundletool
     {
-        public const string BundletoolVersion = "0.6.0";
+        public const string BundletoolVersion = "0.7.2";
 
         /// <summary>
         /// BundleTool config optimized for Unity-based instant apps.
@@ -78,6 +78,15 @@ namespace GooglePlayInstant.Editor
         {
             var library = Directory.CreateDirectory("Library");
             return Path.Combine(library.FullName, string.Format("bundletool-all-{0}.jar", BundletoolVersion));
+        }
+
+        /// <summary>
+        /// Returns the URL used to download the bundletool jar.
+        /// </summary>
+        public static string GetBundletoolDownloadUrl()
+        {
+            return string.Format(
+                "https://github.com/google/bundletool/releases/download/{0}/bundletool-all-{0}.jar", BundletoolVersion);
         }
 
         /// <summary>
