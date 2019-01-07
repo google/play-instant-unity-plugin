@@ -114,10 +114,12 @@ namespace GooglePlayInstant.Editor
                 _instantUrl = GetLabelAndTextField("Instant Apps URL (Optional)", _instantUrl);
 
                 var packageName = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) ?? "package-name";
-                EditorGUILayout.LabelField(string.Format(
+                EditorGUILayout.LabelField(
                     "Instant apps are launched from web search, advertisements, etc via a URL. Specify the URL here " +
                     "and configure Digital Asset Links. Or, leave the URL blank and one will automatically be " +
-                    "provided at https://{0}/{1}", InstantAppsHostName, packageName), descriptionTextStyle);
+                    "provided at:", descriptionTextStyle);
+                EditorGUILayout.SelectableLabel(string.Format(
+                    "https://{0}/{1}", InstantAppsHostName, packageName), descriptionTextStyle);
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
 
