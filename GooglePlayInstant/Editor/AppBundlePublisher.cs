@@ -15,6 +15,13 @@
 using UnityEditor;
 using UnityEngine;
 
+// In the Unity 2017 series the EditorUserBuildSettings.buildAppBundle field was introduced in 2017.4.17.
+// It might seem preferable to modify buildAppBundle using reflection, but the field is extern.
+// Instead check for quite a few versions in the 2017.4.17+ series.
+#if UNITY_2018_3_OR_NEWER || UNITY_2017_4_17 || UNITY_2017_4_18 || UNITY_2017_4_19 || UNITY_2017_4_20 || UNITY_2017_4_21 || UNITY_2017_4_22 || UNITY_2017_4_23 || UNITY_2017_4_24 || UNITY_2017_4_25 || UNITY_2017_4_26 || UNITY_2017_4_27 || UNITY_2017_4_28 || UNITY_2017_4_29
+#define PLAY_INSTANT_HAS_NATIVE_ANDROID_APP_BUNDLE
+#endif
+
 namespace GooglePlayInstant.Editor
 {
     /// <summary>
@@ -28,7 +35,7 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void Build()
         {
-#if !UNITY_2018_4_OR_NEWER
+#if !PLAY_INSTANT_ENABLE_NATIVE_ANDROID_APP_BUNDLE
             if (!AndroidAssetPackagingTool.CheckConvert())
             {
                 return;
@@ -66,14 +73,24 @@ namespace GooglePlayInstant.Editor
         {
             bool buildResult;
             Debug.LogFormat("Building app bundle: {0}", aabFilePath);
-#if UNITY_2018_4_OR_NEWER
+            // As of February 2019, every released version of Unity natively supporting AAB has used Android Gradle
+            // Plugin 3.2.0 which includes bundletool 0.5.0. Bundletool 0.6.0+ is needed for uncompressNativeLibraries
+            // and version 0.6.1+ is needed for uncompressNativeLibraries with instant apps.
+            // One can #define PLAY_INSTANT_ENABLE_NATIVE_ANDROID_APP_BUNDLE to build using the native AAB builder.
+#if PLAY_INSTANT_ENABLE_NATIVE_ANDROID_APP_BUNDLE
+#if PLAY_INSTANT_HAS_NATIVE_ANDROID_APP_BUNDLE
             EditorUserBuildSettings.buildAppBundle = true;
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(aabFilePath, BuildOptions.None);
             buildResult = PlayInstantBuilder.Build(buildPlayerOptions);
-#elif UNITY_2018_3_OR_NEWER
-            EditorUserBuildSettings.buildAppBundle = false;
-            buildResult = AppBundleBuilder.Build(aabFilePath);
 #else
+            throw new System.Exception("Cannot enable native app bundle build on an unsupported Unity version.");
+#endif
+#else
+#if PLAY_INSTANT_HAS_NATIVE_ANDROID_APP_BUNDLE
+            // Disable Unity's built-in AAB build on newer Unity versions before performing the custom AAB build.
+            EditorUserBuildSettings.buildAppBundle = false;
+            // Note: fall through here to the actual build.
+#endif
             buildResult = AppBundleBuilder.Build(aabFilePath);
 #endif
             if (buildResult)
