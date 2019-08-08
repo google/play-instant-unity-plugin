@@ -36,17 +36,18 @@ namespace GooglePlayInstant.Samples.TestApp.Editor
 
             CommandLineBuilder.ConfigureProject(TestScenePaths);
 
-            // Build APK.
-            var apkPath = CommandLineBuilder.GetApkPath();
+
+            var outputFilePrefix = CommandLineBuilder.GetOutputFilePrefix();
+            var apkPath = outputFilePrefix + ".apk";
+            var aabPath = outputFilePrefix + ".aab";
+
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             if (!PlayInstantBuilder.BuildAndSign(buildPlayerOptions))
             {
                 throw new Exception("APK build failed");
             }
 
-            // Also Build an AAB to test Android App Bundle build.
             DownloadBundletoolIfNecessary();
-            var aabPath = apkPath.Substring(0, apkPath.Length - 3) + "aab";
             if (!AppBundlePublisher.Build(aabPath))
             {
                 throw new Exception("AAB build failed");

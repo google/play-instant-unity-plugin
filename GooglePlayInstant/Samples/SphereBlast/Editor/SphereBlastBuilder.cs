@@ -34,7 +34,7 @@ namespace GooglePlayInstant.Samples.SphereBlast.Editor
 
             CommandLineBuilder.ConfigureProject(ScenesInBuild);
 
-            var apkPath = CommandLineBuilder.GetApkPath();
+            var apkPath = CommandLineBuilder.GetOutputFilePrefix() + ".apk";
             var buildPlayerOptions = PlayInstantBuilder.CreateBuildPlayerOptions(apkPath, BuildOptions.None);
             if (!PlayInstantBuilder.BuildAndSign(buildPlayerOptions))
             {
