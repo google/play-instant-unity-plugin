@@ -23,7 +23,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class CommandLineBuilder
     {
-        private const string ApkPathArg = "-outputFile";
+        private const string OutputFileArg = "-outputFile";
 
         /// <summary>
         /// Configures the project to prepare for building the specified scenes in an instant app.
@@ -56,20 +56,36 @@ namespace GooglePlayInstant.Editor
         }
 
         /// <summary>
-        /// Gets the apk path passed in via command line.
+        /// Gets the output file prefix passed in via command line. A file extension such as ".apk" or ".aab"
+        /// should be appended to this prefix, depending on what type of files are created.
         /// </summary>
-        public static string GetApkPath()
+        public static string GetOutputFilePrefix()
+        {
+            var apkPath = GetCommandLineArg(OutputFileArg);
+            if (string.IsNullOrEmpty(apkPath))
+            {
+                throw new Exception(string.Format("Missing required argument \"{0}\"", OutputFileArg));
+            }
+
+            return apkPath;
+        }
+
+        /// <summary>
+        /// Looks for the specified string within the command line arguments and returns the string that follows it,
+        /// or null if the specified string is not found.
+        /// </summary>
+        public static string GetCommandLineArg(string argName)
         {
             var args = Environment.GetCommandLineArgs();
             for (var i = 0; i < args.Length - 1; i++)
             {
-                if (args[i] == ApkPathArg)
+                if (args[i] == argName)
                 {
                     return args[i + 1];
                 }
             }
 
-            throw new Exception(string.Format("Missing required argument \"{0}\"", ApkPathArg));
+            return null;
         }
 
         private static void SetTargetArchitectures()

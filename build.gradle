@@ -6,7 +6,6 @@ buildscript {
     repositories {
         google()
         jcenter()
-        mavenLocal()
     }
 }
 
@@ -15,7 +14,7 @@ buildscript {
  */
 project.ext {
     // The Unity Editor executable path can be passed in from the command line:
-    //   gradle -PunityExe=/path/to/unity/editor
+    //   -PunityExe=/path/to/unity/editor
     // If the path is not provided, a default path will be tried based on the OS.
     if (!project.hasProperty('unityExe')) {
         def osName = System.getProperty('os.name').toLowerCase();
@@ -23,65 +22,102 @@ project.ext {
             unityExe = '/Applications/Unity/Unity.app/Contents/MacOS/Unity'
         } else if (osName.contains('windows')) {
             unityExe = 'C:\\Program Files\\Unity\\Editor\\Unity.exe'
-        } else if (os_name.contains('linux')) {
+        } else if (osName.contains('linux')) {
             unityExe = '/opt/Unity/Editor/Unity'
         } else {
             throw new GradleException("Unsupported OS: $osName")
         }
     }
-    def unityExeFound = (new File(unityExe)).exists();
-    if (!unityExeFound) {
+    if (!file(unityExe).exists()) {
         throw new GradleException("Unity Editor executable not found: ${unityExe}")
     }
 
-    // If the git project is located directly under the Assets folder, then we move up two
-    // directories for the root of the build path. This avoids conflicts in a working Unity
-    // project where we'd copy files and get duplicate class name build errors.
-    def rootPath = file('.')
-    def assetsPath = rootPath.getParentFile()
-    if (assetsPath.getName() == 'Assets') {
-        rootPath = assetsPath.getParentFile()
+    // Determine where we are relative to the Assets directory. We will copy
+    // relevant files and build/test outside of the existing Unity project.
+    if (file('Assets').isDirectory()) {
+        assetsPath = file('Assets')
+    } else if (file('.').getName() == 'Assets') {
+        assetsPath = file('.')
+    } else if (file('.').getParentFile().getName() == 'Assets') {
+        assetsPath = file('.').getParentFile()
+    } else {
+        throw new GradleException('Unable to locate Assets directory in path')
     }
+
+    def rootPath = assetsPath.getParentFile()
     playInstantBuildPath = "${rootPath}/play-instant-build"
+    playInstantArtifactsPath = "${playInstantBuildPath}/artifacts"
 }
 
-def copyFiles(def projectPath, def exclusions) {
-    description 'Copies files into specified build staging location except for noted exclusions'
+def copyCommonFiles(def projectPath) {
+    description 'Copies project files needed by all tasks into the specified build staging location'
     copy {
-        from 'LICENSE', 'LICENSE.meta'
-        from 'README.md', 'README.md.meta'
-        from 'CONTRIBUTING.md', 'CONTRIBUTING.md.meta'
-        from('GooglePlayInstant')
-        {
-            exclude 'Samples'
+        from("GooglePlayInstant") {
+            exclude 'Samples', 'Samples.meta', 'Tests', 'Tests.meta'
         }
         into "${projectPath}/Assets/GooglePlayInstant"
-        exclude exclusions
     }
     copy {
-        from 'GooglePlayInstant.meta'
+        from "GooglePlayInstant.meta"
         into "${projectPath}/Assets"
     }
 }
 
-def buildApp(def projectPath, def buildMethod, def logFile, def outputFile) {
+def buildApp(def executeMethod, def projectPath) {
     description 'Calls Unity on the command line to build the specified app'
-    println "Building app: ${outputFile}"
+    def projectName = file(projectPath).getName()
+    def logFile = "${playInstantArtifactsPath}/${projectName}.log"
+    // Note: this a prefix and the Editor build script should add a suffix, e.g. '.apk'.
+    def outputFile = "${playInstantArtifactsPath}/${projectName}"
+    println "Building app: ${projectName}"
     def argv = [
-        '-batchmode',
-        '-nographics',
-        '-buildTarget',
-        'Android',
-        '-projectPath',
-        projectPath,
-        '-executeMethod',
-        buildMethod,
-        '-logFile',
-        logFile,
-        '-outputFile',
-        outputFile,
-        '-quit'
+            '-batchmode',
+            '-quit',
+            '-nographics',
+            '-buildTarget',
+            'Android',
+            '-executeMethod',
+            executeMethod,
+            '-projectPath',
+            projectPath,
+            '-logFile',
+            logFile,
+            '-outputFile',
+            outputFile
     ]
+    exec {
+        executable unityExe
+        args argv
+    }
+    // The symbols files created during IL2CPP builds are each ~400MB.
+    // Delete these files so they don't get archived with each build.
+    delete fileTree(playInstantArtifactsPath) {
+        include '*.symbols.zip'
+    }
+}
+
+def exportUnityPackage(def pluginName, def projectPath) {
+    def utilsFilePath = "${projectPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
+    def utilsFileContents = new File(utilsFilePath).text
+    def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
+    def outputFile = "${playInstantArtifactsPath}/${pluginName}-${pluginVersion}.unitypackage"
+    def logFile = "${playInstantArtifactsPath}/${pluginName}.log"
+    def argv = [
+            '-batchmode',
+            '-quit',
+            '-nographics',
+            '-projectPath',
+            projectPath,
+            '-logFile',
+            logFile,
+            '-exportPackage',
+            'Assets/GooglePlayInstant'
+    ]
+    if (file("${projectPath}/Assets/Plugins/Android").isDirectory()) {
+        argv << 'Assets/Plugins/Android'
+    }
+    argv << outputFile
+
     exec {
         executable unityExe
         args argv
@@ -89,97 +125,69 @@ def buildApp(def projectPath, def buildMethod, def logFile, def outputFile) {
 }
 
 task exportPlugin {
-    description 'Creates and exports the Plugin as a .unitypackage'
-    def buildPath = "${playInstantBuildPath}/plugin"
+    description 'Creates and exports the plugin as a .unitypackage'
+    def projectPath = "${playInstantBuildPath}/plugin"
     doFirst {
-        copyFiles(buildPath, ['Tests'])
+        copyCommonFiles(projectPath)
     }
-
     doLast {
-        def utilsFilePath = "${buildPath}/Assets/GooglePlayInstant/GooglePlayInstantUtils.cs"
-        def utilsFileContents = new File(utilsFilePath).text
-        def pluginVersion = (utilsFileContents =~ /PluginVersion = "(.+)";/)[0][1]
-        def packageFileName = "google-play-instant-plugin-${pluginVersion}.unitypackage"
-        def exportFileName = file(packageFileName).getPath()
-        def logFile = file("${packageFileName}.log").getPath()
-        def argv = [
-                '-batchmode',
-                '-nographics',
-                '-projectPath',
-                buildPath,
-                '-logFile',
-                logFile,
-                '-exportPackage',
-                'Assets/GooglePlayInstant',
-                exportFileName,
-                '-quit'
-        ]
-        exec {
-            executable unityExe
-            args argv
-        }
+        exportUnityPackage('play-instant-plugin', projectPath)
     }
 }
 
-task zipTestApp(type: Zip) {
-   mustRunAfter 'buildTestApp'
-   from playInstantBuildPath
-   include "testapp.apk"
-   archiveName "testapp.zip"
-   destinationDir file(playInstantBuildPath)
-}
-
-task buildTestApp {
-    description 'Creates the instant app test project, then builds a test app'
+task buildInstantTestApp {
+    description 'Builds the Google Play Instant test app'
     def buildFunction = 'GooglePlayInstant.Samples.TestApp.Editor.TestAppBuilder.Build'
-    def buildPath = "${playInstantBuildPath}/testapp"
-    def logFile = file("testapp.log").getPath()
-    def outputFile = file("${playInstantBuildPath}/testapp.apk");
-        
+    def projectPath = "${playInstantBuildPath}/testapp"
     doFirst {
-        copyFiles(buildPath, ['Tests'])
+        copyCommonFiles(projectPath)
         copy {
-            from 'GooglePlayInstant/Samples/TestApp'
-            into "${buildPath}/Assets/TestApp"
+            from "GooglePlayInstant/Samples/TestApp"
+            into "${projectPath}/Assets/TestApp"
         }
     }
     doLast {
-        buildApp(buildPath, buildFunction, logFile, outputFile)
+        buildApp(buildFunction, projectPath)
     }
 }
 
 task buildSphereBlastApp {
     description 'Builds the SphereBlast sample as an instant app'
     def buildFunction = 'GooglePlayInstant.Samples.SphereBlast.Editor.SphereBlastBuilder.Build'
-    def buildPath = "${playInstantBuildPath}/sphereblastapp"
-    def logFile = file("sphereblastapp.log").getPath()
-    def outputFile = file("${playInstantBuildPath}/sphereblast.apk");
-
+    def projectPath = "${playInstantBuildPath}/sphereblast"
     doFirst {
-        copyFiles(buildPath, ['Tests'])
+        copyCommonFiles(projectPath)
         copy {
-            from 'GooglePlayInstant/Samples/SphereBlast'
-            into "${buildPath}/Assets/SphereBlast"
+            from "GooglePlayInstant/Samples/SphereBlast"
+            into "${projectPath}/Assets/SphereBlast"
         }
     }
     doLast {
-        buildApp(buildPath, buildFunction, logFile, outputFile)
+        buildApp(buildFunction, projectPath)
     }
 }
 
 task tests {
-    description 'Runs unit tests with Unity test runner'
-    def buildPath = "${playInstantBuildPath}/tests"
+    description 'Runs Editor unit tests with Unity test runner'
+    def projectPath = "${playInstantBuildPath}/tests"
+    def logFile = "${playInstantArtifactsPath}/tests.log"
+    def resultFile = "${playInstantArtifactsPath}/tests.xml"
     doFirst {
-        copyFiles(buildPath, [])
+        copyCommonFiles(projectPath)
+        copy {
+            from "GooglePlayInstant/Tests"
+            into "${projectPath}/Assets/GooglePlayInstant/Tests"
+        }
     }
     doLast {
         def argv = [
                 '-batchmode',
                 '-projectPath',
-                buildPath,
+                projectPath,
                 '-logFile',
-                'test.log',
+                logFile,
+                '-editorTestsResultFile',
+                resultFile,
                 '-runEditorTests'
         ]
         exec {
@@ -192,20 +200,7 @@ task tests {
 task clean(type: Delete) {
     description 'Removes build artifacts'
     delete playInstantBuildPath
-    delete fileTree('.') {
-        include 'local.properties', 'local.properties.meta',
-                '*.log', '*.log.meta',
-                '*.unitypackage', '*.unitypackage.meta',
-                'TestResults*.xml', 'TestResults*.xml.meta'
-    }
-}
-
-task automatedTests {
-    dependsOn 'exportPlugin'
-    dependsOn 'tests'
-    dependsOn 'buildTestApp'
-    dependsOn 'zipTestApp'
-    dependsOn 'buildSphereBlastApp'
 }
 
 project.defaultTasks = ['tests', 'exportPlugin']
+
