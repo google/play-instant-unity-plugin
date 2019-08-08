@@ -29,19 +29,20 @@ project.ext {
         }
     }
     if (!file(unityExe).exists()) {
-        throw new GradleException("Unity Editor executable not found: ${unityExe}")
+        throw new GradleException("Unity Editor executable not found: $unityExe")
     }
 
     // Determine where we are relative to the Assets directory. We will copy
     // relevant files and build/test outside of the existing Unity project.
+    def currentDirectory = file('.')
     if (file('Assets').isDirectory()) {
         assetsPath = file('Assets')
-    } else if (file('.').getName() == 'Assets') {
-        assetsPath = file('.')
-    } else if (file('.').getParentFile().getName() == 'Assets') {
-        assetsPath = file('.').getParentFile()
+    } else if (currentDirectory.getName() == 'Assets') {
+        assetsPath = currentDirectory
+    } else if (currentDirectory.getParentFile().getName() == 'Assets') {
+        assetsPath = currentDirectory.getParentFile()
     } else {
-        throw new GradleException('Unable to locate Assets directory in path')
+        throw new GradleException("Unable to locate Assets directory in path: $currentDirectory")
     }
 
     def rootPath = assetsPath.getParentFile()
