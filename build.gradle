@@ -29,25 +29,21 @@ project.ext {
         }
     }
     if (!file(unityExe).exists()) {
-        throw new GradleException("Unity Editor executable not found: $unityExe")
+        throw new GradleException("Unity Editor not found: $unityExe")
     }
 
-    // Determine where we are relative to the Assets directory. We will copy
-    // relevant files and build/test outside of the existing Unity project.
-    def currentDirectory = file('.')
-    if (file('Assets').isDirectory()) {
-        assetsPath = file('Assets')
-    } else if (currentDirectory.getName() == 'Assets') {
-        assetsPath = currentDirectory
-    } else if (currentDirectory.getParentFile().getName() == 'Assets') {
-        assetsPath = currentDirectory.getParentFile()
-    } else {
-        throw new GradleException("Unable to locate Assets directory in path: $currentDirectory")
+    // If the git project is located directly under the Assets folder, then we move up two
+    // directories for the root of the build path. This avoids conflicts in a working Unity
+    // project where we'd copy files and get duplicate class name build errors.
+    def rootPath = file('.')
+    def assetsPath = rootPath.getParentFile()
+    if (assetsPath.getName() == 'Assets') {
+        rootPath = assetsPath.getParentFile()
     }
 
-    def rootPath = assetsPath.getParentFile()
     playInstantBuildPath = "${rootPath}/play-instant-build"
     playInstantArtifactsPath = "${playInstantBuildPath}/artifacts"
+    file(playInstantArtifactsPath).mkdirs();
 }
 
 def copyCommonFiles(def projectPath) {
