@@ -52,13 +52,13 @@ project.ext {
 def copyCommonFiles(def projectPath) {
     description 'Copies project files needed by all tasks into the specified build staging location'
     copy {
-        from("GooglePlayInstant") {
+        from('GooglePlayInstant') {
             exclude 'Samples', 'Samples.meta', 'Tests', 'Tests.meta'
         }
         into "${projectPath}/Assets/GooglePlayInstant"
     }
     copy {
-        from "GooglePlayInstant.meta"
+        from 'GooglePlayInstant.meta'
         into "${projectPath}/Assets"
     }
 }
@@ -142,7 +142,7 @@ task buildInstantTestApp {
     doFirst {
         copyCommonFiles(projectPath)
         copy {
-            from "GooglePlayInstant/Samples/TestApp"
+            from 'GooglePlayInstant/Samples/TestApp'
             into "${projectPath}/Assets/TestApp"
         }
     }
@@ -158,7 +158,7 @@ task buildSphereBlastApp {
     doFirst {
         copyCommonFiles(projectPath)
         copy {
-            from "GooglePlayInstant/Samples/SphereBlast"
+            from 'GooglePlayInstant/Samples/SphereBlast'
             into "${projectPath}/Assets/SphereBlast"
         }
     }
@@ -175,7 +175,7 @@ task tests {
     doFirst {
         copyCommonFiles(projectPath)
         copy {
-            from "GooglePlayInstant/Tests"
+            from 'GooglePlayInstant/Tests'
             into "${projectPath}/Assets/GooglePlayInstant/Tests"
         }
     }
