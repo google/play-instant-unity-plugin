@@ -23,7 +23,7 @@ namespace GooglePlayInstant.Editor
     /// </summary>
     public static class Bundletool
     {
-        public const string BundletoolVersion = "0.7.2";
+        public const string BundletoolVersion = "0.10.2";
 
         /// <summary>
         /// BundleTool config optimized for Unity-based instant apps.
