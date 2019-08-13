@@ -148,6 +148,14 @@ task buildInstantTestApp {
     }
 }
 
+task zipInstantTestApp(type: Zip) {
+    mustRunAfter 'buildInstantTestApp'
+    from playInstantArtifactsPath
+    include 'testapp.apk'
+    archiveName 'testapp.zip'
+    destinationDir file(playInstantArtifactsPath)
+}
+
 task buildSphereBlastApp {
     description 'Builds the SphereBlast sample as an instant app'
     def buildFunction = 'GooglePlayInstant.Samples.SphereBlast.Editor.SphereBlastBuilder.Build'
