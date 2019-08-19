@@ -5,22 +5,26 @@
 The Google Play Instant Plugin for Unity Beta simplifies conversion of a Unity-based Android app into an instant app that can be deployed through [Google Play Instant](https://developer.android.com/topic/google-play-instant/).
 
 The plugin’s Unity Editor (IDE) features include:
+
  * The option to switch between Installed and Instant build modes.
  * A centralized view of Android Player Settings that should be changed to support Google Play Instant.
  * An action to build the instant app for publishing on Google Play Console.
  * An action to build and run the instant app on an adb connected Android device.
 
 The plugin’s Unity Engine (runtime) features include:
+
  * A method for displaying a Play Store dialog to install the full version of the instant app.
 
 ## Installing the Plugin
 
 ### Prerequisites
- * Unity 5.6, 2017.4, or 2018.2.
-   * Note: other versions may work, but are not tested regularly.
+
+ * Unity 5.6, 2017.4, or 2018.4.
+   * Note: other versions may work, but are not tested as regularly as these.
  * A device running Android 5.0 (Lollipop) or newer.
 
 ### Download and Install
+
  * Obtain the latest .unitypackage from the releases page.
  * Import the .unitypackage by clicking the Unity IDE menu option _Assets > Import package > Custom Package_ and importing all items.
 
@@ -29,14 +33,24 @@ After import there will be a "PlayInstant" menu in Unity providing several optio
 
 ### Build Settings...
 Opens a window that enables switching between "Installed" and "Instant" development modes. Switching to "Instant" performs the following changes:
+
  * Creates a Scripting Define Symbol called PLAY_INSTANT that can be used for scripting with #if PLAY_INSTANT / #endif.
- * Provides a text box for optionally entering an "Instant Apps URL" that is used to launch the instant app.
-   * If a URL is provided, you will need verify ownership of the domain by [Configuring Digital Asset Links](https://developer.android.com/training/app-links/verify-site-associations#web-assoc).
-   * If a URL is not entered, a URL will be provided for you at https://instant.apps/your.package.name.
  * Manages updates to the AndroidManifest.xml for certain required changes such as [android:targetSandboxVersion](https://developer.android.com/guide/topics/manifest/manifest-element#targetSandboxVersion).
+
+#### Providing URL Access to an Instant App
+If you'd like users to be able to open your instant app outside of the Play Store, such as in a banner on your app's website, complete one of the following tasks:
+
+ * Use the Launch API (easier):
+
+<pre>
+https://play.google.com/store/apps/details?id=<i>package_name</i>&amp;launch=true
+</pre>
+
+ * Enter a URL in the "Instant Apps URL" text box. You will need to verify ownership of the domain by [Configuring Digital Asset Links](https://developer.android.com/training/app-links/verify-site-associations#web-assoc).
 
 #### Scenes in Build
 The Play Instant Build Settings window also provides control over the scenes included in the build:
+
  * By default the scenes included in the build are the enabled scenes from Unity's "Build Settings" window.
  * The scenes included in the build can be customized via a comma separated list of scene names.
  * Scenes that are not included in the build, but that are loaded via Asset Bundles, may have required components removed by engine stripping. Specify the path to an Asset Bundle Manifest file to retain these required components.
@@ -61,6 +75,7 @@ Use the "Loading Screen" tab to create a scene consisting of a 2D loading screen
 
 ### Build and Run
 This option runs the instant app on an adb connected device by performing the following steps:
+
  * Verifies that required Unity Build Settings and Android Player Settings are configured correctly.
  * Invokes Unity's BuildPlayer method to create an APK containing all scenes that are currently enabled in "Build Settings".
  * If the connected device is running an Android version before 8.0 (Oreo), provisions the device for Instant App development by installing "Google Play Services for Instant Apps" and "Instant Apps Development Manager" (only if not done already).
@@ -102,6 +117,7 @@ var sessionInfo = GooglePlayInstant.InstallLauncher.GetPostInstallIntentStringEx
 ```
 
 **Notes:**
+
  * The extras included in the `postInstallIntent` may not reach the installed app if the user installs the app but cancels the post-install launch. Passing intent extras is better suited for retaining active session state than it is for retaining persistent state; for the latter refer to the Cookie API.
  * Anyone can construct an intent with extra fields to launch the installed app, so if the payload grants something of value, design the payload so that it can only be used once, cryptographically sign it, and verify the signature on a server.
 
@@ -146,4 +162,5 @@ if (!string.IsNullOrEmpty(playerInfoString))
 ```
 
 ## Known Issues
+
  * If the Unity project has an existing AndroidManifest.xml with multiple VIEW Intents on the main Activity and if an Instant Apps URL is provided, the plugin doesn't know which Intent to modify. This can be worked around by not providing an Instant Apps URL or by manually updating the manifest file.

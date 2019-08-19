@@ -52,11 +52,11 @@ namespace GooglePlayInstant.Tests.Editor
         }
 
         [Test]
-        public void TestGetInstantUri_InstantAppsHost()
+        public void TestGetInstantUri_InstantAppHost()
         {
-            CheckInstantAppsHost("https://instant.apps");
-            CheckInstantAppsHost("https://instant.apps/my.package.name");
-            CheckInstantAppsHost("https://Instant.Apps");
+            CheckInstantAppsHost("https://instant.app");
+            CheckInstantAppsHost("https://instant.app/my.package.name");
+            CheckInstantAppsHost("https://Instant.App");
         }
 
         [Test]
@@ -93,7 +93,7 @@ namespace GooglePlayInstant.Tests.Editor
         {
             string instantUrlError;
             Assert.IsNull(BuildSettingsWindow.GetInstantUri(instantUrl, out instantUrlError));
-            Assert.IsTrue(instantUrlError.StartsWith("Leave \"Instant Apps URL\" blank"));
+            Assert.IsTrue(instantUrlError.Contains("using the Launch API"));
         }
 
         private static void CheckValidUri(string expectedUrl, string actualUrl)
