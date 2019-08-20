@@ -26,7 +26,6 @@ namespace GooglePlayInstant.Editor
     public class BuildSettingsWindow : EditorWindow
     {
         public const string WindowTitle = "Play Instant Build Settings";
-        private const string InstantAppsHostName = "instant.apps";
         private const int WindowMinWidth = 475;
         private const int WindowMinHeight = 400;
         private const int FieldWidth = 175;
@@ -115,11 +114,13 @@ namespace GooglePlayInstant.Editor
 
                 var packageName = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) ?? "package-name";
                 EditorGUILayout.LabelField(
-                    "Instant apps are launched from web search, advertisements, etc via a URL. Specify the URL here " +
-                    "and configure Digital Asset Links. Or, leave the URL blank and one will automatically be " +
-                    "provided at:", descriptionTextStyle);
-                EditorGUILayout.SelectableLabel(string.Format(
-                    "https://{0}/{1}", InstantAppsHostName, packageName), descriptionTextStyle);
+                    "Users can try instant apps in the Play Store by clicking the \"Try Now\" button. " +
+                    "Optionally, specify a URL here and configure Digital Asset Links to enable launching the " +
+                    "instant app by URL. Instant apps can also always be launched using the following Launch API URL:",
+                    descriptionTextStyle);
+                EditorGUILayout.SelectableLabel(
+                    string.Format("https://play.google.com/store/apps/details?id={0}&launch=true", packageName),
+                    descriptionTextStyle);
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
 
@@ -285,12 +286,11 @@ namespace GooglePlayInstant.Editor
                 return null;
             }
 
-            if (uri.Host.ToLower() == InstantAppsHostName)
+            if (uri.Host.ToLower() == "instant.app")
             {
                 instantUrlError =
-                    string.Format(
-                        "Leave \"Instant Apps URL\" blank to get the automatic URL https://{0}/package",
-                        InstantAppsHostName);
+                    "https://instant.app URLs are not recommended. Instead, apps should be launched " +
+                    "using the Launch API or via a URL configured as a Digital Asset Link.";
                 return null;
             }
 
