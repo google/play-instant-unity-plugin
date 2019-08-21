@@ -14,6 +14,7 @@
 
 using System;
 using GooglePlayInstant.Editor.AndroidManifest;
+using GooglePlayInstant.Editor.BuildTools;
 using UnityEditor;
 
 namespace GooglePlayInstant.Editor
@@ -30,6 +31,8 @@ namespace GooglePlayInstant.Editor
         /// </summary>
         public static void ConfigureProject(string[] scenesInBuild)
         {
+            AndroidSdk.ApplyEditorPrefsWorkaround();
+
             var requiredPolicies = PlayInstantSettingPolicy.GetRequiredPolicies();
             foreach (var policy in requiredPolicies)
             {
