@@ -21,6 +21,7 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
     using System.IO;
     using System.Text.RegularExpressions;
     using UnityEditor;
+    using UnityEngine;
 
     /// <summary>
     /// Utilities to determine Java tool installation and validate the Java installation for the
@@ -54,9 +55,53 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
 #if UNITY_2019_3_OR_NEWER
                 return UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath;
 #else
-                return UnityEditor.EditorPrefs.GetString("JdkPath");
+                var jdkPath = GetEmbeddedJdkPath();
+                return string.IsNullOrEmpty(jdkPath) ? EditorPrefs.GetString("JdkPath") : jdkPath;
 #endif
             }
+        }
+
+        /// <summary>
+        /// Returns the path to Unity's embedded version of OpenJDK, or null if not enabled.
+        /// Unity 2018.3 added the option to use a version of OpenJDK that is installed with Unity.
+        /// </summary>
+        private static string GetEmbeddedJdkPath() {
+            // Users switching between Unity versions may have JdkUseEmbedded present in their preferences even though
+            // their current version of Unity does not support it. So we return null for older versions to avoid that
+            // case.
+#if !UNITY_2018_3_OR_NEWER
+            return null;
+#else
+            // For Unity 2018.3 through 2019.2 construct the embedded JDK path as follows.
+            if (EditorPrefs.GetInt("JdkUseEmbedded") != 1) {
+                return null;
+            }
+
+            string pathRelativeToEditor;
+            switch (Application.platform) {
+                case RuntimePlatform.LinuxEditor:
+                    pathRelativeToEditor = "Data/PlaybackEngines/AndroidPlayer/Tools/OpenJdk/Linux/";
+                    break;
+                case RuntimePlatform.OSXEditor:
+                    pathRelativeToEditor = "PlaybackEngines/AndroidPlayer/Tools/OpenJdk/MacOS/";
+                    break;
+                case RuntimePlatform.WindowsEditor:
+                    pathRelativeToEditor = "Data/PlaybackEngines/AndroidPlayer/Tools/OpenJdk/Windows/";
+                    break;
+                default:
+                    throw new Exception(
+                        "Cannot get embedded JDK path for unsupported platform: " + Application.platform);
+            }
+
+            var unityEditor = new FileInfo(EditorApplication.applicationPath);
+            if (unityEditor.DirectoryName == null) {
+                throw new Exception(
+                    "Cannot get embedded JDK path. EditorApplication.applicationPath returned an unexpected value: " +
+                    EditorApplication.applicationPath);
+            }
+
+            return Path.Combine(unityEditor.DirectoryName, pathRelativeToEditor);
+#endif
         }
 
         /// <summary>
