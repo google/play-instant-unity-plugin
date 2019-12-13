@@ -28,6 +28,17 @@ namespace GooglePlayInstant.Editor.AndroidManifest
     public class PostGenerateGradleProjectAndroidManifestUpdater : IAndroidManifestUpdater,
         IPostGenerateGradleAndroidProject
     {
+        // The path to the base manifest changed as part of Unity's "use Unity as a library" feature:
+        // https://blogs.unity3d.com/2019/06/17/add-features-powered-by-unity-to-native-mobile-apps/
+        private const string AndroidManifestRelativePath =
+#if UNITY_2019_3_OR_NEWER
+            // Expected gradle project path: "Temp/gradleOut/unityLibrary"
+            "../launcher/src/main/AndroidManifest.xml";
+#else
+            // Expected gradle project path: "Temp/gradleOut"
+            "src/main/AndroidManifest.xml";
+#endif
+
         public int callbackOrder
         {
             get { return 100; }
@@ -41,7 +52,7 @@ namespace GooglePlayInstant.Editor.AndroidManifest
             }
 
             // Update the final merged AndroidManifest.xml prior to the gradle build.
-            var manifestPath = Path.Combine(path, "src/main/AndroidManifest.xml");
+            var manifestPath = Path.Combine(path, AndroidManifestRelativePath);
             Debug.LogFormat("Updating manifest for Play Instant: {0}", manifestPath);
 
             Uri uri = null;

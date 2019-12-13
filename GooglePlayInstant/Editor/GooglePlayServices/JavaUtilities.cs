@@ -49,7 +49,14 @@ namespace GooglePlayInstant.Editor.GooglePlayServices {
         /// Get the JDK path (JAVA_HOME) configured in the Unity editor.
         /// </summary>
         private static string EditorJavaHome {
-            get { return UnityEditor.EditorPrefs.GetString("JdkPath"); }
+            get
+            {
+#if UNITY_2019_3_OR_NEWER
+                return UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath;
+#else
+                return UnityEditor.EditorPrefs.GetString("JdkPath");
+#endif
+            }
         }
 
         /// <summary>
