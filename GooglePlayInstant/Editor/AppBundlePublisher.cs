@@ -15,8 +15,8 @@
 // In the Unity 2017 series the EditorUserBuildSettings.buildAppBundle field was introduced in 2017.4.17.
 // It might seem preferable to modify buildAppBundle using reflection, but the field is extern.
 // Instead check for quite a few versions in the 2017.4.17+ series.
-// NOTE: this supports up to UNITY_2017_4_40 and will have to be extended if additional versions are released.
-#if UNITY_2018_3_OR_NEWER || UNITY_2017_4_17 || UNITY_2017_4_18 || UNITY_2017_4_19 || UNITY_2017_4_20 || UNITY_2017_4_21 || UNITY_2017_4_22 || UNITY_2017_4_23 || UNITY_2017_4_24 || UNITY_2017_4_25 || UNITY_2017_4_26 || UNITY_2017_4_27 || UNITY_2017_4_28 || UNITY_2017_4_29 || UNITY_2017_4_30 || UNITY_2017_4_31 || UNITY_2017_4_32 || UNITY_2017_4_33 || UNITY_2017_4_34 || UNITY_2017_4_35 || UNITY_2017_4_36 || UNITY_2017_4_37 || UNITY_2017_4_38 || UNITY_2017_4_39 || UNITY_2017_4_40
+// NOTE: this supports up to UNITY_2017_4_50 and will have to be extended if additional versions are released.
+#if UNITY_2018_3_OR_NEWER || UNITY_2017_4_17 || UNITY_2017_4_18 || UNITY_2017_4_19 || UNITY_2017_4_20 || UNITY_2017_4_21 || UNITY_2017_4_22 || UNITY_2017_4_23 || UNITY_2017_4_24 || UNITY_2017_4_25 || UNITY_2017_4_26 || UNITY_2017_4_27 || UNITY_2017_4_28 || UNITY_2017_4_29 || UNITY_2017_4_30 || UNITY_2017_4_31 || UNITY_2017_4_32 || UNITY_2017_4_33 || UNITY_2017_4_34 || UNITY_2017_4_35 || UNITY_2017_4_36 || UNITY_2017_4_37 || UNITY_2017_4_38 || UNITY_2017_4_39 || UNITY_2017_4_40 || UNITY_2017_4_41 || UNITY_2017_4_42 || UNITY_2017_4_43 || UNITY_2017_4_44 || UNITY_2017_4_45 || UNITY_2017_4_46 || UNITY_2017_4_47 || UNITY_2017_4_48 || UNITY_2017_4_49 || UNITY_2017_4_50
 #define PLAY_INSTANT_HAS_NATIVE_ANDROID_APP_BUNDLE
 #endif
 

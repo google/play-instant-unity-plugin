@@ -29,7 +29,7 @@ namespace GooglePlayInstant
         /// <summary>
         /// The version of the Google Play Instant Unity Plugin.
         /// </summary>
-        public const string PluginVersion = "0.10";
+        public const string PluginVersion = "0.11";
 
         /// <summary>
         /// Return true if this is an instant app build, false if an installed app build.
