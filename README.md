@@ -48,40 +48,40 @@ The new **Google Play Plugins for Unity** no longer supports the ability to set 
 
 This issue occurs when launching an instant app if the following is true:
 1. Your currently released instant app is launchable via a custom URL.
-1. You have uploaded a version of your instant app that does not specify a custom  to alpha or internal test.
-1. You are trying to launch the non-production version of your instant app.
+1. You have uploaded a version of your instant app that does not specify a custom URL to alpha or internal test.
+1. You are trying to launch this non-production version of your instant app.
 
 The latest plugin no longer supports the ability to set a custom instant apps URL. If your app previously included a custom instant apps URL, uploading an app built with the latest plugin could trigger this issue.
 
 There are two workarounds:
-1. The issue will not occur for an instant app in production, so release the app to production to make the issue go away.
-2. If you'd prefer to fix the issue in alpha, add the browsable intent filter and default url tags to the UnityPlayerActivity in your app's manifest:
+1. The issue will not occur for an instant app in production, so release the app to production to eliminate the issue.
+1. If you'd prefer to fix the issue in alpha, add the browsable intent filter and default url tags to the UnityPlayerActivity in your app's manifest:
 ```xml
-            <intent-filter
-                android:autoVerify="true">
+<intent-filter
+    android:autoVerify="true">
 
-                <action
-                    android:name="android.intent.action.VIEW" />
+    <action
+        android:name="android.intent.action.VIEW" />
 
-                <category
-                    android:name="android.intent.category.BROWSABLE" />
+    <category
+        android:name="android.intent.category.BROWSABLE" />
 
-                <category
-                    android:name="android.intent.category.DEFAULT" />
+    <category
+        android:name="android.intent.category.DEFAULT" />
 
-                <data
-                    android:scheme="http"
-                    android:host="<url-host>"
-                    android:pathPrefix="<url-path-prefix>" />
+    <data
+        android:scheme="http"
+        android:host="<url-host>"
+        android:pathPrefix="<url-path-prefix>" />
 
-                <data
-                    android:scheme="https"
-                    android:host="<url-host>"
-                    android:pathPrefix="<url-path-prefix>" />
-            </intent-filter>
+    <data
+        android:scheme="https"
+        android:host="<url-host>"
+        android:pathPrefix="<url-path-prefix>" />
+</intent-filter>
 
-            <meta-data
-                android:name="default-url"
-                android:value="<the-default-url-of-your-released-app>" />
+<meta-data
+    android:name="default-url"
+    android:value="<the-default-url-of-your-released-app>" />
 
 ```
